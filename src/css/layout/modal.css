@@ -1,0 +1,7 @@
+.modal-container {
+    background-color: #fff;
+    border-radius: 10px;
+    height: 80%;
+    border: 1px solid #ddd;
+    /* box-shadow: 0 0 100px 0 #20273180; */
+}

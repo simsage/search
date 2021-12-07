@@ -1,0 +1,20 @@
+
+.alert-message {
+    margin-bottom: 0;
+    z-index: 1200;
+    position: fixed;
+    right: 1.5rem;
+    bottom: 25px;
+    width: 470px;
+    display: inline-block;
+    border-radius: 10px;
+    font-size: 15px;
+    color: #fff;
+    background-color: #f04444f0;
+
+}
+
+.close-alert {
+    cursor: default;
+    float: right;
+}

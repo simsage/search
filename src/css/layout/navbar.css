@@ -1,0 +1,92 @@
+.navbar {
+    width: 100%;
+    height: 70px;
+    border-bottom: 1px solid #ddd;
+    font-size: 14px;
+    background-color: #fff;
+    z-index: 1022;
+}
+.nav-search-container {
+    min-width: 450px;
+    height: 45px;
+    background-color: #f2f2f2;
+    border: 1px solid #f2f2f2;
+    border-radius: 10px;
+    transition: all .3s ease;
+}
+.nav-search-icon {
+    width: 40px;
+    height: 40px;
+    transition: all .3s ease;
+}
+.nav-search-container:hover {
+    border-color: transparent;
+    /* background-color: #1c9bd220; */
+}
+.nav-search-container:focus-within {
+    background-color: #fff;
+    border-color: #1c9bd285;
+}
+.nav-search-container:hover .nav-search-icon,
+.nav-search-container:focus-within .nav-search-icon {
+    color: #1c9bd2;
+}
+.nav-search-container .nav-search-input {
+    width: 100%;
+    height: 100%;
+    background-color: transparent;
+    border: none;
+}
+.org-name {
+    color: #20273180;
+}
+.user-name {
+    font-weight: 500;
+}
+.nav-btn {
+    width: 45px;
+    height: 45px;
+    border: 1px solid #dfdfdf;
+    border-radius: 10px;
+    padding: .3rem;
+}
+.nav-btn:hover {
+    /* border-color: #1c9bd285; */
+    /* color: #1c9bd2; */
+    background-color: #f2f2f2;
+    /* border-color: #f2f2f2; */
+}
+.nav-btn.active {
+    border-color: #1c9bd260;
+    background-color: #1c9bd220;
+    color: #1c9bd2;
+}
+.notifications {
+    position: relative;
+}
+.indicator {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    height: 15px;
+    width: 15px;
+    background-color: #f04444;
+    border-radius: 100%;
+}
+.recents-menu {
+    top: calc(100% + 5px);
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 0 20px 0 #ddd;
+    border: 1px solid #ddd;
+    z-index: 1023;
+    min-width: 100%;
+    overflow: hidden;
+}
+.remove-recent {
+    width: 20px;
+    opacity: .5;
+}
+
+
+

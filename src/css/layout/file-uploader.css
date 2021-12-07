@@ -1,0 +1,65 @@
+
+.file-uploader {
+    position: absolute;
+    z-index: 1100;
+    width: 470px;
+    min-height: 125px;
+    max-height: 400px;
+    right: 1.5rem;
+    bottom: 25px;
+    border-radius: 10px;
+    /* border: 1px solid #ddd; */
+    box-shadow: 0 0 20px 0 #00000022;
+    background-color: #202731ee; 
+    color: #fff;
+    overflow: hidden;
+}
+
+.file-uploader-title {
+    background-color: #202731;
+    font-size: 15px;
+    /* font-weight: 500; */
+}
+
+.file-uploader-content {
+    position:relative;
+    overflow: auto;
+    /* width: 396px; */
+    /* height: calc(100% - 41px); */
+}
+
+.select-files {
+    padding: 10px;
+}
+
+.progress-info-box {
+    font-size: 13px;
+}
+
+.sim-progress {
+    height: 2px;
+}
+
+.alert-box {
+    left: 10px;
+    width: calc(100% - 20px);
+    font-size: 12px;
+}
+
+.title-text {
+    float: left;
+    color: #fff;
+    margin-left: 20px;
+    margin-top: 5px;
+}
+
+.close-uploader {
+    color: #fff;
+    font-size: 25px;
+    top: 10px;
+    margin-right: 10px;
+    float: right;
+    left: calc(100% - 20px);
+    cursor: pointer;
+}
+

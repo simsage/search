@@ -1,0 +1,24 @@
+
+.dms {
+    display: flex;
+    text-align: left;
+}
+.outer {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+.inner {
+    height: calc(100% - 70px);
+    position: relative;
+}
+.overlay {
+    position: fixed;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    background-color: #202731bb;
+    z-index: 1023;
+}

@@ -1,0 +1,28 @@
+.account-dropdown {
+    position: absolute;
+    top: 65px;
+    right: 1.5rem;
+    width: 250px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 0 20px 0 #00000022;
+    z-index: 1023;
+    border: 1px solid #ddd;
+    overflow: hidden;
+}
+.acc-nav {
+    list-style-type: none;
+    width: 100%;
+}
+.acc-item {
+    width: 100%;
+    font-size: 14px;
+    transition: all .3s ease;
+    color: #20273185;
+    /* margin-bottom: 1px; */
+    /* border-radius: 5px; */
+}
+.acc-item:hover {
+    background-color: #1c9bd220;
+    color: #1c9bd2;
+}

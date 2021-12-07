@@ -1,0 +1,21 @@
+
+
+.rail-outer-style {
+    position: absolute;
+    width: 100%;
+    height: 42px;
+    transform: translate(0%, -50%);
+    border-radius: 7px;
+    cursor: pointer;
+}
+
+.rail-inner-style {
+    position: absolute;
+    width: 100%;
+    height: 1px;
+    transform: translate(0%, -50%);
+    border-radius: 7px;
+    pointer-events: none;
+    background-color: #ddd;
+}
+

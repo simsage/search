@@ -1,0 +1,42 @@
+export const BUSY = "busy";
+export const CLOSE_ERROR = "close error";
+export const ERROR = "error";
+export const SIGN_IN = "sign in";
+export const SIGN_OUT = "sign out";
+
+// dashboard
+export const SET_USER_DASHBOARD = "set user dashboard";
+export const SELECT_ROOT = "select root";
+export const SELECT_SOURCE = "select source";
+export const UPDATE_SOURCE = "update source";
+export const SELECT_FOLDER = "select folder";
+export const SELECT_FILE = "select file";
+
+export const DO_SEARCH = "do search";
+export const HIDE_SEARCH_RESULTS = "hide search results";
+
+export const SET_COMMENTS = "set comments";
+export const SET_FILE_HASH_TAGS = "set file hash tags";
+
+export const SET_SUBSCRIPTIONS = "set subscriptions";
+export const SET_CHECKOUTS = "set checkout";
+export const LOAD_NOTIFICATIONS = "load notifications";
+
+// metadata category management
+export const CLEAR_CATEGORY_FILTER = "clear category filter";
+export const SET_CATEGORY_FILTER = "set category filter";
+export const SET_GROUP_SIMILAR = "set group similar";
+export const SET_SYNSET = "set synset";
+export const SET_TAG_LIST = "set tag list";
+
+export const SHOW_MENU = "show menu";
+export const CLOSE_MENUS = "close menus";
+
+// file uploader
+export const SHOW_FILE_UPLOADER = "show file uploader";
+
+export const SHOW_LOCKS = "show locks";
+export const SHOW_SUBSCRIPTIONS = "show subscriptions";
+
+// change the view from grid to list or vice versa
+export const CHANGE_VIEW = "change view";
