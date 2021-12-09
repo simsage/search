@@ -21,6 +21,8 @@ export class CrawlerTile extends Component {
             return <h1>crawler-tile.js: Something went wrong.</h1>;
         }
         const type_str = Api.sourceTypeToIcon(this.props.type);
+        const last_crawler = Api.unixTimeConvert(this.props.last_crawled);
+        const type_name = Api.sourceTypeToName(this.props.type);
         return (
             <div className={(this.props.sideBarOpen ? "col-6" : "col-3") + " mb-3 px-2 transition no-select"}
                  onClick={() => {if (this.props.onSelectSource) this.props.onSelectSource()}}>
@@ -30,12 +32,14 @@ export class CrawlerTile extends Component {
                     </div>
                     <div className="d-flex justify-content-between align-items-center p-3">
                         <div className="d-flex flex-column px-3 pb-3 text-start">
-                            <label className="crawler-label mb-0">{this.props.name}</label>
-                            <p className="crawler-meta mb-2">Web Crawler</p>
+                            <label className="crawler-label mb-0" title={type_name}>{this.props.name}</label>
+                            <p className="crawler-meta mb-2" title={type_name}>{type_name}</p>
                             <p className="crawler-meta mb-0">Contains <i className="fw-bold">{this.props.num_documents}</i> Documents</p>
-                            {this.props.last_crawled &&
-                            <p className="crawler-meta mb-0">Last Crawled at <i
-                                className="fw-bold">{Api.unixTimeConvert(this.props.last_crawled)}</i></p>
+                            { last_crawler !== "" &&
+                                <p className="crawler-meta mb-0">Last Crawled at <i className="fw-bold">{last_crawler}</i></p>
+                            }
+                            {
+                                last_crawler === "" &&  <p className="crawler-meta mb-0">&nbsp;</p>
                             }
                         </div>
                     </div>

@@ -184,6 +184,7 @@ export default class MainSection extends Component {
                                             sideBarOpen={this.props.sideBarToggled}
                                             onShowMenu={(item) => {if (this.props.onShowMenu) this.props.onShowMenu(item)}}
                                             onSelectSource={() => {if (this.props.onSelectSource) this.props.onSelectSource(crawler.sourceId)}}
+                                            type={crawler.itemType}
                                             name={crawler.name}
                                             num_documents={crawler.contentList.length}
                                             last_crawled={crawler.endTime}

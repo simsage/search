@@ -112,11 +112,9 @@ export const reducer = (state, action) => {
 
         // sign-out a user
         case SIGN_OUT: {
+            const init_state = initializeState();
             return {
-                ...state,
-                session: null,
-                user: null,
-                busy: false,
+                ...init_state,
             }
         }
 
@@ -238,6 +236,12 @@ export const reducer = (state, action) => {
                 for (const content_item of source.contentList) {
                     content_item.show_menu = false;
                     if (content_item.isFolder) {
+                        if (content_item.url && content_item.url.lastIndexOf('/') !== content_item.url.length - 1) {
+                            content_item.url += '/';
+                        }
+                        if (content_item.parentFolderUrl && content_item.parentFolderUrl.lastIndexOf('/') !== content_item.parentFolderUrl.length - 1) {
+                            content_item.parentFolderUrl += '/';
+                        }
                         folder_list.push(content_item);
                     } else {
                         file_list.push(content_item);
@@ -274,8 +278,13 @@ export const reducer = (state, action) => {
         case UPDATE_SOURCE: {
             let parent_folder_tracker = state.parent_folder_tracker;
             const updated_source = action.source;
+            const source_list = state.source_list;
             if (updated_source && updated_source.sourceId) {
-                const source = get_source_by_id(updated_source.sourceId, state.source_list);
+                let source = get_source_by_id(updated_source.sourceId, source_list);
+                if (source === null) {
+                    source_list.push(updated_source);
+                    source = updated_source;
+                }
                 if (source) {
                     source.contentList = updated_source.contentList;
                     // get the folders and files for this source
@@ -292,6 +301,7 @@ export const reducer = (state, action) => {
                     parent_folder_tracker["" + source.sourceId] = updated_source;
                     return {
                         ...state,
+                        source_list: source_list,
                         parent_folder_tracker: parent_folder_tracker,
                         folder_list: folder_list,
                         file_list: file_list,
@@ -320,6 +330,7 @@ export const reducer = (state, action) => {
         case SELECT_FOLDER: {
             const folder = action.folder;
             let source = get_source_by_id(folder.sourceId, state.source_list);
+            console.log("folder", folder, source);
             if (source === null) source = {"name": "unknown source"};
             const parent_folder_tracker = state.parent_folder_tracker;
             let folder_tracker = state.folder_tracker;
@@ -342,7 +353,10 @@ export const reducer = (state, action) => {
             }
             // create a new breadcrumb starting at the top
             const breadcrumb_list = [{"name": "Source"}, {"name": source.name, "source": source}];
-            let reverse_parents = [{"name": action.folder.name, "folder": folder}];
+            let reverse_parents = [];
+            if (action && action.folder && action.folder.name !== '/') {
+                reverse_parents.push({"name": action.folder.name, "folder": folder});
+            }
             // get all the folders that lead to this one for the breadcrumb
             let parent = get_parent_folder(folder, folder_tracker);
             while (parent !== null) {

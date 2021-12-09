@@ -213,7 +213,7 @@ export default class SearchResults extends Component {
                                 }
                                 { sr && sr.urlList && sr.urlList.length > 0 &&
                                     sr.urlList.map((url, i) => {
-                                        return (<div className="pt-2">
+                                        return (<div className="pt-2" key={i}>
                                                     <a href={url} target="_blank" rel="noreferrer" key={i}
                                                    className="pointer-cursor py-1 fw-bold" title={url}>{url}</a>
                                                 </div>);

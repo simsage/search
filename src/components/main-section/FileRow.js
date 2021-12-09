@@ -99,7 +99,7 @@ export class FileRow extends Component {
             return <h1>file-row.js: Something went wrong.</h1>;
         }
 
-        let name = (this.props.file && this.props.file.name) ? this.props.file.name : "index.html";
+        let name = (this.props.file && this.props.file.name && this.props.file.name !== '/') ? this.props.file.name : "index.html";
         const url = (this.props.file && this.props.file.url) ? this.props.file.url : "";
         const type = (this.props.type) ? this.props.type : "";
         const show_menu = (this.props.file && this.props.file.show_menu);

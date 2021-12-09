@@ -555,6 +555,34 @@ export const appCreators = {
         } // end of else
     },
 
+    // add a new folder to a parent folder
+    addSource: (source_name) => async (dispatch, getState) => {
+        dispatch({type: CLOSE_MENUS});
+        if (!source_name || source_name.trim().length === 0) {
+            dispatch({type: ERROR, title: "Error", error: "addSource: invalid parameter(s)"})
+        } else {
+            dispatch({type: BUSY, busy: true});
+            const session_id = getState().appReducer.session.id;
+            await Comms.http_post('/dms/source',
+                session_id,
+                {
+                    organisationId: window.ENV.organisation_id,
+                    kbId: window.ENV.kb_id,
+                    sourceName: source_name
+                },
+                (response) => {
+                    const data = response.data;
+                    // is this a "set source" or a "set folder"?
+                    dispatch({type: UPDATE_SOURCE, source: data});
+                },
+                (error) => {
+                    dispatch({type: ERROR, title: "Error", error: error})
+                }
+            );
+
+        } // end of else
+    },
+
     updateFolder: (folder) => async (dispatch, getState) => {
         if (folder) {
             dispatch({type: SELECT_FOLDER, folder: folder});

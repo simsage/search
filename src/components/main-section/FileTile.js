@@ -98,7 +98,7 @@ export class FileTile extends Component {
         if (this.state.has_error) {
             return <h1>file-tile.js: Something went wrong.</h1>;
         }
-        let name = (this.props.file && this.props.file.name) ? this.props.file.name : "index.html";
+        let name = (this.props.file && this.props.file.name && this.props.file.name !== '/') ? this.props.file.name : "index.html";
         const url = (this.props.file && this.props.file.url) ? this.props.file.url : "";
         const show_menu = (this.props.file && this.props.file.show_menu);
         const type = this.props.type ? this.props.type : "";

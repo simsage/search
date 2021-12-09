@@ -1,6 +1,6 @@
 {
   "name": "simsage-dms-v2",
-  "version": "1.0.0",
+  "version": "7.3.6",
   "private": true,
   "description": "SimSage: connecting people in the workplace with the information they need",
   "repository": "git@github.com:simsage/dms2.git",

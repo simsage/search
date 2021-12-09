@@ -88,6 +88,12 @@ export class DmsPage extends Component {
         if (parent_item && folder_name)
             this.props.addFolder(parent_item, folder_name);
     }
+    addSourceAndClose(source_name) {
+        this.closeLocalMenus();
+        if (source_name) {
+            this.props.addSource(source_name);
+        }
+    }
     selectFiles(e) {
         this.closeLocalMenus();
         this.setState({files_for_upload: e.target.files});
@@ -149,13 +155,14 @@ export class DmsPage extends Component {
                     onShowSubscriptions={() => this.props.showSubscriptions()}
                     onShowLocks={() => this.props.showLocks()}
                     onNewFolder={(parent_item, folder_name) => this.addFolderAndClose(parent_item, folder_name)}
+                    onNewSource={(source_name) => this.addSourceAndClose(source_name)}
                     breadcrumbList={this.props.breadcrumb_list}
                     onToggleNewMenu={() => this.toggleNewMenu()}
                     selected_source={this.props.selected_source}
                     show_locks={this.props.show_locks}
                     show_subscribed={this.props.show_subscribed}
                     has_files_for_upload={this.state.files_for_upload && this.state.files_for_upload.length >= 0}
-                    disabled={this.props.show_search_results || this.props.show_locks || this.props.show_subscribed || this.props.breadcrumb_list.length === 1}
+                    disabled={this.props.show_search_results || this.props.show_locks || this.props.show_subscribed}
                     crawlerList={this.props.source_list} />
 
                 <div className="outer">

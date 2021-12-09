@@ -95,7 +95,7 @@ export class Api {
         let subPath = url.lastIndexOf('\\') > 0 ? url.replace('\\', '/') : url;
         let lastIndex = subPath.lastIndexOf('/')
         if (lastIndex > 0) {
-            return subPath.substring(0, lastIndex)
+            return subPath.substring(0, lastIndex + 1)
         }
         return "/"
     }
@@ -265,12 +265,27 @@ export class Api {
         if (source_type === "office365") return "office";
         if (source_type === "dropbox") return "dropbox";
         if (source_type === "wordpress") return "wordpress";
-        if (source_type === "file") return "drive";
+        if (source_type === "file" || source_type === "dms") return "drive";
         if (source_type === "gdrive") return "drive";
         if (source_type === "nfs") return "nfs";
         if (source_type === "restfull") return "rss";
         if (source_type === "rss") return "rss";
         return "web"; // fallback
+    }
+
+    // convert a source-type (SimSage Source.CT_ ...) to a text-name
+    static sourceTypeToName(source_type) {
+        if (source_type === "database") return "Database Crawler";
+        if (source_type === "office365") return "Office365 Crawler";
+        if (source_type === "dropbox") return "Dropbox Crawler";
+        if (source_type === "wordpress") return "WordPress Crawler";
+        if (source_type === "dms") return "DMS Source";
+        if (source_type === "file") return "File Crawler";
+        if (source_type === "gdrive") return "GoogleDrive Crawler";
+        if (source_type === "nfs") return "NFS File Crawler";
+        if (source_type === "restfull") return "Restful Crawler";
+        if (source_type === "rss") return "RSS Crawler";
+        return "Web Crawler"; // fallback
     }
 
     // convert a notification-type (SimSage DocumentAudit.DMS_ ...) to a icon_rs-...svg type
