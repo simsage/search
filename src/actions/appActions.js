@@ -30,7 +30,10 @@ import {
     CLOSE_MENUS,
 
     SHOW_LOCKS,
-    SHOW_SUBSCRIPTIONS, CHANGE_VIEW,
+    SHOW_SUBSCRIPTIONS,
+    CHANGE_VIEW,
+    UPDATE_SEARCH_TEXT,
+    REMOVE_SAVED_SEARCH,
 
 } from "./actions";
 
@@ -316,6 +319,14 @@ export const appCreators = {
                 await do_search(text, search_text, 0, shard_list, session_id, user_id, ar.group_similar, dispatch);
             }
         }
+    },
+
+    updateSearchText: (user_search_text) => async (dispatch, getState) => {
+        dispatch({type: UPDATE_SEARCH_TEXT, user_search_text: user_search_text});
+    },
+
+    removeSavedSearch: (saved_search) => async (dispatch, getState) => {
+        dispatch({type: REMOVE_SAVED_SEARCH, saved_search: saved_search});
     },
 
     hideSearchResults: (search_text) => async (dispatch, getState) => {

@@ -173,6 +173,9 @@ export class DmsPage extends Component {
                         onAccountsDropdown={() => this.toggleAccountsDropdown()}
                         isAccountsDropdown={this.state.accounts_dropdown}
                         onSearch={(search_text) => this.props.search(search_text)}
+                        onUpdateSearchText={(text) => this.props.updateSearchText(text)}
+                        onRemoveSavedSearch={(saved_search) => this.props.removeSavedSearch(saved_search)}
+                        search_text={this.props.user_search_text}
                         save_search_list={this.props.save_search_list}
                         organisation={this.props.organisation}
                         busy={this.props.busy}
@@ -344,6 +347,7 @@ const mapStateToProps = function(state) {
         session: state.appReducer.session,
         organisation: state.appReducer.organisation,
         user: state.appReducer.user,
+        user_search_text: state.appReducer.user_search_text,
 
         dashboard_user_id: state.appReducer.dashboard_user_id,
         selected_source: state.appReducer.selected_source,

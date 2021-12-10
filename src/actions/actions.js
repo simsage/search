@@ -13,6 +13,8 @@ export const SELECT_FOLDER = "select folder";
 export const SELECT_FILE = "select file";
 
 export const DO_SEARCH = "do search";
+export const REMOVE_SAVED_SEARCH = "remove saved search";
+export const UPDATE_SEARCH_TEXT = "update search text";
 export const HIDE_SEARCH_RESULTS = "hide search results";
 
 export const SET_COMMENTS = "set comments";

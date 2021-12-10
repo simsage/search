@@ -25,7 +25,7 @@ export default class Navbar extends Component {
     doSearch(event) {
         if (event.key === "Enter") {
             if (this.props.onSearch) {
-                this.props.onSearch(document.getElementById('simsage-search-text').value);
+                this.props.onSearch(event.target.value);
             }
             if (this.state.show_recents) {
                 this.setState({show_recents: false})
@@ -34,10 +34,18 @@ export default class Navbar extends Component {
     }
     // callback from search suggestion menu
     onSearchFromSuggestion(e, text) {
-        alert(text);
         e.preventDefault();
         e.stopPropagation();
-        document.getElementById('simsage-search-text').value = text;
+        if (this.props.onUpdateSearchText)
+            this.props.onUpdateSearchText(text);
+        if (this.props.onSearch)
+            this.props.onSearch(text);
+    }
+    removeSavedSearch(e, ss) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (this.props.onRemoveSavedSearch)
+            this.props.onRemoveSavedSearch(ss);
     }
     recentsDropdown() {
         if (!this.state.show_recents) {
@@ -65,13 +73,15 @@ export default class Navbar extends Component {
                 <div className="nav-search-container d-flex align-items-center position-relative">
                     <span className="nav-search-icon ms-2 d-flex align-items-center">
                         <img src="../images/icon/icon_n-search.svg" alt="search"
-                             onClick={() => {if (this.props.onSearch) this.props.onSearch(document.getElementById('simsage-search-text').value)}}
+                             onClick={() => {if (this.props.onSearch) this.props.onSearch(this.prop.search_text)}}
                         />
                     </span>
                     <input type="text" className="nav-search-input ps-1 pe-3" id="simsage-search-text"
+                           onChange={(event) => {if (this.props.onUpdateSearchText) this.props.onUpdateSearchText(event.target.value)}}
                            onKeyDown={(event) => this.doSearch(event)}
-                           onBlur={() => this.setState({show_recents: false})}
+                           onBlur={() => { window.setTimeout( () => this.setState({show_recents: false}), 100) } }
                            autoComplete={"off"}
+                           value={this.props.search_text}
                            onFocus={() => this.recentsDropdown()}
                            placeholder="SimSage Search..." />
                     <div className={((this.state.show_recents && this.props.save_search_list && this.props.save_search_list.length > 0) ? "d-block" : "d-none") +" recents-menu end-0 position-absolute"}>
@@ -82,7 +92,9 @@ export default class Navbar extends Component {
                                         <li className="more-list-items px-3 py-3 d-flex justify-content-between align-items-center" key={i}
                                             onClick={(e) => this.onSearchFromSuggestion(e, ss)}>
                                             <span className="no-select">{ss}</span>
-                                            <img src="../images/icon/icon_rs-close.svg" alt="search" className="remove-recent" />
+                                            <img src="../images/icon/icon_rs-close.svg" alt="search" title={"remove \"" + ss + "\""}
+                                                onClick={(e) => this.removeSavedSearch(e, ss)}
+                                                className="remove-recent" />
                                         </li>
                                     )
                                 })

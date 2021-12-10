@@ -12,7 +12,10 @@ import {
     SELECT_FOLDER,
     SELECT_FILE,
 
+    UPDATE_SEARCH_TEXT,
+
     DO_SEARCH,
+    REMOVE_SAVED_SEARCH,
     HIDE_SEARCH_RESULTS,
     SET_COMMENTS,
 
@@ -409,6 +412,22 @@ export const reducer = (state, action) => {
             }
         }
 
+        case REMOVE_SAVED_SEARCH: {
+            const save_search_list = state.save_search_list;
+            const saved_search = action.saved_search;
+            const new_list = [];
+            for (const item of save_search_list) {
+                if (item !== saved_search) {
+                    new_list.push(item);
+                }
+            }
+            return {
+                ...state,
+                save_search_list: new_list,
+                busy: false,
+            }
+        }
+
         case HIDE_SEARCH_RESULTS: {
             return {
                 ...state,
@@ -598,6 +617,13 @@ export const reducer = (state, action) => {
             return {
                 ...state,
                 show_grid: !state.show_grid,
+            }
+        }
+
+        case UPDATE_SEARCH_TEXT: {
+            return {
+                ...state,
+                user_search_text: action.user_search_text,
             }
         }
 

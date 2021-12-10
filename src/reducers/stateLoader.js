@@ -86,6 +86,7 @@ export function initializeState() {
 
         // show the search results?
         show_search_results: false,
+        user_search_text: "",
         search_text: "",
         search_result: {},
         search_page: 0,
