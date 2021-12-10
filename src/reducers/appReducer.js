@@ -9,13 +9,14 @@ import {
     SELECT_ROOT,
     SELECT_SOURCE,
     UPDATE_SOURCE,
+    UPDATE_SOURCE_LIST,
     SELECT_FOLDER,
     SELECT_FILE,
 
     UPDATE_SEARCH_TEXT,
 
     DO_SEARCH,
-    REMOVE_SAVED_SEARCH,
+    SET_SAVED_SEARCHES,
     HIDE_SEARCH_RESULTS,
     SET_COMMENTS,
 
@@ -136,6 +137,7 @@ export const reducer = (state, action) => {
             const dashboard = action.dashboard;
             const contentList = dashboard && dashboard.folderList ? dashboard.folderList : [];
             const subscriptionList = dashboard && dashboard.subscriptionList ? dashboard.subscriptionList : [];
+            const checkoutList = dashboard && dashboard.checkoutList ? dashboard.checkoutList : [];
             // wrap the sources as a content-item folder
             current_folder = {name: "sources", url: "sources", source_name: "sources", sourceId: 0, contentList: contentList};
             folder_tracker["sources"] = current_folder;
@@ -153,16 +155,16 @@ export const reducer = (state, action) => {
                 }
             }
             // fast subscription lookup hashmap
-            //todo: remove fix value set on subscription_set
-            // const subscription_set = {
-            //     "1:https://simsage.ai/": true,
-            //     "1:https://simsage.ai/home-copy2/about/": true,
-            //     "1:https://simsage.ai/home-copy2/": true,
-            //     "1:https://simsage.ai/home-copy2/contact/": true };
             const subscription_set = {}
             for (const subscription of subscriptionList) {
                 const key = subscription.sourceId + ":" + subscription.url;
                 subscription_set[key] = true;
+            }
+            // fast subscription lookup hashmap for checkouts
+            const checkout_set = {}
+            for (const checkout of checkoutList) {
+                const key = checkout.sourceId + ":" + checkout.url;
+                checkout_set[key] = true;
             }
             if (!dashboard_root) {
                 dashboard_root = current_folder;
@@ -178,7 +180,8 @@ export const reducer = (state, action) => {
                 source_list: source_list,
 
                 // dashboard items / lists
-                checkout_list: dashboard && dashboard.checkoutList ? dashboard.checkoutList : [],
+                checkout_list: checkoutList,
+                checkout_set: checkout_set,
                 bookmark_list: dashboard && dashboard.bookmarkList ? dashboard.bookmarkList : [],
                 subscription_list: subscriptionList,
                 subscription_set: subscription_set,
@@ -327,13 +330,20 @@ export const reducer = (state, action) => {
             }
         }
 
+        case UPDATE_SOURCE_LIST: {
+            return {
+                ...state,
+                source_list: action.contentList,
+                busy: false,
+            };
+        }
+
         /**
          * the user selects a folder to open
          */
         case SELECT_FOLDER: {
             const folder = action.folder;
             let source = get_source_by_id(folder.sourceId, state.source_list);
-            console.log("folder", folder, source);
             if (source === null) source = {"name": "unknown source"};
             const parent_folder_tracker = state.parent_folder_tracker;
             let folder_tracker = state.folder_tracker;
@@ -390,15 +400,7 @@ export const reducer = (state, action) => {
 
         case DO_SEARCH: {
             const data = action.data;
-            const save_search_list = state.save_search_list;
-            let exists = false;
-            for (const item of save_search_list) {
-                if (item.trim().toLowerCase() === data.original_text.trim().toLowerCase()) {
-                    exists = true;
-                    break;
-                }
-            }
-            if (!exists) save_search_list.push(data.original_text.trim());
+            const save_search_list = data.savedSearchList ? data.savedSearchList : [];
             return {
                 ...state,
                 search_result: data,
@@ -412,18 +414,10 @@ export const reducer = (state, action) => {
             }
         }
 
-        case REMOVE_SAVED_SEARCH: {
-            const save_search_list = state.save_search_list;
-            const saved_search = action.saved_search;
-            const new_list = [];
-            for (const item of save_search_list) {
-                if (item !== saved_search) {
-                    new_list.push(item);
-                }
-            }
+        case SET_SAVED_SEARCHES: {
             return {
                 ...state,
-                save_search_list: new_list,
+                save_search_list: action.save_search_list,
                 busy: false,
             }
         }
@@ -468,7 +462,6 @@ export const reducer = (state, action) => {
                 const key = subscription.sourceId + ":" + subscription.url;
                 subscription_set[key] = true;
             }
-
             return {
                 ...state,
                 subscription_list: action.subscriptionList,
@@ -566,6 +559,7 @@ export const reducer = (state, action) => {
                 file_list: show_menus(url, state.file_list),
                 subscription_list: show_menus(url, state.subscription_list),
                 checkout_list: show_menus(url, state.checkout_list),
+                source_list: show_menus(url, state.source_list),
                 error: "",
                 busy: false,
             };
@@ -580,6 +574,7 @@ export const reducer = (state, action) => {
                 file_list: show_menus(url, state.file_list),
                 subscription_list: show_menus(url, state.subscription_list),
                 checkout_list: show_menus(url, state.checkout_list),
+                source_list: show_menus(url, state.source_list),
             };
         }
 

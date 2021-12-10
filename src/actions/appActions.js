@@ -9,6 +9,7 @@ import {
     SELECT_ROOT,
     SELECT_SOURCE,
     UPDATE_SOURCE,
+    UPDATE_SOURCE_LIST,
     SELECT_FILE,
     SET_COMMENTS,
     HIDE_SEARCH_RESULTS,
@@ -33,7 +34,8 @@ import {
     SHOW_SUBSCRIPTIONS,
     CHANGE_VIEW,
     UPDATE_SEARCH_TEXT,
-    REMOVE_SAVED_SEARCH,
+
+    SET_SAVED_SEARCHES,
 
 } from "./actions";
 
@@ -326,7 +328,21 @@ export const appCreators = {
     },
 
     removeSavedSearch: (saved_search) => async (dispatch, getState) => {
-        dispatch({type: REMOVE_SAVED_SEARCH, saved_search: saved_search});
+        dispatch({type: BUSY, busy: true});
+
+        const session_id = getState().appReducer.session.id;
+        const user_id = getState().appReducer.user.id;
+        await Comms.http_delete('/dms/saved-search/' + encodeURIComponent(window.ENV.organisation_id) + '/' +
+            encodeURIComponent(window.ENV.kb_id) + '/' + encodeURIComponent(user_id) + '/' +
+            btoa(unescape(encodeURIComponent(saved_search))) + '/' + window.ENV.saved_search_size,
+            session_id,
+            (result) => {
+                dispatch({type: SET_SAVED_SEARCHES, save_search_list: result.data});
+            },
+            (error) => {
+                dispatch({type: ERROR, title: "Error", error: error})
+            }
+        );
     },
 
     hideSearchResults: (search_text) => async (dispatch, getState) => {
@@ -454,6 +470,28 @@ export const appCreators = {
                 session_id,
                 async (response) => {
                     dispatch({type: SELECT_FOLDER, folder: response.data});
+                },
+                (error) => {
+                    dispatch({type: ERROR, title: "Error", error: error})
+                }
+            );
+
+        } // end of else
+    },
+
+    // remove a DMS source tile
+    deleteSource: (item) => async (dispatch, getState) => {
+        dispatch({type: CLOSE_MENUS});
+        if (!item || !item.sourceId) {
+            dispatch({type: ERROR, title: "Error", error: "onDelete: invalid parameter(s)"})
+        } else {
+            dispatch({type: BUSY, busy: true});
+            const session_id = getState().appReducer.session.id;
+            const source_id = item.sourceId;
+            await Comms.http_delete('/dms/source/' + encodeURIComponent(window.ENV.organisation_id) + '/' + encodeURIComponent(window.ENV.kb_id) + '/' + source_id,
+                session_id,
+                async (response) => {
+                    dispatch({type: UPDATE_SOURCE_LIST, contentList: response.data.contentList});
                 },
                 (error) => {
                     dispatch({type: ERROR, title: "Error", error: error})

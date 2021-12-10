@@ -76,15 +76,12 @@ export default class LockedSection extends Component {
                                                     isSelected={this.props.selected_file && this.props.selected_file.url === file.url}
                                                     sideBarOpen={this.props.sideBarToggled}
                                                     file={file}
-                                                    type={file.itemType}
-                                                    name={file.name}
-                                                    preview={file.preview}
                                                     subscribed={subscription_set[key] ? subscription_set[key] : false}
                                                     onShowMenu={(item) => {if (this.props.onShowMenu) this.props.onShowMenu(item)}}
                                                     onSubscribe={(folder) => {if (this.props.onSubscribe) this.props.onSubscribe(folder)}}
                                                     onUnsubscribe={(folder) => {if (this.props.onUnsubscribe) this.props.onUnsubscribe(folder)}}
                                                     onRename={(file, new_name) => {if (this.props.onRename) this.props.onRename(file, new_name)}}
-                                                    locked={checkout_set[key] ? checkout_set[key] : false}
+                                                    locked={checkout_set[key]}
                                                     onLock={(file) => {if (this.props.onLock) this.props.onLock(file)}}
                                                     onUnlock={(file) => {if (this.props.onUnlock) this.props.onUnlock(file)}}
                                                     onDownload={(file) => {if (this.props.onDownload) this.props.onDownload(file)}}
@@ -121,19 +118,13 @@ export default class LockedSection extends Component {
                                                     isSelected={this.props.selected_file && this.props.selected_file.url === file.url}
                                                     sideBarOpen={this.props.sideBarToggled}
                                                     file={file}
-                                                    name={file.name}
-                                                    type={file.itemType}
-                                                    preview={file.preview}
-                                                    owner={file.owner}
-                                                    lastModified={file.last_modified}
-                                                    fileSize={file.file_size}
                                                     selected_file={this.props.selected_file}
                                                     subscribed={subscription_set[key] ? subscription_set[key] : false}
                                                     onShowMenu={(item) => {if (this.props.onShowMenu) this.props.onShowMenu(item)}}
                                                     onSubscribe={(file) => {if (this.props.onSubscribe) this.props.onSubscribe(file)}}
                                                     onUnsubscribe={(file) => {if (this.props.onUnsubscribe) this.props.onUnsubscribe(file)}}
                                                     onRename={(file, new_name) => {if (this.props.onRename) this.props.onRename(file, new_name)}}
-                                                    locked={checkout_set[key] ? checkout_set[key] : false}
+                                                    locked={checkout_set[key]}
                                                     onLock={(file) => {if (this.props.onLock) this.props.onLock(file)}}
                                                     onUnlock={(file) => {if (this.props.onUnlock) this.props.onUnlock(file)}}
                                                     onDownload={(file) => {if (this.props.onDownload) this.props.onDownload(file)}}

@@ -80,6 +80,7 @@ export default class Navbar extends Component {
                            onChange={(event) => {if (this.props.onUpdateSearchText) this.props.onUpdateSearchText(event.target.value)}}
                            onKeyDown={(event) => this.doSearch(event)}
                            onBlur={() => { window.setTimeout( () => this.setState({show_recents: false}), 100) } }
+                           onClick={() => this.setState({show_recents: true})}
                            autoComplete={"off"}
                            value={this.props.search_text}
                            onFocus={() => this.recentsDropdown()}
@@ -90,10 +91,10 @@ export default class Navbar extends Component {
                                 this.props.save_search_list && this.props.save_search_list.map((ss, i) => {
                                     return (
                                         <li className="more-list-items px-3 py-3 d-flex justify-content-between align-items-center" key={i}
-                                            onClick={(e) => this.onSearchFromSuggestion(e, ss)}>
-                                            <span className="no-select">{ss}</span>
-                                            <img src="../images/icon/icon_rs-close.svg" alt="search" title={"remove \"" + ss + "\""}
-                                                onClick={(e) => this.removeSavedSearch(e, ss)}
+                                            onClick={(e) => this.onSearchFromSuggestion(e, ss.text)}>
+                                            <span className="no-select">{ss.text}</span>
+                                            <img src="../images/icon/icon_rs-close.svg" alt="search" title={"remove \"" + ss.text + "\""}
+                                                onClick={(e) => this.removeSavedSearch(e, ss.text)}
                                                 className="remove-recent" />
                                         </li>
                                     )

@@ -96,10 +96,12 @@ export default class UploadFiles extends Component {
     }
 
     close() {
-        if (this.props.onCloseFileupload) {
-            this.props.onCloseFileupload()
+        if (this.state.busy && window.confirm("are you sure you want to cancel the upload?")) {
+            if (this.props.onCloseFileupload) {
+                this.props.onCloseFileupload()
+            }
+            this.setState({busy: false});
         }
-        this.setState({busy: false});
     }
 
     uploadFiles(selectedFiles) {

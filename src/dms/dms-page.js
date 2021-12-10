@@ -209,6 +209,7 @@ export class DmsPage extends Component {
                             onUnlock={(file) => this.props.onUnlock(file)}
                             onDownload={(file) => this.props.downloadFile(file)}
                             onDelete={(item) => this.props.deleteFileOrFolder(item)}
+                            onDeleteSource={(source) => this.props.deleteSource(source)}
                         />
 
                         <RightSidebar

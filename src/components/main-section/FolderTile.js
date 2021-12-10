@@ -41,7 +41,7 @@ export class FolderTile extends Component {
             this.setState({confirm_delete: false})
             this.change = setTimeout(() => {
                 this.setState({confirm_delete: true})
-            }, 2200)
+            }, window.ENV.delete_timeout_in_ms)
         } else {
             this.setState({confirm_delete: false});
             if (folder && folder.url && folder.isFolder) {

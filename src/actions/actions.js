@@ -9,11 +9,12 @@ export const SET_USER_DASHBOARD = "set user dashboard";
 export const SELECT_ROOT = "select root";
 export const SELECT_SOURCE = "select source";
 export const UPDATE_SOURCE = "update source";
+export const UPDATE_SOURCE_LIST = "update source list";
 export const SELECT_FOLDER = "select folder";
 export const SELECT_FILE = "select file";
 
 export const DO_SEARCH = "do search";
-export const REMOVE_SAVED_SEARCH = "remove saved search";
+export const SET_SAVED_SEARCHES = "set saved searches";
 export const UPDATE_SEARCH_TEXT = "update search text";
 export const HIDE_SEARCH_RESULTS = "hide search results";
 

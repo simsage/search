@@ -85,7 +85,7 @@ export class FileTile extends Component {
             this.setState({confirm_delete: false})
             this.change = setTimeout(() => {
                 this.setState({confirm_delete: true})
-            }, 2200)
+            }, window.ENV.delete_timeout_in_ms)
         } else {
             this.setState({confirm_delete: false});
             if (this.props.file && this.props.file.url) {
@@ -101,7 +101,7 @@ export class FileTile extends Component {
         let name = (this.props.file && this.props.file.name && this.props.file.name !== '/') ? this.props.file.name : "index.html";
         const url = (this.props.file && this.props.file.url) ? this.props.file.url : "";
         const show_menu = (this.props.file && this.props.file.show_menu);
-        const type = this.props.type ? this.props.type : "";
+        const type = (this.props.file && this.props.file.itemType) ? this.props.file.itemType : "";
         return (
             <div className={(this.props.sideBarOpen ? "col-xxl-4 col-xl-6 col-12" : "w-20 col-xl-3 col-lg-4 col-md-6 col-12") + " mb-3 px-2 transition no-select"}>
                 <div className={(this.props.locked ? "locked" : "") + " file-tile d-flex flex-column"}
