@@ -204,7 +204,7 @@ export default class SearchResults extends Component {
                     </div>
                 </div>
                 <div className="row mx-0 px-2 results-container justify-content-center">
-                    <div className="col-xxl-7 pe-4">
+                    <div className="col-xxl-7 col-xl-8 pe-4">
                         { sr && sr.text && sr.text.length > 0 &&
                             <div className="result-mind p-4 mb-5 mx-3">
                                 {sr.text}
@@ -255,7 +255,7 @@ export default class SearchResults extends Component {
                         }
 
                     </div>
-                    <div className="col-xxl-3 ps-3 pe-4 pe-xxl-3 order-first order-xxl-last mb-5">
+                    <div className="col-xxl-3 col-xl-4 ps-3 pe-4 pe-xxl-3 order-first order-xl-last mb-5">
                         <div className="sticky-top">
                             
                             <div className="row">

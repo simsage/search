@@ -299,10 +299,10 @@ export class DmsPage extends Component {
                     }
 
                     {/* OnClick events in Navbar to trigger these. OnOutsideClick to close */}
-                    <NotificationsDropdown
+                    {/* <NotificationsDropdown
                         activity_list={this.props.activity_list}
                         isNotificationsDropdown={this.state.notifications_dropdown}
-                    />
+                    /> */}
                     <AccountDropdown 
                         onSignOut={() => this.props.signOut(() => this.navigateToSignIn())}
                         isAccountsDropdown={this.state.accounts_dropdown}
