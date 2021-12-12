@@ -146,7 +146,7 @@ export class DmsPage extends Component {
                  onClick={() => this.closeAllMenus()}>
                 <ErrorDialog error={this.props.error} onClose={() => this.props.closeError()} />
 
-                <LeftSidebar
+                {/* <LeftSidebar
                     show_new_menu={this.state.show_new_menu}
                     onSelectSource={(source_id) => this.props.selectSource(source_id)}
                     onSelectRoot={() => this.props.selectRoot()}
@@ -163,7 +163,7 @@ export class DmsPage extends Component {
                     show_subscribed={this.props.show_subscribed}
                     has_files_for_upload={this.state.files_for_upload && this.state.files_for_upload.length >= 0}
                     disabled={this.props.show_search_results || this.props.show_locks || this.props.show_subscribed}
-                    crawlerList={this.props.source_list} />
+                    crawlerList={this.props.source_list} /> */}
 
                 <div className="outer">
                     <Navbar

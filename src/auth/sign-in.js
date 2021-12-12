@@ -54,7 +54,7 @@ class SignIn extends Component {
                                 <div className="d-flex align-items-end">
                                     <img src="../images/brand/simsage-logo-no-strapline.svg" alt="" className="auth-logo" />
                                     {/* {window.ENV.app_title} */}
-                                    <p className="mb-1 fw-bold auth-text-primary fst-italic">DMS</p>
+                                    <p className="mb-1 fw-bold auth-text-primary fst-italic">SEARCH</p>
                                 </div>
                                 <div className="version">Version {window.ENV.version}</div>
                             </div>

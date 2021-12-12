@@ -190,8 +190,8 @@ export default class SearchResults extends Component {
         const hash_tag_list = (this.props.hash_tag_list && this.props.hash_tag_list.length > 0) ? this.props.hash_tag_list : [];
         return (
             <div className="h-100">
-                <div className="sec-topbar py-2 px-4 d-flex justify-content-between align-items-center">
-                    <div className="sec-functions">
+                <div className="row mx-0 sec-topbar py-2 px-4 d-flex justify-content-center align-items-center">
+                    <div className="sec-functions col-9">
                         <button className="btn sec-btn">
                             <img src="../images/icon/icon_sr-back.svg" alt="back" className=""
                                  onClick={() => {if (this.props.onHideSearchResults) this.props.onHideSearchResults()}}
@@ -203,8 +203,8 @@ export default class SearchResults extends Component {
                         </span>
                     </div>
                 </div>
-                <div className="row mx-0 px-2 results-container">
-                    <div className="col-xxl-8 pe-4">
+                <div className="row mx-0 px-2 results-container justify-content-center">
+                    <div className="col-xxl-6 pe-4">
                         { sr && sr.text && sr.text.length > 0 &&
                             <div className="result-mind p-4 mb-5 mx-3">
                                 {sr.text}
@@ -255,7 +255,7 @@ export default class SearchResults extends Component {
                         }
 
                     </div>
-                    <div className="col-xxl-4 ps-3 pe-4 pe-xxl-3 order-first order-xxl-last mb-5">
+                    <div className="col-xxl-3 ps-3 pe-4 pe-xxl-3 order-first order-xxl-last mb-5">
                         <div className="sticky-top">
                             
                             <div className="row">
