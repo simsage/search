@@ -191,7 +191,7 @@ export default class SearchResults extends Component {
         return (
             <div className="h-100">
                 <div className="row mx-0 sec-topbar py-2 px-4 d-flex justify-content-center align-items-center">
-                    <div className="sec-functions col-9">
+                    <div className="sec-functions col-xxl-10">
                         <button className="btn sec-btn">
                             <img src="../images/icon/icon_sr-back.svg" alt="back" className=""
                                  onClick={() => {if (this.props.onHideSearchResults) this.props.onHideSearchResults()}}
@@ -204,7 +204,7 @@ export default class SearchResults extends Component {
                     </div>
                 </div>
                 <div className="row mx-0 px-2 results-container justify-content-center">
-                    <div className="col-xxl-6 pe-4">
+                    <div className="col-xxl-7 pe-4">
                         { sr && sr.text && sr.text.length > 0 &&
                             <div className="result-mind p-4 mb-5 mx-3">
                                 {sr.text}

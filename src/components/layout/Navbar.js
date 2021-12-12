@@ -108,14 +108,14 @@ export default class Navbar extends Component {
                         <p className="org-name mb-0 small">{this.props.organisation ? this.props.organisation.name : ""}</p>
                         <p className="user-name mb-0">{this.getFullUsername()}</p>
                     </div>
-                    <div className="notifications me-2">
+                    {/* <div className="notifications me-2">
                         <div className="indicator"></div>
                         <button className={(this.props.isNotificationsDropdown ? "active" : "") + " btn nav-btn"}
                             onClick={(e) => this.toggleNotificationsDropdown(e)}>
                             <img src="../images/icon/icon_n-notification.svg" alt="" className={this.props.isNotificationsDropdown ? "d-none" : ""} />
                             <img src="../images/icon/icon_n-notification-active.svg" alt="" className={!this.props.isNotificationsDropdown ? "d-none" : ""} />
                         </button>
-                    </div>
+                    </div> */}
                     <div className="account" title="this is the sign-out button for now">
                         <button className={(this.props.isAccountsDropdown ? "active" : "") + " btn nav-btn"}
                             onClick={(e) => this.toggleAccountsMenu(e)}>
