@@ -181,7 +181,7 @@ export class DmsPage extends Component {
                         busy={this.props.busy}
                     />
 
-                    {!this.props.show_search_results && !this.props.show_locks && !this.props.show_subscribed &&
+                    {/* {!this.props.show_search_results && !this.props.show_locks && !this.props.show_subscribed &&
                     <div className="inner d-flex">
                         <MainSection
                             show_grid={this.props.show_grid}
@@ -233,9 +233,9 @@ export class DmsPage extends Component {
                             onDelete={(item) => this.props.deleteFileOrFolder(item)}
                         />
                     </div>
-                    }
+                    } */}
 
-                    {this.props.show_locks &&
+                    {/* {this.props.show_locks &&
                     <LockedSection
                         show_grid={this.props.show_grid}
                         onChangeView={() => this.props.changeView()}
@@ -255,9 +255,9 @@ export class DmsPage extends Component {
                         onDownload={(file) => this.props.downloadFile(file)}
                         onDelete={(item) => this.props.deleteFileOrFolder(item)}
                         />
-                    }
+                    } */}
 
-                    {this.props.show_subscribed &&
+                    {/* {this.props.show_subscribed &&
                     <SubscribedSection
                         show_grid={this.props.show_grid}
                         onChangeView={() => this.props.changeView()}
@@ -276,7 +276,7 @@ export class DmsPage extends Component {
                         onDownload={(file) => this.props.downloadFile(file)}
                         onDelete={(item) => this.props.deleteFileOrFolder(item)}
                         />
-                    }
+                    } */}
 
                     {this.props.show_search_results &&
                     <div className="inner">
