@@ -70,10 +70,10 @@ export default class Navbar extends Component {
         }
         return (
             <div className="row mx-0 px-0 navbar justify-content-start">
-            <div className="col-1 ps-4 pe-0">
-            <img src="/images/brand/simsage-logo-no-strapline.svg" alt="" className="w-100" />
+            <div className="col-1 ps-4 pe-0 h-100 d-flex justify-content-end">
+                <img src="/images/brand/simsage-logo-no-strapline.svg" alt="" className="h-100" />
             </div>
-            <div className=" d-flex justify-content-between align-items-center px-4 col-11">
+            <div className="col-11 d-flex justify-content-between align-items-center px-4">
                 <div className="nav-search-container d-flex align-items-center position-relative">
                     <span className="nav-search-icon ms-2 d-flex align-items-center">
                         <img src="../images/icon/icon_n-search.svg" alt="search"

@@ -192,11 +192,11 @@ export default class SearchResults extends Component {
             <div className="h-100">
                 <div className="row mx-0 sec-topbar py-2 px-4 d-flex justify-content-center align-items-center">
                     <div className="sec-functions col-xxl-10">
-                        <button className="btn sec-btn">
+                        {/* <button className="btn sec-btn">
                             <img src="../images/icon/icon_sr-back.svg" alt="back" className=""
                                  onClick={() => {if (this.props.onHideSearchResults) this.props.onHideSearchResults()}}
                             />
-                        </button>
+                        </button> */}
                         <span className="small text-muted ms-2 fw-light">
                             {srText}
                             <span className={sr.totalDocumentCount === 0 ? "d-none" : ""}> - Page {page + 1} of {num_pages}</span>

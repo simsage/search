@@ -14,6 +14,7 @@
 .sec-topbar {
     border-bottom: 1px solid #ddd;
     background-color: #fff;
+    height: 57px;
 }
 .sec-btn {
     width: 40px;
