@@ -19,7 +19,7 @@ export class Activity extends Component {
         if (this.state.has_error) {
             return <h1>activity.js: Something went wrong.</h1>;
         }
-        let activity_list = this.props.activity_list.length ? this.props.activity_list : [{created: 1638191762168, email: 'dms@simsage.nz', description: 'test 1'}, {created: 1638191762168, email: 'dms@simsage.nz', description: 'test 2'}];
+        let activity_list = this.props.activity_list.length ? this.props.activity_list : [{created: 1638191762168, email: 'search@simsage.nz', description: 'test 1'}, {created: 1638191762168, email: 'search@simsage.nz', description: 'test 2'}];
 
         return (
                 // <div className="container-fluid h-100">

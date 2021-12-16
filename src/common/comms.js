@@ -117,7 +117,7 @@ export class Comms {
     // get a url that can be used to get a zip archive of a wp export
     static download_document(session_id, dl_url) {
         Comms.http_put('/auth/ott/' + encodeURIComponent(window.ENV.organisation_id), session_id, {}, (response) => {
-            const url = window.ENV.api_base + '/dms/binary/latest/' + encodeURIComponent(window.ENV.organisation_id) + '/' +
+            const url = window.ENV.api_base + '/search/binary/latest/' + encodeURIComponent(window.ENV.organisation_id) + '/' +
                         encodeURIComponent(window.ENV.kb_id) + '/' + btoa(unescape(encodeURIComponent(dl_url)));
             Comms.download_new_window_post(url, response.data);
         });
@@ -126,7 +126,7 @@ export class Comms {
     // get a url that can be used to get a zip archive of a wp export
     static download_document_version(session_id, dl_url, version) {
         Comms.http_put('/auth/ott/' + encodeURIComponent(window.ENV.organisation_id), session_id, {}, (response) => {
-            const url = window.ENV.api_base + '/dms/binary/' + encodeURIComponent(window.ENV.organisation_id) + '/' +
+            const url = window.ENV.api_base + '/search/binary/' + encodeURIComponent(window.ENV.organisation_id) + '/' +
                 encodeURIComponent(window.ENV.kb_id) + '/' + btoa(unescape(encodeURIComponent(dl_url))) + '/' + encodeURIComponent(version);
             Comms.download_new_window_post(url, response.data);
         });

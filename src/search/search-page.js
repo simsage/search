@@ -4,7 +4,7 @@ import {connect} from "react-redux";
 import {bindActionCreators} from "redux";
 import {appCreators} from "../actions/appActions";
 
-import '../css/dms-page.css';
+import '../css/search-page.css';
 
 import LeftSidebar from "../components/layout/LeftSidebar.js";
 import Navbar from "../components/layout/Navbar.js";
@@ -20,12 +20,13 @@ import AccountDropdown from "../components/navbar/AccountDropdown.js";
 import ErrorDialog from "../common/error-dialog";
 import Api from "../common/api";
 import UploadFiles from "../file_upload/upload-files.component";
+import SignIn from "../auth/sign-in";
 
 
 /**
  * this is the main DMS page
  */
-export class DmsPage extends Component {
+export class SearchPage extends Component {
     constructor(props){
         super(props);
         this.state={
@@ -34,15 +35,7 @@ export class DmsPage extends Component {
             accounts_dropdown: false,
             show_new_menu: false,
             files_for_upload: null,
-        }
-    }
-    componentDidMount() {
-        if (!this.props.session || !this.props.session.id) {
-            this.navigateToSignIn();
-        } else {
-            // do we not have a valid userId yet for the dashboard?
-            if (this.props.dashboard_user_id === '')
-                this.props.getUserDashboard();
+            show_sign_in: false,
         }
     }
     componentDidCatch(error, info) {
@@ -135,15 +128,24 @@ export class DmsPage extends Component {
         this.props.onCloseMenus();
     }
 
+    showSignIn() {
+        this.setState({show_sign_in: true});
+    }
+    closeSignIn() {
+        this.setState({show_sign_in: false});
+    }
+    signIn(user_name, password) {
+        this.props.signIn(user_name, password, () => { this.closeSignIn() })
+    }
+
     render() {
         if (this.state.has_error) {
-            return <h1>dms-page.js: Something went wrong.</h1>;
+            return <h1>search-page.js: Something went wrong.</h1>;
         }
         const is_toggled = (this.props.selected_file !== null);
 
         return (
-            <div className={this.props.busy ? "dms wait-cursor" : "dms"}
-                 onClick={() => this.closeAllMenus()}>
+            <div className={this.props.busy ? "dms wait-cursor" : "dms"} onClick={() => this.closeAllMenus()}>
                 <ErrorDialog error={this.props.error} onClose={() => this.props.closeError()} />
 
                 {/* <LeftSidebar
@@ -180,6 +182,16 @@ export class DmsPage extends Component {
                         organisation={this.props.organisation}
                         busy={this.props.busy}
                     />
+
+
+                    {
+                        this.state.show_sign_in &&
+                        <SignIn
+                            onClose={() => this.closeSignIn()}
+                            onSignIn={(user_name, password) => this.signIn(user_name, password)}
+                        />
+                    }
+
 
                     {/* {!this.props.show_search_results && !this.props.show_locks && !this.props.show_subscribed &&
                     <div className="inner d-flex">
@@ -278,13 +290,14 @@ export class DmsPage extends Component {
                         />
                     } */}
 
+
                     {this.props.show_search_results &&
                     <div className="inner">
                         <SearchResults
                             search_result={this.props.search_result}
                             syn_sets={this.props.syn_sets}
                             hash_tag_list={this.props.hash_tag_list}
-                            client_id={(this.props.user && this.props.user.id) ? this.props.user.id : ""}
+                            client_id={Api.getUserId(this.props.user)}
                             onHideSearchResults={() => this.props.hideSearchResults()}
                             onSetCategoryValue={(metadata, values) => this.props.setCategoryValue(metadata, values)}
                             onSetGroupSimilar={(group_similar) => this.props.setGroupSimilar(group_similar)}
@@ -304,7 +317,9 @@ export class DmsPage extends Component {
                         isNotificationsDropdown={this.state.notifications_dropdown}
                     /> */}
                     <AccountDropdown 
-                        onSignOut={() => this.props.signOut(() => this.navigateToSignIn())}
+                        onSignOut={() => this.props.signOut()}
+                        onSignIn={() => this.showSignIn()}
+                        session={this.props.session}
                         isAccountsDropdown={this.state.accounts_dropdown}
                     />
 
@@ -312,7 +327,7 @@ export class DmsPage extends Component {
 
                 <UploadFiles
                     files_for_upload={this.state.files_for_upload}
-                    session_id={(this.props.session && this.props.session.id) ? this.props.session.id : ""}
+                    session_id={Api.getSessionId(this.props.session)}
                     breadcrumbList={this.props.breadcrumb_list}
                     onUpdateFolder={(folder) => this.props.updateFolder(folder)}
                     onCloseFileupload={() => this.closeFileUpload()} />
@@ -376,4 +391,4 @@ const mapStateToProps = function(state) {
 export default connect(
     mapStateToProps,
     dispatch => bindActionCreators(appCreators, dispatch)
-)(DmsPage);
+)(SearchPage);

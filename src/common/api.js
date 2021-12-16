@@ -265,7 +265,7 @@ export class Api {
         if (source_type === "office365") return "office";
         if (source_type === "dropbox") return "dropbox";
         if (source_type === "wordpress") return "wordpress";
-        if (source_type === "file" || source_type === "dms") return "drive";
+        if (source_type === "file" || source_type === "search") return "drive";
         if (source_type === "gdrive") return "drive";
         if (source_type === "nfs") return "nfs";
         if (source_type === "restfull") return "rss";
@@ -279,7 +279,7 @@ export class Api {
         if (source_type === "office365") return "Office365 Crawler";
         if (source_type === "dropbox") return "Dropbox Crawler";
         if (source_type === "wordpress") return "WordPress Crawler";
-        if (source_type === "dms") return "DMS Source";
+        if (source_type === "search") return "DMS Source";
         if (source_type === "file") return "File Crawler";
         if (source_type === "gdrive") return "GoogleDrive Crawler";
         if (source_type === "nfs") return "NFS File Crawler";
@@ -299,6 +299,54 @@ export class Api {
         return "comment"; // fallback
     }
 
+    static s4() {
+        return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+    }
+
+    static guid() {
+        return Api.s4() + Api.s4() + '-' + Api.s4() + '-' + Api.s4() + '-' + Api.s4() + '-' + Api.s4() + Api.s4() + Api.s4();
+    }
+
+    static has_local_storage() {
+        try {
+            let test = 'test';
+            localStorage.setItem(test, test);
+            localStorage.removeItem(test);
+            return true;
+        } catch(e) {
+            return false;
+        }
+    }
+
+    static getClientId() {
+        let clientId = "";
+        let key = 'simsearch_search_client_id';
+        let hasLs = Api.has_local_storage();
+        if (hasLs) {
+            clientId = localStorage.getItem(key);
+        }
+        if (!clientId || clientId.length === 0) {
+            clientId = Api.guid(); // create a new client id
+            if (hasLs) {
+                localStorage.setItem(key, clientId);
+            }
+        }
+        return clientId;
+    }
+
+    // get an anonymous or signed-in session
+    static getSessionId(session) {
+        if (session && session.id)
+            return session.id;
+        return "";
+    }
+
+    // get an anonymous or signed-in user's id
+    static getUserId(user) {
+        if (user && user.id)
+            return user.id;
+        return Api.getClientId();
+    }
 
 }
 

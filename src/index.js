@@ -15,10 +15,9 @@ import {Route} from 'react-router'
 import configureStore from "./reducers/configureStore";
 import {saveState} from "./reducers/stateLoader";
 
-import SignIn from "./auth/sign-in.js";
 import ResetPasswordRequest from "./auth/reset-password-request";
 import ResetPasswordResponse from "./auth/reset-password-response";
-import DmsPage from "./dms/dms-page";
+import SearchPage from "./search/search-page";
 import {HashRouter} from "react-router-dom";
 
 
@@ -32,8 +31,7 @@ ReactDOM.render(
     <Provider store={store}>
     <div className="App">
         <HashRouter basename={'/'}>
-            <Route exact path="/" component={SignIn} />
-            <Route exact path="/dms" component={DmsPage} />
+            <Route exact path="/" component={SearchPage} />
             <Route exact path="/forgot-password" component={ResetPasswordRequest} />
             <Route exact path="/reset-password-response" component={ResetPasswordResponse} />
         </HashRouter>

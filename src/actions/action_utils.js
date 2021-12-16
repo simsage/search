@@ -31,7 +31,8 @@ export async function do_search(text, original_text, page, shard_list, session_i
         groupSimilarDocuments: group_similar,
         sourceId: '',
     };
-    await Comms.http_post('/dms/query', session_id, data,
+    const url = session_id !== "" ? '/search/query' : '/semantic/query';
+    await Comms.http_post(url, session_id, data,
         (result) => {
             if (result && result.data && result.data.messageType === 'message') {
                 result.data.search_text = text;
@@ -57,7 +58,7 @@ export async function select_folder(folder, folder_tracker, force_get, session_i
         if (!folder_item || force_get) {
             dispatch({type: BUSY, busy: true});
 
-            await Comms.http_get('/dms/folder/' + encodeURIComponent(window.ENV.organisation_id) + '/' + encodeURIComponent(window.ENV.kb_id) + '/' +
+            await Comms.http_get('/search/folder/' + encodeURIComponent(window.ENV.organisation_id) + '/' + encodeURIComponent(window.ENV.kb_id) + '/' +
                 encodeURIComponent(folder.sourceId) + '/' + btoa(unescape(encodeURIComponent(folder.url))),
                 session_id,
                 (response) => {

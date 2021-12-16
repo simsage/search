@@ -64,7 +64,7 @@ export class CrawlerTile extends Component {
                             <p className="crawler-meta mb-0">Contains <i className="fw-bold">{this.props.num_documents}</i> Documents</p>
                         </div>
 
-                        {source.itemType === "dms" &&
+                        {source.itemType === "search" &&
                         <div className="d-flex position-relative">
                             <button className="btn more-btn ms-2" onClick={(e) => this.showMenu(e)}>
                                 <img src="../images/icon/icon_g-more.svg" alt="" className=""/>
