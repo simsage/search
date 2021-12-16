@@ -31,7 +31,7 @@ export async function do_search(text, original_text, page, shard_list, session_i
         groupSimilarDocuments: group_similar,
         sourceId: '',
     };
-    const url = session_id !== "" ? '/search/query' : '/semantic/query';
+    const url = session_id !== "" ? '/dms/query' : '/semantic/query';
     await Comms.http_post(url, session_id, data,
         (result) => {
             if (result && result.data && result.data.messageType === 'message') {
