@@ -312,6 +312,19 @@ export default class SearchResults extends Component {
                                             />
                                             <label className="" htmlFor="flexSwitchCheckDefault">Group similar</label>
                                         </div>
+
+
+                                        <div className="form-check form-switch my-4 ps-0 d-flex align-items-center">
+                                            <input className="form-check-input h6 ms-0 my-0 me-2"
+                                                   type="checkbox"
+                                                   role="switch"
+                                                   id="flexSwitchCheckDefault"
+                                                   checked={this.props.newest_first}
+                                                   onChange={(event) => {if (this.props.onSetNewestFirst) this.props.onSetNewestFirst(event.target.checked)}}
+                                            />
+                                            <label className="" htmlFor="flexSwitchCheckDefault">Sort by newest first</label>
+                                        </div>
+
                                     </div>
 
 

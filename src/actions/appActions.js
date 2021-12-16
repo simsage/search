@@ -12,6 +12,7 @@ import {
     CLEAR_CATEGORY_FILTER,
     SET_CATEGORY_FILTER,
     SET_GROUP_SIMILAR,
+    SET_NEWEST_FIRST,
     SET_SYNSET,
     SET_TAG_LIST,
 
@@ -232,6 +233,11 @@ export const appCreators = {
     // group similar documents yes/no
     setGroupSimilar: (group_similar) => async (dispatch, getState) => {
         dispatch({type: SET_GROUP_SIMILAR, group_similar: group_similar});
+    },
+
+    // show newest documents first
+    setNewestFirst: (newest_first) => async (dispatch, getState) => {
+        dispatch({type: SET_NEWEST_FIRST, newest_first: newest_first});
     },
 
     // select/un-select a synset

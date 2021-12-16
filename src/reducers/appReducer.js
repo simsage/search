@@ -28,6 +28,7 @@ import {
     CLEAR_CATEGORY_FILTER,
     SET_CATEGORY_FILTER,
     SET_GROUP_SIMILAR,
+    SET_NEWEST_FIRST,
     SET_SYNSET,
     SET_TAG_LIST,
 
@@ -514,6 +515,14 @@ export const reducer = (state, action) => {
             return {
                 ...state,
                 group_similar: action.group_similar,
+                busy: false,
+            };
+        }
+
+        case SET_NEWEST_FIRST: {
+            return {
+                ...state,
+                newest_first: action.newest_first,
                 busy: false,
             };
         }

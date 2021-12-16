@@ -64,6 +64,8 @@ export function initializeState() {
         category_values: {},
         // group similar documents
         group_similar: true,
+        // sort by newest articles first
+        newest_first: true,
         // syn-set selections
         syn_sets: {},
         // hash-tag list for search

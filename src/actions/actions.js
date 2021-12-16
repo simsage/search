@@ -29,6 +29,7 @@ export const LOAD_NOTIFICATIONS = "load notifications";
 export const CLEAR_CATEGORY_FILTER = "clear category filter";
 export const SET_CATEGORY_FILTER = "set category filter";
 export const SET_GROUP_SIMILAR = "set group similar";
+export const SET_NEWEST_FIRST = "set newest first";
 export const SET_SYNSET = "set synset";
 export const SET_TAG_LIST = "set tag list";
 

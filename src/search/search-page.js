@@ -301,11 +301,13 @@ export class SearchPage extends Component {
                             onHideSearchResults={() => this.props.hideSearchResults()}
                             onSetCategoryValue={(metadata, values) => this.props.setCategoryValue(metadata, values)}
                             onSetGroupSimilar={(group_similar) => this.props.setGroupSimilar(group_similar)}
+                            onSetNewestFirst={(newest_first) => this.props.setNewestFirst(newest_first)}
                             onSelectSynSet={(name, i) => this.props.selectSynSet(name, i)}
                             onSetHashTags={(tag_list) => this.props.setHashTagList(tag_list)}
                             category_list={this.props.category_list}
                             category_values={this.props.category_values}
                             group_similar={this.props.group_similar}
+                            newest_first={this.props.newest_first}
                             onFocus={(sourceId, url, urlId) => this.focusOnItem(sourceId, url, urlId)}
                             />
                     </div>
@@ -375,6 +377,7 @@ const mapStateToProps = function(state) {
         category_list: state.appReducer.category_list,
         category_values: state.appReducer.category_values,
         group_similar: state.appReducer.group_similar,
+        newest_first: state.appReducer.newest_first,
         syn_sets: state.appReducer.syn_sets,
         hash_tag_list: state.appReducer.hash_tag_list,
 

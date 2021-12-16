@@ -8,7 +8,7 @@ import Comms from "../common/comms";
 
 // helper
 export async function do_search(text, original_text, page, shard_list, session_id, user_id,
-                                group_similar, dispatch) {
+                                group_similar, newest_first, dispatch) {
 
     dispatch({type: BUSY, busy: true});
 
@@ -29,6 +29,7 @@ export async function do_search(text, original_text, page, shard_list, session_i
         contextLabel: '',
         contextMatchBoost: 0.01,
         groupSimilarDocuments: group_similar,
+        sortByAge: newest_first,
         sourceId: '',
     };
     const url = session_id !== "" ? '/dms/query' : '/semantic/query';
