@@ -170,7 +170,7 @@ export const appCreators = {
                 const user_id = Api.getUserId(ar.user);
                 const hash_tag_list = ar.hash_tag_list;
                 const text = add_filter_to_search_text(search_text, ar.category_list, ar.category_values, ar.syn_sets, hash_tag_list);
-                await do_search(text, search_text, 0, shard_list, session_id, user_id, ar.group_similar, dispatch);
+                await do_search(text, search_text, 0, shard_list, session_id, user_id, ar.group_similar, ar.newest_first, dispatch);
             }
         }
     },
