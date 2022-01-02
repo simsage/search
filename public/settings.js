@@ -11,7 +11,7 @@ window.ENV = {
     // dark or light theme?
     theme: 'light',
     // the cloud service layer end-point, change "localhost:8080" to ...
-    api_base: 'https://demo-cloud.simsage.ai/api',
+    api_base: 'http://localhost:8080/api',
     // date picker display format
     date_format: 'yyyy/MM',
     // the details of who we are
