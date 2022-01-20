@@ -34,8 +34,8 @@ export default class AccountDropdown extends Component {
                     {/*    <label>Settings</label>*/}
                     {/*</li>*/}
                     { sessionId === "" &&
-                    <li className="acc-item px-4 py-3" 
-                        onClick={() => {if (this.props.onSignIn) this.props.onSignIn()}}>
+                    <li className="acc-item px-4 py-3">
+                        {/*onClick={() => {if (this.props.onSignIn) this.props.onSignIn()}}>*/}
                         <label>Sign In</label>
                     </li>
                     }
