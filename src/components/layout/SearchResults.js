@@ -235,7 +235,7 @@ export default class SearchResults extends Component {
                                             <div className="d-flex align-items-center text-align-end mb-1">
                                                 <p className="mb-0 result-breadcrumb me-2">{this.urlToBreadCrumb(result)}</p>
                                             </div>
-                                            <a href={result.url} className="mb-2 results-filename" title={result.url}>{result.url}</a>
+                                            <a href={result.url} target="_blank" className="mb-2 results-filename" title={result.url}>{result.url}</a>
                                             <div className="d-flex mb-1">
                                                 <p className="mb-0 result-details">Last modified {last_modified}</p>
                                                 {result.author &&
