@@ -63,9 +63,9 @@ export function initializeState() {
         // metadata search control values
         category_values: {},
         // group similar documents
-        group_similar: true,
+        group_similar: false,
         // sort by newest articles first
-        newest_first: true,
+        newest_first: false,
         // syn-set selections
         syn_sets: {},
         // hash-tag list for search
