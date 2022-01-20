@@ -235,12 +235,15 @@ export default class SearchResults extends Component {
                                             <div className="d-flex align-items-center text-align-end mb-1">
                                                 <p className="mb-0 result-breadcrumb me-2">{this.urlToBreadCrumb(result)}</p>
                                             </div>
-                                            <a href="/#/dms" className="mb-2 results-filename"
-                                               onClick={(e) => this.onFocus(e, result)} title={result.url}>{result.url}</a>
+                                            <a href={result.url} className="mb-2 results-filename" title={result.url}>{result.url}</a>
                                             <div className="d-flex mb-1">
                                                 <p className="mb-0 result-details">Last modified {last_modified}</p>
-                                                {/*<span className="mb-0 result-details mx-2">|</span>*/}
-                                                {/*<p className="mb-0 result-details">Owner Rock de Vocht</p>*/}
+                                                {result.author &&
+                                                    <span>
+                                                        <span className="mb-0 result-details mx-2">|</span>
+                                                        <p className="mb-0 result-details">{result.author}</p>
+                                                    </span>
+                                                }
                                             </div>
                                             <p className="small fw-light mb-2" dangerouslySetInnerHTML={{ __html: text}} />
                                             <div className="d-flex align-items-center flex-wrap">
