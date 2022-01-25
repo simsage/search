@@ -237,11 +237,11 @@ export default class SearchResults extends Component {
                                             </div>
                                             <a href={result.url} target="_blank" className="mb-2 results-filename" title={result.url}>{result.url}</a>
                                             <div className="d-flex mb-1">
-                                                <p className="mb-0 result-details">Last modified {last_modified}</p>
+                                                <span className="mb-0 result-details">Last modified {last_modified}</span>
                                                 {result.author &&
                                                     <span>
                                                         <span className="mb-0 result-details mx-2">|</span>
-                                                        <p className="mb-0 result-details">{result.author}</p>
+                                                        <span className="mb-0 result-details">{result.author}</span>
                                                     </span>
                                                 }
                                             </div>
