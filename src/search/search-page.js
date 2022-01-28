@@ -176,6 +176,7 @@ export class SearchPage extends Component {
                         onAccountsDropdown={() => this.toggleAccountsDropdown()}
                         isAccountsDropdown={this.state.accounts_dropdown}
                         onSearch={(search_text) => this.props.search(search_text)}
+                        onHideSearchResults={() => this.props.hideSearchResults()}
                         onUpdateSearchText={(text) => this.props.updateSearchText(text)}
                         onRemoveSavedSearch={(saved_search) => this.props.removeSavedSearch(saved_search)}
                         search_text={this.props.user_search_text}
@@ -294,7 +295,13 @@ export class SearchPage extends Component {
 
                     {!this.props.show_search_results &&
                     <div className="inner">
-                        <HomeSearch />
+                        <HomeSearch
+                            onSearch={(search_text) => this.props.search(search_text)}
+                            onUpdateSearchText={(text) => this.props.updateSearchText(text)}
+                            onRemoveSavedSearch={(saved_search) => this.props.removeSavedSearch(saved_search)}
+                            search_text={this.props.user_search_text}
+                            save_search_list={this.props.save_search_list}
+                        />
                     </div>
                     }
 

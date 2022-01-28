@@ -11,7 +11,38 @@ export default class HomeSearch extends Component {
         this.state={
             has_error: false,  // error trapping
             my_error_title: 'default error title',
-            my_error_message: 'default error message'
+            my_error_message: 'default error message',
+            show_recents: false,
+        }
+    }
+    doSearch(event) {
+        if (event.key === "Enter") {
+            if (this.props.onSearch) {
+                this.props.onSearch(event.target.value);
+            }
+            if (this.state.show_recents) {
+                this.setState({show_recents: false})
+            }
+        }
+    }
+    // callback from search suggestion menu
+    onSearchFromSuggestion(e, text) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (this.props.onUpdateSearchText)
+            this.props.onUpdateSearchText(text);
+        if (this.props.onSearch)
+            this.props.onSearch(text);
+    }
+    removeSavedSearch(e, ss) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (this.props.onRemoveSavedSearch)
+            this.props.onRemoveSavedSearch(ss);
+    }
+    recentsDropdown() {
+        if (!this.state.show_recents) {
+            this.setState({show_recents: true})
         }
     }
     render() {
@@ -26,9 +57,37 @@ export default class HomeSearch extends Component {
                         <span className="nav-search-icon ms-2 d-flex align-items-center">
                             <img src="../images/icon/icon_n-search.svg" alt="search"/>
                         </span>
-                        <input type="text" className="nav-search-input ps-1 pe-3" id="simsage-search-text" autocomplete="off" placeholder="SimSage Search..."/>
-                        <div className="d-none recents-menu end-0 position-absolute">
-                            <ul className="more-list"></ul>
+                        <input type="text" className="nav-search-input ps-1 pe-3" id="simsage-search-text"
+                               onChange={(event) => {
+                                   if (this.props.onUpdateSearchText) this.props.onUpdateSearchText(event.target.value)
+                               }}
+                               onKeyDown={(event) => this.doSearch(event)}
+                               onBlur={() => {
+                                   window.setTimeout(() => this.setState({show_recents: false}), 100)
+                               }}
+                               onClick={() => this.setState({show_recents: true})}
+                               autoComplete={"off"}
+                               value={this.props.search_text}
+                               onFocus={() => this.recentsDropdown()}
+                               placeholder="SimSage Search..."/>
+                        <div className={((this.state.show_recents && this.props.save_search_list && this.props.save_search_list.length > 0) ? "d-block" : "d-none") + " recents-menu end-0 position-absolute"}>
+                            <ul className="more-list">
+                                {
+                                    this.props.save_search_list && this.props.save_search_list.map((ss, i) => {
+                                        return (
+                                            <li className="more-list-items px-3 py-3 d-flex justify-content-between align-items-center"
+                                                key={i}
+                                                onClick={(e) => this.onSearchFromSuggestion(e, ss.text)}>
+                                                <span className="no-select">{ss.text}</span>
+                                                <img src="../images/icon/icon_rs-close.svg" alt="search"
+                                                     title={"remove \"" + ss.text + "\""}
+                                                     onClick={(e) => this.removeSavedSearch(e, ss.text)}
+                                                     className="remove-recent"/>
+                                            </li>
+                                        )
+                                    })
+                                }
+                            </ul>
                         </div>
                     </div>
 
