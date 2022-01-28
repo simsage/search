@@ -70,7 +70,7 @@ export default class Navbar extends Component {
         }
         return (
             <div className="row mx-0 px-0 navbar justify-content-start">
-            <div className="col-1 ps-4 pe-0 h-100 d-flex justify-content-end">
+            <div className={(this.props.showSearchBar ? "" : "") + " col-1 ps-4 pe-0 h-100 d-flex justify-content-end"}>
                 <img src="/images/brand/simsage-logo-no-strapline.svg" alt="" className="h-100" />
             </div>
             <div className="col-11 d-flex justify-content-between align-items-center px-4">

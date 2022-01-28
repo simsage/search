@@ -13,6 +13,7 @@ import RightSidebar from "../components/layout/RightSidebar.js";
 import SearchResults from "../components/layout/SearchResults.js";
 import LockedSection from "../components/layout/LockedSection.js";
 import SubscribedSection from "../components/layout/SubscribedSection.js";
+import HomeSearch from "../components/layout/HomeSearch.js"
 
 import NotificationsDropdown from "../components/navbar/NotificationsDropdown.js";
 import AccountDropdown from "../components/navbar/AccountDropdown.js";
@@ -181,6 +182,7 @@ export class SearchPage extends Component {
                         save_search_list={this.props.save_search_list}
                         organisation={this.props.organisation}
                         busy={this.props.busy}
+                        showSearchBar={this.props.show_search_results}
                     />
 
 
@@ -289,6 +291,12 @@ export class SearchPage extends Component {
                         onDelete={(item) => this.props.deleteFileOrFolder(item)}
                         />
                     } */}
+
+                    {!this.props.show_search_results &&
+                    <div className="inner">
+                        <HomeSearch />
+                    </div>
+                    }
 
 
                     {this.props.show_search_results &&
