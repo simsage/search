@@ -176,6 +176,13 @@ export default class SearchResults extends Component {
         }
     }
 
+    onSetCategoryValue(value) {
+        if (this.props.onSetCategoryValue) {
+            this.props.onSetCategoryValue("document-type", value);
+            this.onSearch();
+        }
+    }
+
     render() {
         if (this.state.has_error) {
             return <h1>SearchResults.js: Something went wrong.</h1>;
@@ -371,7 +378,7 @@ export default class SearchResults extends Component {
                                         <CategorySelector
                                             title="File types"
                                             busy={this.props.busy}
-                                            onSetValue={(value) => { if (this.props.onSetCategoryValue) this.props.onSetCategoryValue("document-type", value)}}
+                                            onSetValue={(value) => this.onSetCategoryValue(value)}
                                             items={documentTypeMetadata.items}/>
                                     </div>
                                     }
