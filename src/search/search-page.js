@@ -282,6 +282,7 @@ export class SearchPage extends Component {
                             search_result={this.props.search_result}
                             syn_sets={this.props.syn_sets}
                             hash_tag_list={this.props.hash_tag_list}
+                            onSearch={() => this.props.search(this.props.user_search_text)}
                             client_id={Api.getUserId(this.props.user)}
                             onHideSearchResults={() => this.props.hideSearchResults()}
                             onSetCategoryValue={(metadata, values) => this.props.setCategoryValue(metadata, values)}
@@ -293,6 +294,7 @@ export class SearchPage extends Component {
                             category_values={this.props.category_values}
                             group_similar={this.props.group_similar}
                             newest_first={this.props.newest_first}
+                            busy={this.props.busy}
                             onFocus={(sourceId, url, urlId) => this.focusOnItem(sourceId, url, urlId)}
                             />
                     </div>

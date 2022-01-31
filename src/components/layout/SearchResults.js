@@ -65,6 +65,7 @@ export default class SearchResults extends Component {
     }
     // return the document-type metadata list if it exists - or null if not
     getDocumentTypeMetadata(sr) {
+        console.log("sr.categoryList", sr.categoryList);
         if (sr && sr.categoryList) {
             for (const md of sr.categoryList) {
                 if (md.metadata === "document-type") {
@@ -123,27 +124,13 @@ export default class SearchResults extends Component {
             event.preventDefault();
             event.stopPropagation();
             let text = event.target.value;
-            document.getElementById("hash-tag-text").value = "";
             if (text.trim().length > 0) {
-                const hash_tag_list = this.props.hash_tag_list ? this.props.hash_tag_list : [];
-                if (hash_tag_list.indexOf(text.trim()) === -1) {
-                    hash_tag_list.push(text.trim());
-                    if (this.props.onSetHashTags) this.props.onSetHashTags(hash_tag_list);
-                    window.location.reload(false);
-                }
+                this.onSearch();
             }
         } else if (event.key === " ") {
             event.preventDefault();
             event.stopPropagation();
         }
-    }
-
-    removeHashTag(event, tag) {
-        event.preventDefault();
-        event.stopPropagation();
-        let hash_tag_list = this.props.hash_tag_list ? this.props.hash_tag_list : [];
-        hash_tag_list = hash_tag_list.filter( (value) => { return value !== tag });
-        if (this.props.onSetHashTags) this.props.onSetHashTags(hash_tag_list);
     }
 
     urlToBreadCrumb(result) {
@@ -159,6 +146,34 @@ export default class SearchResults extends Component {
             return str;
         }
         return "";
+    }
+
+    onSearch() {
+        if (this.props.onSearch) {
+            this.props.onSearch();
+        }
+    }
+
+    // update the values of the range slider - and do a search
+    onSetRangerSlider(name, values) {
+        if (this.props.onSetCategoryValue) {
+            this.props.onSetCategoryValue(name, values);
+            this.onSearch();
+        }
+    }
+
+    onSetGroupSimilar(value) {
+        if (this.props.onSetGroupSimilar) {
+            this.props.onSetGroupSimilar(value);
+            this.onSearch();
+        }
+    }
+
+    onSetNewestFirst(value) {
+        if (this.props.onSetNewestFirst) {
+            this.props.onSetNewestFirst(value);
+            this.onSearch();
+        }
     }
 
     render() {
@@ -189,7 +204,7 @@ export default class SearchResults extends Component {
         }
         const hash_tag_list = (this.props.hash_tag_list && this.props.hash_tag_list.length > 0) ? this.props.hash_tag_list : [];
         return (
-            <div className="h-100">
+            <div className={this.props.busy ? "h-100 wait-cursor" : "h-100"}>
                 <div className="row mx-0 sec-topbar py-2 px-4 d-flex justify-content-center align-items-center">
                     <div className="sec-functions col-xxl-10">
                         {/* <button className="btn sec-btn">
@@ -275,14 +290,13 @@ export default class SearchResults extends Component {
                                                     {
                                                         hash_tag_list.map((tag, i) => {
                                                             return (
-                                                                <li key={i} className="tag mt-2 me-1" title={"hash-tag " + tag}>{tag}
-                                                                    <span className="remove-tag ms-1 pointer-cursor" onClick={(e) => this.removeHashTag(e, tag)}>&times;</span>
-                                                                </li>
+                                                                <li key={i} className="tag mt-2 me-1" title={"hash-tag " + tag}>{tag}</li>
                                                             )
                                                         })
                                                     }
                                                 </ul>
                                                 <input type="text" id="hash-tag-text" placeholder="Filter by tags..." className="py-2 px-3 w-100 border-0"
+                                                       disabled={this.props.busy}
                                                        onKeyPress = {(event) => this.hashTagKeyPress(event) }/>
                                             </label>
                                         </div>
@@ -291,7 +305,7 @@ export default class SearchResults extends Component {
                                         <div className="w-100 mt-4">
                                             <label htmlFor="customRange3" className="form-label mb-0">Last modified:</label>
                                             <RangeSlider domain={[lastModifiedMetadata.minValue,lastModifiedMetadata.maxValue]}
-                                                         onSetValue={(values) => {if (this.props.onSetCategoryValue) this.props.onSetCategoryValue("last-modified", values)}}
+                                                         onSetValue={(values) => this.onSetRangerSlider("last-modified", values)}
                                                          values={[lastModifiedMetadata.currentMinValue,lastModifiedMetadata.currentMaxValue]}/>
                                         </div>
                                         }
@@ -299,7 +313,7 @@ export default class SearchResults extends Component {
                                         <div className="w-100">
                                             <label htmlFor="customRange3" className="form-label mb-0">Created:</label>
                                             <RangeSlider domain={[createdMetadata.minValue,createdMetadata.maxValue]}
-                                                         onSetValue={(values) => {if (this.props.onSetCategoryValue) this.props.onSetCategoryValue("created", values)}}
+                                                         onSetValue={(values) => this.onSetRangerSlider("created", values)}
                                                          values={[createdMetadata.currentMinValue,createdMetadata.currentMaxValue]}/>
                                         </div>
                                         }
@@ -308,10 +322,11 @@ export default class SearchResults extends Component {
                                         <div className="form-check form-switch my-4 ps-0 d-flex align-items-center">
                                             <input className="form-check-input h6 ms-0 my-0 me-2" 
                                                 type="checkbox" 
-                                                role="switch"       
-                                                id="flexSwitchCheckDefault" 
+                                                role="switch"
+                                                disabled={this.props.busy}
+                                                id="flexSwitchCheckDefault"
                                                 checked={this.props.group_similar}
-                                                onChange={(event) => {if (this.props.onSetGroupSimilar) this.props.onSetGroupSimilar(event.target.checked)}}
+                                                onChange={(event) => this.onSetGroupSimilar(event.target.checked)}
                                             />
                                             <label className="" htmlFor="flexSwitchCheckDefault">Group similar</label>
                                         </div>
@@ -320,10 +335,11 @@ export default class SearchResults extends Component {
                                         <div className="form-check form-switch my-4 ps-0 d-flex align-items-center">
                                             <input className="form-check-input h6 ms-0 my-0 me-2"
                                                    type="checkbox"
+                                                   disabled={this.props.busy}
                                                    role="switch"
                                                    id="flexSwitchCheckDefault"
                                                    checked={this.props.newest_first}
-                                                   onChange={(event) => {if (this.props.onSetNewestFirst) this.props.onSetNewestFirst(event.target.checked)}}
+                                                   onChange={(event) => this.onSetNewestFirst(event.target.checked)}
                                             />
                                             <label className="" htmlFor="flexSwitchCheckDefault">Sort by newest first</label>
                                         </div>
@@ -339,6 +355,7 @@ export default class SearchResults extends Component {
                                                         <SynsetSelector
                                                             name={synset.name}
                                                             syn_sets={this.props.syn_sets}
+                                                            busy={this.props.busy}
                                                             onSelectSynSet={(name, i) => {if (this.props.onSelectSynSet) this.props.onSelectSynSet(name, i)}}
                                                             description_list={synset.description_list}/>
                                                     {/* </div> */}
@@ -354,6 +371,7 @@ export default class SearchResults extends Component {
                                     <div className="w-100 result-document-filter pb-3">
                                         <CategorySelector
                                             title="File types"
+                                            busy={this.props.busy}
                                             onSetValue={(value) => { if (this.props.onSetCategoryValue) this.props.onSetCategoryValue("document-type", value)}}
                                             items={documentTypeMetadata.items}/>
                                     </div>

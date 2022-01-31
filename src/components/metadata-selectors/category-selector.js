@@ -44,13 +44,17 @@ export class CategorySelector extends Component {
                 {/* <div> */}
                 <label className="list-group-item p-0 overflow-hidden">
                     <input type="text" value={this.state.filter} placeholder="Filter type..." className="py-2 px-3 w-100 border-0"
+                           disabled={this.props.busy}
                            onChange = {(event) => this.setState({filter: event.target.value}) } />
                 </label>
                     {
                         this.getItems().map((item, i) => {
                             return (
                                     <label className="list-group-item bg-light d-flex ps-3 pe-3 no-select" key={i}>
-                                        <input className="form-check-input me-2" type="checkbox" checked={this.getChecked(item.name)} onChange={(event) => this.onSetValue(item.name, event.target.checked)} />
+                                        <input className="form-check-input me-2" type="checkbox"
+                                               checked={this.getChecked(item.name)}
+                                               disabled={this.props.busy}
+                                               onChange={(event) => this.onSetValue(item.name, event.target.checked)} />
                                         <div className="d-flex justify-content-between flex-fill">
                                             <span className="" title={"filter search results for only " + item.name + " types."}>{item.name}</span>
                                             <span className="small fst-italic" title={"the current results contain " + item.count + " " + item.name + " types."}>{item.count}</span>
