@@ -52,7 +52,7 @@ export default class HomeSearch extends Component {
         return (
             <div className="h-100 d-flex justify-content-center align-items-center">
                 <div className="d-flex flex-column justify-content-center align-items-center pb-5 mb-5">
-                    <img src="images/brand/simsage-logo-no-strapline.svg" alt="" class="mb-2" style={{"width" : "200px"}}/>
+                    <img src="images/brand/simsage-logo-no-strapline.svg" alt="" className="mb-2" style={{"width" : "200px"}}/>
                     <div className="nav-search-container d-flex align-items-center position-relative mb-5">
                         <span className="nav-search-icon ms-2 d-flex align-items-center">
                             <img src="../images/icon/icon_n-search.svg" alt="search"/>

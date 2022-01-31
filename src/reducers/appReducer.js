@@ -399,15 +399,27 @@ export const reducer = (state, action) => {
 
         case DO_SEARCH: {
             const data = action.data;
-            const save_search_list = data.savedSearchList ? data.savedSearchList : [];
+            const save_search_list = (data && data.savedSearchList) ? data.savedSearchList : [];
+            // add it to the rest (if page > 0) or replace the list?
+            let search_result_list = [];
+            if (data && data.page > 0) {
+                search_result_list = state.search_result_list;
+                const new_list = (data && data.resultList) ? data.resultList : [];
+                for (let i in new_list) {
+                    search_result_list.push(new_list[i]);
+                }
+            } else {
+                search_result_list = (data && data.resultList) ? data.resultList : [];
+            }
             return {
                 ...state,
-                search_result: data,
+                search_result: data,            // this is the complete set
                 search_text: data.search_text,
                 search_page: data.page,
                 show_search_results: true,
                 show_subscribed: false,
                 show_locks: false,
+                search_result_list: search_result_list,
                 save_search_list: save_search_list,
                 busy: false,
             }

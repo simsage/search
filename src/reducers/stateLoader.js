@@ -90,8 +90,9 @@ export function initializeState() {
         show_search_results: false,
         user_search_text: "",
         search_text: "",
-        search_result: {},
+        search_result: {},  // the set returned by SimSage
         search_page: 0,
+        search_result_list: [], // a list of items from the search_result set and more (infinite scroll)
 
         // show the locked-section
         show_locks: false,

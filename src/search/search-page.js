@@ -113,7 +113,7 @@ export class SearchPage extends Component {
         if (this.state.has_error) {
             return <h1>search-page.js: Something went wrong.</h1>;
         }
-        const is_toggled = (this.props.selected_file !== null);
+        //const is_toggled = (this.props.selected_file !== null);
 
         return (
             <div className={this.props.busy ? "dms wait-cursor" : "dms"} onClick={() => this.closeAllMenus()}>
@@ -280,9 +280,11 @@ export class SearchPage extends Component {
                     <div className="inner">
                         <SearchResults
                             search_result={this.props.search_result}
+                            search_result_list={this.props.search_result_list}
+                            search_page={this.props.search_page}
                             syn_sets={this.props.syn_sets}
                             hash_tag_list={this.props.hash_tag_list}
-                            onSearch={() => this.props.search(this.props.user_search_text)}
+                            onSearch={(page) => this.props.search(this.props.user_search_text, page)}
                             client_id={Api.getUserId(this.props.user)}
                             onHideSearchResults={() => this.props.hideSearchResults()}
                             onSetCategoryValue={(metadata, values) => this.props.setCategoryValue(metadata, values)}
@@ -353,6 +355,8 @@ const mapStateToProps = function(state) {
 
         show_search_results: state.appReducer.show_search_results,
         search_result: state.appReducer.search_result,
+        search_result_list: state.appReducer.search_result_list,
+        search_page: state.appReducer.search_page,
         show_locks: state.appReducer.show_locks,
         show_subscribed: state.appReducer.show_subscribed,
 

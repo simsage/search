@@ -17,12 +17,48 @@ export default class SearchResults extends Component {
         this.state={
             has_error: false,  // error trapping
             show_dropdown: false,
+            prevY: 0,
         }
     }
     componentDidCatch(error, info) {
         this.setState({ has_error: true });
         console.log(error, info);
     }
+
+    handleObserver(entities, observer) {
+        const y = entities[0].boundingClientRect.y;
+        if (this.state.prevY > y) {
+            const sr = this.props.search_result;
+            // let page = sr.page ? sr.page : 0;
+            let divided = sr.totalDocumentCount / window.ENV.page_size;
+            if (divided > 0) {
+                let num_pages = parseInt("" + divided);
+                if (parseInt("" + divided) < divided) {
+                    num_pages += 1;
+                }
+                if (num_pages === 0)
+                    num_pages = 1;
+                if (this.props.search_page + 1 < num_pages) {
+                    this.onSearch(this.props.search_page + 1);
+                }
+            }
+        }
+        this.setState({ prevY: y });
+    }
+
+    componentDidMount() {
+        let options = {
+            root: null,
+            rootMargin: "0px",
+            threshold: 1.0
+        };
+        this.observer = new IntersectionObserver(
+            this.handleObserver.bind(this),
+            options
+        );
+        this.observer.observe(this.loadingRef);
+    }
+
     moreDropdown() {
         this.setState({show_dropdown: !this.state.show_dropdown})
     }
@@ -65,7 +101,6 @@ export default class SearchResults extends Component {
     }
     // return the document-type metadata list if it exists - or null if not
     getDocumentTypeMetadata(sr) {
-        console.log("sr.categoryList", sr.categoryList);
         if (sr && sr.categoryList) {
             for (const md of sr.categoryList) {
                 if (md.metadata === "document-type") {
@@ -125,7 +160,7 @@ export default class SearchResults extends Component {
             event.stopPropagation();
             let text = event.target.value;
             if (text.trim().length > 0) {
-                this.onSearch();
+                this.onSearch(this.props.search_page);
             }
         } else if (event.key === " ") {
             event.preventDefault();
@@ -148,9 +183,9 @@ export default class SearchResults extends Component {
         return "";
     }
 
-    onSearch() {
+    onSearch(page) {
         if (this.props.onSearch) {
-            this.props.onSearch();
+            this.props.onSearch(page);
         }
     }
 
@@ -158,28 +193,28 @@ export default class SearchResults extends Component {
     onSetRangerSlider(name, values) {
         if (this.props.onSetCategoryValue) {
             this.props.onSetCategoryValue(name, values);
-            this.onSearch();
+            this.onSearch(this.props.search_page);
         }
     }
 
     onSetGroupSimilar(value) {
         if (this.props.onSetGroupSimilar) {
             this.props.onSetGroupSimilar(value);
-            this.onSearch();
+            this.onSearch(this.props.search_page);
         }
     }
 
     onSetNewestFirst(value) {
         if (this.props.onSetNewestFirst) {
             this.props.onSetNewestFirst(value);
-            this.onSearch();
+            this.onSearch(this.props.search_page);
         }
     }
 
     onSetCategoryValue(value) {
         if (this.props.onSetCategoryValue) {
             this.props.onSetCategoryValue("document-type", value);
-            this.onSearch();
+            this.onSearch(this.props.search_page);
         }
     }
 
@@ -190,8 +225,8 @@ export default class SearchResults extends Component {
         const sr = this.props.search_result;
         const category_list = this.props.category_list ? this.props.category_list : [];
         const category_values = this.props.category_values ? this.props.category_values : {};
-        const result_list = (sr && sr.resultList) ? sr.resultList : [];
-        let page = sr.page ? sr.page : 0;
+        const result_list = this.props.search_result_list ? this.props.search_result_list : [];
+        // let page = sr.page ? sr.page : 0;
         let divided = sr.totalDocumentCount / window.ENV.page_size;
         let num_pages = parseInt("" + divided);
         if (parseInt("" + divided) < divided) {
@@ -256,7 +291,8 @@ export default class SearchResults extends Component {
                                             <div className="d-flex align-items-center text-align-end mb-1">
                                                 <p className="mb-0 result-breadcrumb me-2">{this.urlToBreadCrumb(result)}</p>
                                             </div>
-                                            <a href={result.url} target="_blank" className="mb-2 results-filename" title={result.url}>{result.url}</a>
+                                            <a href={result.url} target="_blank" rel="noreferrer"
+                                               className="mb-2 results-filename" title={result.url}>{result.url}</a>
                                             <div className="d-flex mb-1">
                                                 <span className="mb-0 result-details">Last modified {last_modified}</span>
                                                 {result.author &&
@@ -277,6 +313,9 @@ export default class SearchResults extends Component {
                                 )
                             })
                         }
+
+                        { /* infinite scrolling */ }
+                        <div ref={loadingRef => (this.loadingRef = loadingRef)} />
 
                     </div>
                     <div className="col-xxl-3 col-xl-4 ps-3 pe-4 pe-xxl-3 order-first order-xl-last mb-5">

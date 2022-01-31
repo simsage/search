@@ -5,7 +5,7 @@ import {connect} from "react-redux";
 import {bindActionCreators} from "redux";
 
 import '../css/sign-in.css';
-import ErrorDialog from "../common/error-dialog";
+// import ErrorDialog from "../common/error-dialog";
 
 class SignIn extends Component {
     constructor(props){
