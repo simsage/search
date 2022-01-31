@@ -36,9 +36,6 @@ export const SET_TAG_LIST = "set tag list";
 export const SHOW_MENU = "show menu";
 export const CLOSE_MENUS = "close menus";
 
-// file uploader
-export const SHOW_FILE_UPLOADER = "show file uploader";
-
 export const SHOW_LOCKS = "show locks";
 export const SHOW_SUBSCRIPTIONS = "show subscriptions";
 

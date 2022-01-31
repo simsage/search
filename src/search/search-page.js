@@ -6,21 +6,14 @@ import {appCreators} from "../actions/appActions";
 
 import '../css/search-page.css';
 
-import LeftSidebar from "../components/layout/LeftSidebar.js";
 import Navbar from "../components/layout/Navbar.js";
-import MainSection from "../components/layout/MainSection.js";
-import RightSidebar from "../components/layout/RightSidebar.js";
 import SearchResults from "../components/layout/SearchResults.js";
-import LockedSection from "../components/layout/LockedSection.js";
-import SubscribedSection from "../components/layout/SubscribedSection.js";
 import HomeSearch from "../components/layout/HomeSearch.js"
 
-import NotificationsDropdown from "../components/navbar/NotificationsDropdown.js";
 import AccountDropdown from "../components/navbar/AccountDropdown.js";
 
 import ErrorDialog from "../common/error-dialog";
 import Api from "../common/api";
-import UploadFiles from "../file_upload/upload-files.component";
 import SignIn from "../auth/sign-in";
 
 
@@ -69,33 +62,10 @@ export class SearchPage extends Component {
         }
     }
 
-    startFileUpload() {
-        this.closeLocalMenus();
-        document.getElementById("file-input").click();
-    }
-    startFolderUpload() {
-        this.closeLocalMenus();
-        document.getElementById("folder-input").click();
-    }
     addFolderAndClose(parent_item, folder_name) {
         this.closeLocalMenus();
         if (parent_item && folder_name)
             this.props.addFolder(parent_item, folder_name);
-    }
-    addSourceAndClose(source_name) {
-        this.closeLocalMenus();
-        if (source_name) {
-            this.props.addSource(source_name);
-        }
-    }
-    selectFiles(e) {
-        this.closeLocalMenus();
-        this.setState({files_for_upload: e.target.files});
-    }
-    closeFileUpload() {
-        this.setState({files_for_upload: null});
-        document.getElementById("file-input").value = "";
-        document.getElementById("folder-input").value = "";
     }
 
     navigateToSignIn() {
@@ -341,23 +311,6 @@ export class SearchPage extends Component {
                     />
 
                 </div>
-
-                <UploadFiles
-                    files_for_upload={this.state.files_for_upload}
-                    session_id={Api.getSessionId(this.props.session)}
-                    breadcrumbList={this.props.breadcrumb_list}
-                    onUpdateFolder={(folder) => this.props.updateFolder(folder)}
-                    onCloseFileupload={() => this.closeFileUpload()} />
-
-                {/* file upload */}
-                <input id="file-input" type="file" multiple
-                       onChange={(e) => this.selectFiles(e)}
-                       style={{display: 'none'}} />
-
-                {/* directory upload */}
-                <input id="folder-input" type="file" webkitdirectory="true" directory="true" mozdirectory="true" multiple
-                       onChange={(e) => this.selectFiles(e)}
-                       style={{display: 'none'}} />
 
             </div>
         );

@@ -21,17 +21,6 @@ export default class LeftSidebar extends Component {
         this.setState({ has_error: true });
         console.log(error, info);
     }
-    onFileUpload(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        if (this.props.onFileUpload)
-            this.props.onFileUpload();
-    }
-    onFolderUpload(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        if (this.props.onFolderUpload) this.props.onFolderUpload();
-    }
     onNewFolder(e, is_top_level) {
         e.preventDefault();
         e.stopPropagation();
@@ -68,7 +57,6 @@ export default class LeftSidebar extends Component {
                     <img src="/images/brand/simsage-logo-no-strapline.svg" alt="" className="h-75" />
                 </div>
                 <div className="sb-upload mx-3 d-flex align-items-center position-relative">
-                    <button className="btn btn-upload" onClick={(e) => this.newDropdown(e)} disabled={disabled}>+ New</button>
                     <div className={((this.props.show_new_menu && !disabled) ? "d-block" : "d-none") +" new-inline-menu start-0 position-absolute"}>
                         <ul className="more-list">
                             { (file_ul_disabled || disabled ) &&
@@ -78,31 +66,6 @@ export default class LeftSidebar extends Component {
                                 <img src="../images/icon/icon_ls-file-upload-active.svg" alt=""
                                      className="sb-icon-dropdown-active me-2"/>
                                 <span className="menu-disabled-text">File Upload</span>
-                            </li>
-                            }
-                            {!(file_ul_disabled || disabled) &&
-                            <li className="more-list-items px-3 py-3 d-flex align-items-center"
-                                onClick={(e) => this.onFileUpload(e)}>
-                                <img src="../images/icon/icon_ls-file-upload.svg" alt=""
-                                     className="sb-icon-dropdown me-2"/>
-                                <img src="../images/icon/icon_ls-file-upload-active.svg" alt=""
-                                     className="sb-icon-dropdown-active me-2"/>
-                                File Upload
-                            </li>
-                            }
-                            {(file_ul_disabled || disabled) &&
-                            <li className="more-list-items px-3 py-3 d-flex align-items-center border-bottom">
-                                <img src="../images/icon/icon_ls-folder-upload.svg" alt="" className="sb-icon-dropdown me-2" />
-                                <img src="../images/icon/icon_ls-folder-upload-active.svg" alt="" className="sb-icon-dropdown-active me-2" />
-                                <span className="menu-disabled-text">Folder Upload</span>
-                            </li>
-                            }
-                            {!(file_ul_disabled || disabled) &&
-                            <li className="more-list-items px-3 py-3 d-flex align-items-center border-bottom"
-                                onClick={(e) => this.onFolderUpload(e)}>
-                                <img src="../images/icon/icon_ls-folder-upload.svg" alt="" className="sb-icon-dropdown me-2" />
-                                <img src="../images/icon/icon_ls-folder-upload-active.svg" alt="" className="sb-icon-dropdown-active me-2" />
-                                Folder Upload
                             </li>
                             }
                             {disabled &&

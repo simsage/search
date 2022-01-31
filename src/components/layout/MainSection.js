@@ -1,7 +1,6 @@
 import React, {Component} from 'react';
 
 import '../../css/layout/main-section.css';
-import '../../css/layout/file-uploader.css';
 import {Breadcrumb} from "../main-section/breadcrumb";
 import {CrawlerTile} from "../main-section/CrawlerTile";
 import {FolderTile} from "../main-section/FolderTile";

@@ -16,7 +16,6 @@ import {
     SET_SYNSET,
     SET_TAG_LIST,
 
-    SHOW_FILE_UPLOADER,
     SHOW_MENU,
     CLOSE_MENUS,
 
@@ -257,11 +256,6 @@ export const appCreators = {
         } else if (item) {
             alert("onRename(file:" + item.url + "):: todo");
         }
-    },
-
-    onFileUpload: (show) => async (dispatch, getState) => {
-        dispatch({type: CLOSE_MENUS});
-        dispatch({type: SHOW_FILE_UPLOADER, visible: show})
     },
 
     // show a menu on an item (and close the others)

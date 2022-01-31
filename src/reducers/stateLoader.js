@@ -93,9 +93,6 @@ export function initializeState() {
         search_result: {},
         search_page: 0,
 
-        // show the file uploader?
-        show_uploader: false,
-
         // show the locked-section
         show_locks: false,
         // show the subscribed-section

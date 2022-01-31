@@ -32,8 +32,6 @@ import {
     SET_SYNSET,
     SET_TAG_LIST,
 
-    SHOW_FILE_UPLOADER,
-
     SHOW_MENU,
     CLOSE_MENUS,
 
@@ -540,13 +538,6 @@ export const reducer = (state, action) => {
             return {
                 ...state,
                 hash_tag_list: action.hash_tag_list,
-            };
-        }
-
-        case SHOW_FILE_UPLOADER: {
-            return {
-                ...state,
-                show_uploader: action.visible,
             };
         }
 
