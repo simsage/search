@@ -11,6 +11,7 @@
 .inner {
     height: calc(100% - 70px);
     position: relative;
+    overflow-y: auto;
 }
 .overlay {
     position: fixed;

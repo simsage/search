@@ -200,7 +200,7 @@ export default class SearchResults extends Component {
         if (sr.totalDocumentCount === 0) {
             srText = "No results...";
         } else {
-            srText = "Total of " + sr.totalDocumentCount + " Results";
+            srText = "" + sr.totalDocumentCount + " Results";
         }
         const hash_tag_list = (this.props.hash_tag_list && this.props.hash_tag_list.length > 0) ? this.props.hash_tag_list : [];
         return (
@@ -214,7 +214,6 @@ export default class SearchResults extends Component {
                         </button> */}
                         <span className="small text-muted ms-2 fw-light">
                             {srText}
-                            <span className={sr.totalDocumentCount === 0 ? "d-none" : ""}> - Page {page + 1} of {num_pages}</span>
                         </span>
                     </div>
                 </div>
