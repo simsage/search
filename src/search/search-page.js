@@ -9,6 +9,7 @@ import '../css/search-page.css';
 import Navbar from "../components/layout/Navbar.js";
 import SearchResults from "../components/layout/SearchResults.js";
 import HomeSearch from "../components/layout/HomeSearch.js"
+import PreviewModal from "../components/layout/PreviewModal.js";
 
 import AccountDropdown from "../components/navbar/AccountDropdown.js";
 
@@ -315,6 +316,10 @@ export class SearchPage extends Component {
                     />
 
                 </div>
+
+                {/* <div className="overlay">
+                    <PreviewModal />
+                </div> */}
 
             </div>
         );
