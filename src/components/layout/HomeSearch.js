@@ -67,6 +67,7 @@ export default class HomeSearch extends Component {
                                }}
                                onClick={() => this.setState({show_recents: true})}
                                autoComplete={"off"}
+                               autoFocus
                                value={this.props.search_text}
                                onFocus={() => this.recentsDropdown()}
                                placeholder="SimSage Search..."/>
