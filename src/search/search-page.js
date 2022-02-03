@@ -51,18 +51,6 @@ export class SearchPage extends Component {
         }
     }
 
-    // focus on an item - switch to main view (select-folder) and open the right-side bar
-    focusOnItem(sourceId, url, urlId) {
-        if (url) {
-            if (sourceId > 0) {
-                const folder_url = Api.folderFromUrl(url);
-                const folder = {isFolder: true, sourceId: sourceId, url: folder_url};
-                this.props.selectFolder(folder, false);
-            }
-            this.props.selectFile(url, urlId);
-        }
-    }
-
     addFolderAndClose(parent_item, folder_name) {
         this.closeLocalMenus();
         if (parent_item && folder_name)
@@ -109,7 +97,9 @@ export class SearchPage extends Component {
     signIn(user_name, password) {
         this.props.signIn(user_name, password, () => { this.closeSignIn() })
     }
-
+    closeFocus() {
+        this.props.onFocus(null);
+    }
     render() {
         if (this.state.has_error) {
             return <h1>search-page.js: Something went wrong.</h1>;
@@ -286,6 +276,7 @@ export class SearchPage extends Component {
                             syn_sets={this.props.syn_sets}
                             hash_tag_list={this.props.hash_tag_list}
                             onSearch={(page) => this.props.search(this.props.user_search_text, page)}
+                            onFocus={(item) => this.props.onFocus(item)}
                             client_id={Api.getUserId(this.props.user)}
                             onHideSearchResults={() => this.props.hideSearchResults()}
                             onSetCategoryValue={(metadata, values) => this.props.setCategoryValue(metadata, values)}
@@ -298,7 +289,6 @@ export class SearchPage extends Component {
                             group_similar={this.props.group_similar}
                             newest_first={this.props.newest_first}
                             busy={this.props.busy}
-                            onFocus={(sourceId, url, urlId) => this.focusOnItem(sourceId, url, urlId)}
                             />
                     </div>
                     }
@@ -317,9 +307,14 @@ export class SearchPage extends Component {
 
                 </div>
 
-                {/* <div className="overlay">
-                    <PreviewModal />
-                </div> */}
+                { this.props.search_focus &&
+                    <div className="overlay">
+                        <PreviewModal
+                            search_focus={this.props.search_focus}
+                            onClose={() => this.closeFocus() }
+                            />
+                    </div>
+                }
 
             </div>
         );
@@ -362,6 +357,7 @@ const mapStateToProps = function(state) {
         search_result: state.appReducer.search_result,
         search_result_list: state.appReducer.search_result_list,
         search_page: state.appReducer.search_page,
+        search_focus: state.appReducer.search_focus,
         show_locks: state.appReducer.show_locks,
         show_subscribed: state.appReducer.show_subscribed,
 

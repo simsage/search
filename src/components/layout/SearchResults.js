@@ -289,8 +289,7 @@ export default class SearchResults extends Component {
                                             <div className="d-flex align-items-center text-align-end mb-1">
                                                 <p className="mb-0 result-breadcrumb me-2">{this.urlToBreadCrumb(result)}</p>
                                             </div>
-                                            <a href={result.url} target="_blank" rel="noreferrer"
-                                               className="mb-2 results-filename text-break" title={result.url}>{result.url}</a>
+                                            <span className="mb-2 results-filename text-break" onClick={() => { if (this.props.onFocus) this.props.onFocus(result)}} title={result.url}>{result.url}</span>
                                             <div className="d-flex align-items-center mb-1">
                                                 <span className="mb-0 result-details">Last modified {last_modified}</span>
                                                 {result.author &&

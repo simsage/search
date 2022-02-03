@@ -24,6 +24,7 @@ import {
     UPDATE_SEARCH_TEXT,
 
     SET_SAVED_SEARCHES,
+    SET_SEARCH_FOCUS,
 
 } from "./actions";
 
@@ -282,6 +283,11 @@ export const appCreators = {
     // change views from grid to list or vice versa
     changeView: () => async (dispatch, getState) => {
         dispatch({type: CHANGE_VIEW});
+    },
+
+    // click on an item and set focus
+    onFocus: (item) => async (dispatch, getState) => {
+        dispatch({type: SET_SEARCH_FOCUS, search_focus: item})
     },
 
 

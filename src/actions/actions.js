@@ -17,6 +17,7 @@ export const DO_SEARCH = "do search";
 export const SET_SAVED_SEARCHES = "set saved searches";
 export const UPDATE_SEARCH_TEXT = "update search text";
 export const HIDE_SEARCH_RESULTS = "hide search results";
+export const SET_SEARCH_FOCUS = "set search focus";
 
 export const SET_COMMENTS = "set comments";
 export const SET_FILE_HASH_TAGS = "set file hash tags";

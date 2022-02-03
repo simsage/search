@@ -39,6 +39,7 @@ import {
     SHOW_SUBSCRIPTIONS,
 
     CHANGE_VIEW,
+    SET_SEARCH_FOCUS,
 
 } from "../actions/actions";
 import {initializeState} from './stateLoader'
@@ -631,6 +632,14 @@ export const reducer = (state, action) => {
             return {
                 ...state,
                 user_search_text: action.user_search_text,
+            }
+        }
+
+        // set focus on an item
+        case SET_SEARCH_FOCUS: {
+            return {
+                ...state,
+                search_focus: action.search_focus,
             }
         }
 

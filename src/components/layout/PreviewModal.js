@@ -14,26 +14,37 @@ export default class PreviewModal extends Component {
             my_error_message: 'default error message'
         }
     }
+    onClose() {
+        if (this.props.onClose)
+            this.props.onClose();
+    }
+    download(url) {
+        if (url)
+            window.open(url, "_blank");
+    }
     render() {
         if (this.state.has_error) {
             return <h1>modal.js: Something went wrong.</h1>;
         }
+        const item = this.props.search_focus;
+        const filename = item && item.filename ? item.filename : "";
+        const url = item && item.url ? item.url : "";
         return (
             <div className="d-flex justify-content-center align-items-top overflow-auto h-100 w-100">
                 <div className="fixed-top text-white px-5 py-3" style={{"background" : "#202731ee"}}>
                     <div className="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 className="mb-0">Filename_document.pdf</h6>
+                            <h6 className="mb-0" title={filename}>{filename}</h6>
                         </div>
                         <div className="d-flex">
-                        <button className="btn ms-2 bg-white">
+                            <button className="btn ms-2 bg-white" onClick={() => this.download(url)} title={"download " + url}>
                                 Download
                             </button>
                             <button className="btn sec-btn ms-2 bg-white">
                                 <img src="../images/icon/icon_g-more.svg" alt="" />
                             </button>
                             <button className="btn sec-btn ms-2 bg-white">
-                                <img src="../images/icon/icon_rs-close.svg" alt="" />
+                                <img src="../images/icon/icon_rs-close.svg" alt="close" title="close" onClick={() => this.onClose()} />
                             </button>
                         </div>
                     </div>

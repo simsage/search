@@ -93,6 +93,7 @@ export function initializeState() {
         search_result: {},  // the set returned by SimSage
         search_page: 0,
         search_result_list: [], // a list of items from the search_result set and more (infinite scroll)
+        search_focus: null,     // the item shown (if not null) on the focus screen
 
         // show the locked-section
         show_locks: false,
