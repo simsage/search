@@ -242,25 +242,23 @@ export default class SearchResults extends Component {
         if (sr.totalDocumentCount === 0) {
             srText = "No results...";
         } else {
-            srText = "" + sr.totalDocumentCount + " Results";
+            srText = "" + sr.totalDocumentCount + " results";
         }
         const hash_tag_list = (this.props.hash_tag_list && this.props.hash_tag_list.length > 0) ? this.props.hash_tag_list : [];
         return (
             <div className={this.props.busy ? "h-100 wait-cursor" : "h-100"}>
-                <div className="row mx-0 sec-topbar py-2 px-4 d-flex justify-content-center align-items-center">
+                {/* <div className="row mx-0 sec-topbar py-2 px-4 d-flex justify-content-center align-items-center">
                     <div className="sec-functions col-xxl-10">
-                        {/* <button className="btn sec-btn">
-                            <img src="../images/icon/icon_sr-back.svg" alt="back" className=""
-                                 onClick={() => {if (this.props.onHideSearchResults) this.props.onHideSearchResults()}}
-                            />
-                        </button> */}
                         <span className="small text-muted ms-2 fw-light">
                             {srText}
                         </span>
                     </div>
-                </div>
-                <div className="row mx-0 px-2 results-container justify-content-center">
+                </div> */}
+                <div className="row mx-0 px-2 results-container overflow-auto h-100 justify-content-center">
                     <div className="col-xxl-7 col-xl-8 pe-4">
+                        <div className="small text-muted ms-2 fw-light px-3 pb-3">
+                            {srText}
+                        </div>
                         { sr && sr.text && sr.text.length > 0 &&
                             <div className="result-mind p-4 mb-5 mx-3">
                                 {sr.text}

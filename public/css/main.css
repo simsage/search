@@ -38,7 +38,8 @@ html, body, #content, .App, .dms {
 .tog-preview:hover::-webkit-scrollbar-thumb,
 .tog-comments:hover .comments-inner::-webkit-scrollbar-thumb,
 .tile-container:hover::-webkit-scrollbar-thumb,
-.table-responsive:hover::-webkit-scrollbar-thumb {
+.table-responsive:hover::-webkit-scrollbar-thumb,
+.results-container:hover::-webkit-scrollbar-thumb {
     visibility: visible;
 }
 

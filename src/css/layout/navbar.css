@@ -20,8 +20,8 @@
     transition: all .3s ease;
 }
 .nav-search-container:hover {
-    border-color: transparent;
-    /* background-color: #1c9bd220; */
+    border-color: #ddd; 
+    background-color: #fff;
 }
 .nav-search-container:focus-within {
     background-color: #fff;
