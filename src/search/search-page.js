@@ -308,7 +308,7 @@ export class SearchPage extends Component {
                 { this.props.search_focus &&
                     <div className="overlay">
                         <PreviewModal
-                            client_id={this.props.client_id}
+                            client_id={Api.getUserId(this.props.user)}
                             search_focus={this.props.search_focus}
                             onClose={() => this.closeFocus() }
                             />
@@ -359,7 +359,6 @@ const mapStateToProps = function(state) {
         search_focus: state.appReducer.search_focus,
         show_locks: state.appReducer.show_locks,
         show_subscribed: state.appReducer.show_subscribed,
-        client_id: state.appReducer.client_id,
 
         show_uploader: state.appReducer.show_uploader,
         show_grid: state.appReducer.show_grid,

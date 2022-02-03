@@ -40,7 +40,7 @@ export default class PreviewModal extends Component {
         const url = item && item.url ? item.url : "";
         const preview_url = this.getPreviewSource(item);
         const metadata_lists = Api.getMetadataLists(item && item.metadata ? item.metadata : {});
-        const tag_list = metadata_lists["tag_list"];
+        // const tag_list = metadata_lists["tag_list"];
         const metadata_list = metadata_lists["metadata_list"];
         return (
             <div className="d-flex justify-content-center align-items-top overflow-auto h-100 w-100">
