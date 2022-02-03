@@ -2,6 +2,8 @@
 // this defines the initial state of the entire application - the state store
 //
 
+import Api from "../common/api";
+
 export function initializeState() {
     return {
         // system busy
@@ -94,6 +96,9 @@ export function initializeState() {
         search_page: 0,
         search_result_list: [], // a list of items from the search_result set and more (infinite scroll)
         search_focus: null,     // the item shown (if not null) on the focus screen
+
+        // a unique id identifying this client
+        client_id: Api.getClientId(),
 
         // show the locked-section
         show_locks: false,

@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 
 import '../../css/layout/preview-modal.css';
+import Api from "../../common/api";
 
 /**
  * this is the PreviewModal
@@ -22,6 +23,14 @@ export default class PreviewModal extends Component {
         if (url)
             window.open(url, "_blank");
     }
+    getPreviewSource(item) {
+        if (item && this.props.client_id && item.urlId) {
+            return window.ENV.api_base + "/document/preview/" + window.ENV.organisation_id + "/" +
+                window.ENV.kb_id + "/" + this.props.client_id + "/" + item.urlId + "/0"
+        } else {
+            return "";
+        }
+    }
     render() {
         if (this.state.has_error) {
             return <h1>modal.js: Something went wrong.</h1>;
@@ -29,6 +38,10 @@ export default class PreviewModal extends Component {
         const item = this.props.search_focus;
         const filename = item && item.filename ? item.filename : "";
         const url = item && item.url ? item.url : "";
+        const preview_url = this.getPreviewSource(item);
+        const metadata_lists = Api.getMetadataLists(item && item.metadata ? item.metadata : {});
+        const tag_list = metadata_lists["tag_list"];
+        const metadata_list = metadata_lists["metadata_list"];
         return (
             <div className="d-flex justify-content-center align-items-top overflow-auto h-100 w-100">
                 <div className="fixed-top text-white px-5 py-3" style={{"background" : "#202731ee"}}>
@@ -55,15 +68,24 @@ export default class PreviewModal extends Component {
 
                 <div className="container overflow-auto">
                     <div className="row justify-content-center" style={{"margin-top" : "4rem", "margin-bottom" : "6rem"}}>
-                        <div className="col-7 bg-white p-0 overflow-hidden my-5 rounded-3">
-                            <img src="../images/test/coleholyoake_index.jpg" alt="" className="w-100" />
-                        </div>
-                        <div className="col-7 bg-white p-0 overflow-hidden my-5 rounded-3">
-                            <img src="../images/icon/icon_fi-spreadsheet.svg" alt="" className="w-100" />
-                        </div>
-                        <div className="col-7 bg-white p-0 overflow-hidden my-5 rounded-3">
-                            <img src="../images/icon/icon_fi-presentation.svg" alt="" className="w-100" />
-                        </div>
+                        {preview_url &&
+                            <div className="col-7 bg-white p-0 overflow-hidden my-5 rounded-3">
+                                <img src={preview_url} alt="preview" className="w-100"/>
+                            </div>
+                        }
+                        {metadata_list && metadata_list.length > 0 &&
+                            <div className="col-7 bg-white p-0 overflow-hidden my-5 rounded-3 dialog-padding">
+                                <span className="metadata-header">metadata</span>
+                                {
+                                    metadata_list.map((md, i) => {
+                                        return (<div>
+                                            <span className="key-style">{md.key}</span>
+                                            <span className="value-style">{md.value}</span>
+                                        </div>)
+                                    })
+                                }
+                            </div>
+                        }
                     </div>
                 </div>
             </div>

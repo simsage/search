@@ -104,8 +104,6 @@ export class SearchPage extends Component {
         if (this.state.has_error) {
             return <h1>search-page.js: Something went wrong.</h1>;
         }
-        //const is_toggled = (this.props.selected_file !== null);
-
         return (
             <div className={this.props.busy ? "dms wait-cursor" : "dms"} onClick={() => this.closeAllMenus()}>
                 <ErrorDialog error={this.props.error} onClose={() => this.props.closeError()} />
@@ -310,6 +308,7 @@ export class SearchPage extends Component {
                 { this.props.search_focus &&
                     <div className="overlay">
                         <PreviewModal
+                            client_id={this.props.client_id}
                             search_focus={this.props.search_focus}
                             onClose={() => this.closeFocus() }
                             />
@@ -360,6 +359,7 @@ const mapStateToProps = function(state) {
         search_focus: state.appReducer.search_focus,
         show_locks: state.appReducer.show_locks,
         show_subscribed: state.appReducer.show_subscribed,
+        client_id: state.appReducer.client_id,
 
         show_uploader: state.appReducer.show_uploader,
         show_grid: state.appReducer.show_grid,
