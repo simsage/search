@@ -1,9 +1,28 @@
-.sec-btn {
+.pre-btn {
     width: 40px;
     height: 40px;
     border-radius: 10px;
     border: 1px solid transparent;
     padding: 0.15rem;
+    background-color: transparent;
+}
+.pre-btn:hover {
+    background-color: #ffffff11;
+}
+
+.dl-btn {
+    height: 40px;
+    font-size: 14px;
+    /* font-weight: 500; */
+    border-radius: 10px;
+    border: 1px solid #1c9bd2;
+    background-color: #1c9bd220;
+    color: #fff;
+}
+.dl-btn:hover {
+    border: 1px solid #1c9bd2;
+    background-color: #1c9bd2;
+    color: #fff;
 }
 
 .dialog-padding {
@@ -26,5 +45,6 @@
 }
 
 .value-style {
+
 }
 

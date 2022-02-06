@@ -44,27 +44,27 @@ export default class PreviewModal extends Component {
         const metadata_list = metadata_lists["metadata_list"];
         return (
             <div className="d-flex justify-content-center align-items-top overflow-auto h-100 w-100">
-                <div className="fixed-top text-white px-5 py-3" style={{"background" : "#202731ee"}}>
+                <div className="fixed-top text-white px-4 py-3" style={{"background-image" : "linear-gradient(#202731ff, #20273100)"}}>
                     <div className="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 className="mb-0" title={filename}>{filename}</h6>
+                            <h6 className="mb-0" style={{"text-shadow" : "0 0 50px #202731"}} title={filename}>{filename}</h6>
                         </div>
                         <div className="d-flex">
-                            <button className="btn ms-2 bg-white" onClick={() => this.download(url)} title={"download " + url}>
+                            <button className="btn dl-btn ms-2" onClick={() => this.download(url)} title={"download " + url}>
                                 Download
                             </button>
-                            <button className="btn sec-btn ms-2 bg-white">
-                                <img src="../images/icon/icon_g-more.svg" alt="" />
+                            <button className="btn pre-btn ms-2">
+                                <img src="../images/icon/icon_im-more-white.svg" alt="" />
                             </button>
-                            <button className="btn sec-btn ms-2 bg-white">
-                                <img src="../images/icon/icon_rs-close.svg" alt="close" title="close" onClick={() => this.onClose()} />
+                            <button className="btn pre-btn ms-2">
+                                <img src="../images/icon/icon_im-close-white.svg" alt="close" title="close" onClick={() => this.onClose()} />
                             </button>
                         </div>
                     </div>
                 </div>
-                <div className="fixed-bottom">
+                {/* <div className="fixed-bottom">
                     hello
-                </div>
+                </div> */}
 
                 <div className="container overflow-auto">
                     <div className="row justify-content-center" style={{"margin-top" : "4rem", "margin-bottom" : "6rem"}}>
