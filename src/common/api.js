@@ -227,6 +227,7 @@ export class Api {
                 metadata_list.push({"key": key, "value": value});
             }
         }
+        metadata_list.sort((a, b) => (a.key > b.key) ? 1 : -1);
         return {"tag_list": tag_list, "metadata_list": metadata_list};
     }
 

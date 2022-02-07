@@ -53,9 +53,9 @@ export default class PreviewModal extends Component {
                             <button className="btn dl-btn ms-2" onClick={() => this.download(url)} title={"download " + url}>
                                 Download
                             </button>
-                            <button className="btn pre-btn ms-2">
-                                <img src="../images/icon/icon_im-more-white.svg" alt="" />
-                            </button>
+                            {/*<button className="btn pre-btn ms-2">*/}
+                            {/*    <img src="../images/icon/icon_im-more-white.svg" alt="" />*/}
+                            {/*</button>*/}
                             <button className="btn pre-btn ms-2">
                                 <img src="../images/icon/icon_im-close-white.svg" alt="close" title="close" onClick={() => this.onClose()} />
                             </button>
@@ -74,16 +74,18 @@ export default class PreviewModal extends Component {
                             </div>
                         }
                         {metadata_list && metadata_list.length > 0 &&
-                            <div className="col-7 bg-white p-0 overflow-hidden my-5 rounded-3 dialog-padding">
-                                <span className="metadata-header">metadata</span>
-                                {
-                                    metadata_list.map((md, i) => {
-                                        return (<div>
-                                            <span className="key-style">{md.key}</span>
-                                            <span className="value-style">{md.value}</span>
-                                        </div>)
-                                    })
-                                }
+                            <div className="col-7 bg-white p-0 overflow-hidden my-5 rounded-3">
+                                <div className="dialog-padding">
+                                    <span className="metadata-header">metadata</span>
+                                    {
+                                        metadata_list.map((md, i) => {
+                                            return (<div>
+                                                <span className="key-style">{md.key}</span>
+                                                <span className="value-style">{md.value}</span>
+                                            </div>)
+                                        })
+                                    }
+                                </div>
                             </div>
                         }
                     </div>
