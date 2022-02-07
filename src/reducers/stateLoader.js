@@ -15,7 +15,8 @@ export function initializeState() {
         // session and user objects
         session: null,
 
-        // dashboard specific stuff
+        // search info
+        search_info_loaded: false,
 
         // the dashboard's top view
         dashboard_root: null,

@@ -2,6 +2,7 @@ import {
     BUSY,
     CLOSE_ERROR,
     ERROR,
+    SET_USER_DASHBOARD,
     SIGN_IN,
     SIGN_OUT,
 
@@ -116,6 +117,23 @@ export const appCreators = {
 
     //////////////////////////////////////////////////////////////////////////////////////////////////
     // user dashboard
+
+    // get initial search data
+    getSearchInfo: () => async (dispatch, getState) => {
+        dispatch({type: BUSY, busy: true});
+        const ar = getState().appReducer;
+        const session_id = "";
+        const user_id = Api.getUserId(ar.user);
+        await Comms.http_get('/knowledgebase/search/info/' + encodeURIComponent(window.ENV.organisation_id) + '/' + encodeURIComponent(user_id),
+            session_id,
+            (response) => {
+                dispatch({type: SET_USER_DASHBOARD, dashboard: response.data});
+            },
+            (errStr) => {
+                dispatch({type: ERROR, title: "Error", error: errStr})
+            }
+        )
+    },
 
     // select the top level source
     selectRoot: () => async (dispatch, getState) => {

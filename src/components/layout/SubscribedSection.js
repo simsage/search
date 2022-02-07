@@ -53,8 +53,6 @@ export default class SubscribedSection extends Component {
         const subscription_set = this.props.subscription_set ? this.props.subscription_set : {};
         const checkout_set = this.props.checkout_set ? this.props.checkout_set : {};
 
-        // console.log(this.props.subscription_list);
-
         if (this.state.has_error) {
             return <h1>subscribed-section.js: Something went wrong.</h1>;
         }

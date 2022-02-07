@@ -5,6 +5,7 @@ import {
 } from "./actions";
 
 import Comms from "../common/comms";
+import Api from "../common/api";
 
 // helper
 export async function do_search(text, original_text, page, shard_list, session_id, user_id,
@@ -116,12 +117,16 @@ export function add_filter_to_search_text(_text, category_list, category_values,
     // range(metadata, start#, end#)
     // doc(metadata, '')
     // sort( metadata, 'desc|asc')
+
     const delta = 3600_000;
     let filter_str = "";
     let needs_and = false;
     if (category_values) {
         for (const md of category_list) {
-            if (category_values && category_values[md.metadata] && md.categoryType === "date range") {
+
+            const category_type = Api.simplifyMetadataType(md.categoryType);
+
+            if (category_values && category_values[md.metadata] && category_type === "date range") {
                 const v = category_values[md.metadata];
                 const d1 = (v.minValue - md.minValue);
                 const d2 = (md.maxValue - v.maxValue);
@@ -137,7 +142,7 @@ export function add_filter_to_search_text(_text, category_list, category_values,
             }
 
             let type_filter = "";
-            if (category_values && category_values[md.metadata] && category_values[md.metadata].value && md.categoryType === "category") {
+            if (category_values && category_values[md.metadata] && category_values[md.metadata].value && category_type === "category") {
                 const v_set = category_values[md.metadata].value;
                 let temp_filter = "";
                 for (const [k, v] of Object.entries(v_set)) {

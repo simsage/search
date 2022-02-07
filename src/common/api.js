@@ -299,6 +299,17 @@ export class Api {
         return "comment"; // fallback
     }
 
+    // convert a more complex metadata-type to the simplest understood type in the UX
+    static simplifyMetadataType(metadata_type) {
+        if (metadata_type === "author list" || metadata_type === "person list" || metadata_type === "document type" ||
+            metadata_type === "location list" || metadata_type === "hashtag list") return "category";
+        if (metadata_type === 'date range' || metadata_type === 'last modified date ranges' ||
+            metadata_type === 'created date range') return "date range";
+        if (metadata_type === 'number range') return "number range";
+        if (metadata_type === 'monetary x 100 range' || metadata_type === 'money range') return "monetary x 100 range";
+        return "category"; // fallback
+    }
+
     static s4() {
         return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
     }

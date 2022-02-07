@@ -124,7 +124,7 @@ export const reducer = (state, action) => {
 
 
         /**
-         * get all of a user's details for the opening dashboard
+         * get search info
          */
         case SET_USER_DASHBOARD: {
             // set up the navigation system on "get user dashboard" (which is the get root of the system call)
@@ -132,6 +132,7 @@ export const reducer = (state, action) => {
             let dashboard_root = state.dashboard_root;
             let source_tracker = state.source_tracker;
             let folder_tracker = state.folder_tracker;
+            const category_list = action.dashboard.kbList && action.dashboard.kbList.length > 0 ? action.dashboard.kbList[0].categoryList : [];
 
             // get the top level content, which is the set of sources for this user
             const dashboard = action.dashboard;
@@ -187,7 +188,8 @@ export const reducer = (state, action) => {
                 subscription_set: subscription_set,
                 activity_list: dashboard && dashboard.notificationList ? dashboard.notificationList : [],
                 save_search_list: dashboard && dashboard.savedSearchList ? dashboard.savedSearchList : [],
-                category_list: dashboard && dashboard.categoryList ? dashboard.categoryList : [],
+                category_list: category_list,
+                search_info_loaded: true,
 
                 error: "",
                 busy: false,

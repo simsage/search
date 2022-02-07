@@ -43,6 +43,12 @@ export class SearchPage extends Component {
         });
     }
 
+    componentDidMount() {
+        // do we not have a valid userId yet for the dashboard?
+        if (!this.props.search_info_loaded)
+            this.props.getSearchInfo();
+    }
+
     focusOnFile(file) {
         if (file && file.url && file.urlId) {
             this.props.selectFile(file.url, file.urlId);
@@ -338,7 +344,7 @@ const mapStateToProps = function(state) {
         user: state.appReducer.user,
         user_search_text: state.appReducer.user_search_text,
 
-        dashboard_user_id: state.appReducer.dashboard_user_id,
+        search_info_loaded: state.appReducer.search_info_loaded,
         selected_source: state.appReducer.selected_source,
         selected_file: state.appReducer.selected_file,
         subscription_set: state.appReducer.subscription_set,
