@@ -67,7 +67,7 @@ export default class PreviewModal extends Component {
                 </div> */}
 
                 <div className="container overflow-auto">
-                    <div className="row justify-content-center" style={{"margin-top" : "4rem", "margin-bottom" : "6rem"}}>
+                    <div className="row justify-content-center" style={{"marginTop" : "4rem", "marginBottom" : "6rem"}}>
                         {preview_url &&
                             <div className="col-7 bg-white p-0 overflow-hidden my-5 rounded-3">
                                 <img src={preview_url} alt="preview" className="w-100"/>
