@@ -224,7 +224,7 @@ export class Api {
                     }
                 }
             } else if (key.indexOf("{") === -1) {
-                metadata_list.push({"key": key, "value": value});
+                metadata_list.push({"key": Api.translate_metadata_name(key), "value": value});
             }
         }
         metadata_list.sort((a, b) => (a.key > b.key) ? 1 : -1);
@@ -258,6 +258,24 @@ export class Api {
              e === "docx") return "text";
         }
         return "default";
+    }
+
+    // explain the semantic metadata names with a more compelling label
+    static translate_metadata_name(name) {
+        if (name === "city") return "number of cities in this document";
+        if (name === "hashtag") return "number of hashtags in this document";
+        if (name === "address") return "number of addresses in this document";
+        if (name === "continent") return "number of continents in this document";
+        if (name === "country") return "number of countries in this document";
+        if (name === "decimal") return "number of decimal numbers in this document";
+        if (name === "number") return "number of numbers in this document";
+        if (name === "person") return "number of people's names in this document";
+        if (name === "url") return "number of urls in this document";
+        if (name === "email") return "number of emails in this document";
+        if (name === "date") return "number of dates in this document";
+        if (name === "time") return "number of times in this document";
+        if (name === "money") return "number of monetary amounts in this document";
+        return name;
     }
 
     // convert a source-type (SimSage Source.CT_ ...) to a icon_ci-...svg type
