@@ -644,6 +644,8 @@ export const reducer = (state, action) => {
             return {
                 ...state,
                 search_focus: action.search_focus,
+                html_preview_data: null,
+                busy: false,
             }
         }
 
