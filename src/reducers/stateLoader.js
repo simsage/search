@@ -109,6 +109,9 @@ export function initializeState() {
         // user preference: grid view or not?
         show_grid: true,
 
+        // html preview data
+        html_preview_data: null,
+
         // application error messages
         error_title: "Error",
         error: "",

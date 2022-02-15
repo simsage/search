@@ -42,3 +42,5 @@ export const SHOW_SUBSCRIPTIONS = "show subscriptions";
 
 // change the view from grid to list or vice versa
 export const CHANGE_VIEW = "change view";
+// get html preview
+export const HTML_PREVIEW = "html preview";

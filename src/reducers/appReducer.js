@@ -41,6 +41,8 @@ import {
     CHANGE_VIEW,
     SET_SEARCH_FOCUS,
 
+    HTML_PREVIEW,
+
 } from "../actions/actions";
 import {initializeState} from './stateLoader'
 import {get_source_by_id, get_parent_folder, show_menus} from './reducer_utils'
@@ -642,6 +644,15 @@ export const reducer = (state, action) => {
             return {
                 ...state,
                 search_focus: action.search_focus,
+            }
+        }
+
+        // get an html preview response
+        case HTML_PREVIEW: {
+            return {
+                ...state,
+                html_preview_data: action.html_preview,
+                busy: false,
             }
         }
 
