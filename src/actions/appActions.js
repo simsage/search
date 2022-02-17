@@ -310,26 +310,31 @@ export const appCreators = {
         dispatch({type: SET_SEARCH_FOCUS, search_focus: item})
     },
 
-    get_html_preview: (item, page) => async (dispatch, getState) => {
+    get_html_preview: (item, page, onSuccess) => async (dispatch, getState) => {
         if (item && item.urlId && page > 0) {
             dispatch({type: BUSY, busy: true});
             const ar = getState().appReducer;
             const user_id = Api.getUserId(ar.user);
             const session_id = ar.session && ar.session.id ? ar.session.id : user_id;
-            const data = {
-                "organisationId": window.ENV.organisation_id,
-                "kbId": window.ENV.kb_id,
-                "urlId": item.urlId,
-                "page": page,
-            }
-            await Comms.http_post('/document/preview/html', session_id, data,
-                (response) => {
-                    dispatch({type: HTML_PREVIEW, html_preview: response.data});
-                },
-                (errStr) => {
-                    dispatch({type: ERROR, title: "Error", error: errStr})
+            const preview_list = ar.preview_page_list;
+            if (page > preview_list.length) {
+                const data = {
+                    "organisationId": window.ENV.organisation_id,
+                    "kbId": window.ENV.kb_id,
+                    "urlId": item.urlId,
+                    "page": page,
                 }
-            )
+                await Comms.http_post('/document/preview/html', session_id, data,
+                    (response) => {
+                        dispatch({type: HTML_PREVIEW, html_preview: response.data});
+                        if (onSuccess)
+                            onSuccess();
+                    },
+                    (errStr) => {
+                        dispatch({type: ERROR, title: "Error", error: errStr})
+                    }
+                )
+            }
         }
     },
 

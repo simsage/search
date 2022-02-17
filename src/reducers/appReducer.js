@@ -644,16 +644,18 @@ export const reducer = (state, action) => {
             return {
                 ...state,
                 search_focus: action.search_focus,
-                html_preview_data: null,
+                preview_page_list: [],
                 busy: false,
             }
         }
 
         // get an html preview response
         case HTML_PREVIEW: {
+            const existing_list = state.preview_page_list;
+            existing_list.push(action.html_preview);
             return {
                 ...state,
-                html_preview_data: action.html_preview,
+                preview_page_list: existing_list,
                 busy: false,
             }
         }

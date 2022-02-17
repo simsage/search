@@ -17,7 +17,7 @@ export default class SearchResults extends Component {
         this.state={
             has_error: false,  // error trapping
             show_dropdown: false,
-            prevY: 0,
+            prevY: 0, // infinite scrolling
         }
     }
     componentDidCatch(error, info) {

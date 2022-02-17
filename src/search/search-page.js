@@ -316,8 +316,8 @@ export class SearchPage extends Component {
                         <PreviewModal
                             client_id={Api.getUserId(this.props.user)}
                             search_focus={this.props.search_focus}
-                            get_html_preview={(item, page) => this.props.get_html_preview(item, page)}
-                            html_preview_data={this.props.html_preview_data}
+                            get_html_preview={(item, page, onSuccess) => this.props.get_html_preview(item, page, onSuccess)}
+                            preview_page_list={this.props.preview_page_list}
                             onClose={() => this.closeFocus() }
                             />
                     </div>
@@ -371,7 +371,7 @@ const mapStateToProps = function(state) {
         show_uploader: state.appReducer.show_uploader,
         show_grid: state.appReducer.show_grid,
 
-        html_preview_data: state.appReducer.html_preview_data,
+        preview_page_list: state.appReducer.preview_page_list,
     };
 };
 
