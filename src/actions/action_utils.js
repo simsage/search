@@ -80,7 +80,8 @@ export async function select_folder(folder, folder_tracker, force_get, session_i
  * remove AND OR and NOT and any duplicates from the text
  */
 function filter_text(text, syn_sets) {
-    const text_list = text.split(' ');
+    // remove any : and / as well as they are special characters
+    const text_list = text.replace(':', ' ').replace('/', ' ').split(' ');
     const final_text_list = [];
     const text_set = {};
     for (const t of text_list) {
