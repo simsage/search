@@ -23,5 +23,8 @@ window.ENV = {
     page_size: 10,
     // summarization parameters
     extractive_summarization_size: 10,
+    // preview window minimum sizes
+    preview_min_width: 1024,
+    preview_min_height: 768,
 };
 

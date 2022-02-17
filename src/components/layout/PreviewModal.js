@@ -66,10 +66,26 @@ export default class PreviewModal extends Component {
         const url = item && item.url ? item.url : "";
         const page = this.state.page;
         const preview_data = this.props.html_preview_data;
-        const metadata_lists = Api.getMetadataLists(item && item.metadata ? item.metadata : {});
-        const metadata_list = metadata_lists["metadata_list"];
-        const w = preview_data && preview_data.width ? (preview_data.width)+"px" : "0px";
-        const h = preview_data && preview_data.height ? (preview_data.height)+"px" : "0px";
+        // const metadata_lists = Api.getMetadataLists(item && item.metadata ? item.metadata : {});
+        const metadata_list = null; // metadata_lists["metadata_list"]; // disabled for now
+        let w = preview_data && preview_data.width ? (preview_data.width) : 0;
+        let h = preview_data && preview_data.height ? (preview_data.height) : 0;
+
+        // the size of the possible i-frame is 60% of the screen-size with a minimum size of 1024x768 (defined in settings.js)
+        const max_width = Math.max(Math.round(window.innerWidth * 0.6), window.ENV.preview_min_width);
+        const max_height = Math.max(Math.round(window.innerHeight * 0.6), window.ENV.preview_min_height);
+
+        // get a scale factor for the width and height
+        let scale = 1.0;
+        if (w > 0 && w > h && w > max_width) {
+            // wider than taller
+            scale = max_width / w;
+        } else if (h > 0 && h > w && h > max_height) {
+            scale = max_height / h;
+        }
+        w = Math.round(w) + "px";
+        h = Math.round(h) + "px";
+
         const num_pages = preview_data && preview_data.numPages ? preview_data.numPages : 0;
         return (
             <div className="d-flex justify-content-center align-items-top overflow-auto h-100 w-100">
@@ -95,9 +111,8 @@ export default class PreviewModal extends Component {
                 <div className="overflow-auto">
                     <div className="row justify-content-center" style={{"marginTop" : "4rem", "marginBottom" : "6rem"}}>
                         {preview_data && preview_data.width && preview_data.html && preview_data.height &&
-                            <div className="col-7 bg-white p-0 my-5 rounded-3"
-                                    style={{width: w, height: h}}>
-                                <iframe srcDoc={preview_data.html} width={w} height={h}
+                            <div className="rounded-3">
+                                <iframe srcDoc={preview_data.html} width={w} height={h} style={{transform: "scale(" + scale + ")"}}
                                         frameBorder="0" scrolling="no" />
                                 <div>
                                     <button onClick={() => {if (page > 1) this.pagePrev()}}>prev</button>
