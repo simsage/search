@@ -134,11 +134,11 @@ export default class PreviewModal extends Component {
                     </div>
                 </div>
 
-                <div className="overflow-auto">
-                    <div className="row justify-content-center" style={{"marginTop" : "4rem", "marginBottom" : "6rem"}}>
+                <div className="overflow-auto w-100">
+                    <div className="justify-content-center w-100" style={{"marginTop" : "4rem", "marginBottom" : "6rem"}}>
                         {preview_page_list && preview_page_list.map((preview_data, i) => {
                             return (
-                                    <div className="rounded-3" key={i} style={{height: parent_height}}>
+                                    <div className="col d-flex justify-content-center" key={i} style={{height: parent_height}}>
                                         <iframe srcDoc={preview_data.html} width={w} height={h} style={{transform: "scale(" + scale + ")"}}
                                                 frameBorder="0" scrolling="no" />
                                     </div>
