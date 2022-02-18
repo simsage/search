@@ -274,7 +274,6 @@ export class SearchPage extends Component {
                     {this.props.show_search_results &&
                     <div className="inner overflow-hidden">
                         <SearchResults
-                            search_text={this.props.user_search_text}
                             search_result={this.props.search_result}
                             search_result_list={this.props.search_result_list}
                             search_page={this.props.search_page}
