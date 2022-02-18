@@ -19,7 +19,9 @@ export default class SearchResults extends Component {
             show_dropdown: false,
             prevY: 0, // infinite scrolling
         }
+        this.scrollRef = React.createRef();
     }
+
     componentDidCatch(error, info) {
         this.setState({ has_error: true });
         console.log(error, info);
@@ -57,6 +59,16 @@ export default class SearchResults extends Component {
             options
         );
         this.observer.observe(this.loadingRef);
+    }
+
+    componentDidUpdate(prevProps, prevState, snapshot) {
+        // scroll to the top when the search results have changed
+        const sr1 = this.props.search_result;
+        const sr2 = prevProps.search_result;
+        if (sr1 !== sr2) {
+            window.setTimeout(() => {this.scrollRef.current.scrollIntoView()}, 100);
+
+        }
     }
 
     moreDropdown() {
@@ -226,14 +238,6 @@ export default class SearchResults extends Component {
         const category_list = this.props.category_list ? this.props.category_list : [];
         const category_values = this.props.category_values ? this.props.category_values : {};
         const result_list = this.props.search_result_list ? this.props.search_result_list : [];
-        // let page = sr.page ? sr.page : 0;
-        let divided = sr.totalDocumentCount / window.ENV.page_size;
-        let num_pages = parseInt("" + divided);
-        if (parseInt("" + divided) < divided) {
-            num_pages += 1;
-        }
-        if (num_pages === 0)
-            num_pages = 1;
         const documentTypeMetadata = this.getDocumentTypeMetadata(sr);
         const synset_list = this.getSynsetData(sr);
         const createdMetadata = this.getTimeRangeMetadata(category_list, category_values, "created");
@@ -247,16 +251,9 @@ export default class SearchResults extends Component {
         const hash_tag_list = (this.props.hash_tag_list && this.props.hash_tag_list.length > 0) ? this.props.hash_tag_list : [];
         return (
             <div className={this.props.busy ? "h-100 wait-cursor" : "h-100"}>
-                {/* <div className="row mx-0 sec-topbar py-2 px-4 d-flex justify-content-center align-items-center">
-                    <div className="sec-functions col-xxl-10">
-                        <span className="small text-muted ms-2 fw-light">
-                            {srText}
-                        </span>
-                    </div>
-                </div> */}
                 <div className="row mx-0 px-2 results-container overflow-auto h-100 justify-content-center">
                     <div className="col-xxl-7 col-xl-8 pe-4">
-                        <div className="small text-muted ms-2 fw-light px-3 pb-3">
+                        <div className="small text-muted ms-2 fw-light px-3 pb-3" ref={this.scrollRef}>
                             {srText}
                         </div>
                         { sr && sr.text && sr.text.length > 0 &&
