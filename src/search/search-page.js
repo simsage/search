@@ -106,6 +106,13 @@ export class SearchPage extends Component {
     closeFocus() {
         this.props.onFocus(null);
     }
+    onSearch() {
+        this.props.search(this.props.user_search_text, this.props.search_page);
+    }
+    selectSynSet(name, i) {
+        this.props.selectSynSet(name, i);
+        this.onSearch();
+    }
     render() {
         if (this.state.has_error) {
             return <h1>search-page.js: Something went wrong.</h1>;
@@ -286,7 +293,7 @@ export class SearchPage extends Component {
                             onSetCategoryValue={(metadata, values) => this.props.setCategoryValue(metadata, values)}
                             onSetGroupSimilar={(group_similar) => this.props.setGroupSimilar(group_similar)}
                             onSetNewestFirst={(newest_first) => this.props.setNewestFirst(newest_first)}
-                            onSelectSynSet={(name, i) => this.props.selectSynSet(name, i)}
+                            onSelectSynSet={(name, i) => this.selectSynSet(name, i)}
                             onSetHashTags={(tag_list) => this.props.setHashTagList(tag_list)}
                             category_list={this.props.category_list}
                             category_values={this.props.category_values}
