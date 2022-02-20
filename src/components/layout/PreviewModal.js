@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 
 import '../../css/layout/preview-modal.css';
+import Api from "../../common/api";
 
 /**
  * this is the PreviewModal
@@ -104,6 +105,11 @@ export default class PreviewModal extends Component {
         const max_width = Math.max(Math.round(window.innerWidth * 0.6), window.ENV.preview_min_width);
         const max_height = Math.max(Math.round(window.innerHeight * 0.6), window.ENV.preview_min_height);
 
+        // get the metadata
+        const metadata_lists = Api.getMetadataLists(item && item.metadata ? item.metadata : {});
+        // const tag_list = metadata_lists["tag_list"];
+        const metadata_list = metadata_lists["metadata_list"];
+
         // get a scale factor for the width and height
         let scale = 1.0;
         if (w > 0 && w > h && w > max_width) {
@@ -156,7 +162,14 @@ export default class PreviewModal extends Component {
                             <div className="text-light fw-lighter ps-4 pe-3" style={{"marginTop" : "6rem", "marginBottom" : "6rem"}}>
                                 Metadata
                                 <br/><br/>
-                                Lorem ipsum, dolor sit amet consectetur adipisicing elit. Animi, aperiam illo rem itaque alias voluptas vero ipsum minima dolore sed distinctio doloremque est. Quisquam quae est aut officia numquam error?
+                                {
+                                    metadata_list && metadata_list.map((item, i) => {
+                                        return (<div key={i} className="metadata-item">
+                                                    <div className="metadata-key">{item.key}</div>
+                                                    <div className="metadata-value">{item.value}</div>
+                                                </div>)
+                                    })
+                                }
                             </div>
                         </div>
                     </div>

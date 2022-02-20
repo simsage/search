@@ -52,3 +52,15 @@
     text-wrap: initial;
 }
 
+.metadata-item {
+    margin-bottom: 10px;
+}
+
+.metadata-key {
+    font-style: italic;
+}
+
+.metadata-value {
+    margin-left: 20px;
+}
+
