@@ -134,20 +134,31 @@ export default class PreviewModal extends Component {
                     </div>
                 </div>
 
-                <div className="overflow-auto w-100">
-                    <div className="justify-content-center w-100" style={{"marginTop" : "6rem", "marginBottom" : "6rem"}}>
-                        {preview_page_list && preview_page_list.map((preview_data, i) => {
-                            return (
-                                    <div className="col d-flex justify-content-center" key={i} style={{height: parent_height}}>
-                                        <iframe className="rounded-3" srcDoc={preview_data.html} width={w} height={h} style={{transform: "scale(" + scale + ")", transformOrigin: "center top"}}
-                                                frameBorder="0" scrolling="no" />
-                                    </div>
-                                    )
-                        })}
+                <div className="container-fluid px-0 mx-0 h-100 overflow-hidden">
+                    <div className="row mx-0 h-100">
+                        <div className="col-9 justify-content-center h-100 overflow-auto preview-cont">
+                            <div className="w-100 h-100" style={{"marginTop" : "6rem", "marginBottom" : "6rem"}}>
+                                {preview_page_list && preview_page_list.map((preview_data, i) => {
+                                    return (
+                                            <div className="d-flex justify-content-center" key={i} style={{height: parent_height}}>
+                                                <iframe className="rounded-3" srcDoc={preview_data.html} width={w} height={h} style={{"transform": "scale(" + scale + ")", "transformOrigin": "center top"}}
+                                                        frameBorder="0" scrolling="no" />
+                                            </div>
+                                            )
+                                })}
 
-                        { /* infinite scrolling */ }
-                        <div ref={loadingRef => (this.loadingRef = loadingRef)} />
+                                { /* infinite scrolling */ }
+                            <div ref={loadingRef => (this.loadingRef = loadingRef)} />
 
+                            </div>
+                        </div>
+                        <div className="col-3 overflow-auto h-100 preview-cont" style={{"background": "#20273180", "borderTopLeftRadius": "0.3rem"}}>
+                            <div className="text-light fw-lighter ps-4 pe-3" style={{"marginTop" : "6rem", "marginBottom" : "6rem"}}>
+                                Metadata
+                                <br/><br/>
+                                Lorem ipsum, dolor sit amet consectetur adipisicing elit. Animi, aperiam illo rem itaque alias voluptas vero ipsum minima dolore sed distinctio doloremque est. Quisquam quae est aut officia numquam error?
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
