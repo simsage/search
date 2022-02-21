@@ -65,7 +65,7 @@ export default class SearchResults extends Component {
         // scroll to the top when the search results have changed
         const sr1 = this.props.search_result;
         const sr2 = prevProps.search_result;
-        if (sr1 !== sr2) {
+        if (sr1.search_text !== sr2.search_text) {
             window.setTimeout(() => {this.scrollRef.current.scrollIntoView()}, 100);
 
         }
