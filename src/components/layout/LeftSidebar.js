@@ -54,7 +54,7 @@ export default class LeftSidebar extends Component {
         return (
             <div className="sidebar no-select">
                 <div className="sb-logo d-flex justify-content-center align-items-center">
-                    <img src="/images/brand/simsage-logo-no-strapline.svg" alt="" className="h-75" />
+                    <img src="../images/brand/simsage-logo-no-strapline.svg" alt="" className="h-75" />
                 </div>
                 <div className="sb-upload mx-3 d-flex align-items-center position-relative">
                     <div className={((this.props.show_new_menu && !disabled) ? "d-block" : "d-none") +" new-inline-menu start-0 position-absolute"}>
