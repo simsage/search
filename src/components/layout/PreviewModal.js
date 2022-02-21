@@ -102,8 +102,9 @@ export default class PreviewModal extends Component {
         let h = preview_data && preview_data.height ? (preview_data.height) : 0;
 
         // the size of the possible i-frame is 60% of the screen-size with a minimum size of 1024x768 (defined in settings.js)
-        const max_width = Math.max(Math.round(window.innerWidth * 0.6), window.ENV.preview_min_width);
-        const max_height = Math.max(Math.round(window.innerHeight * 0.6), window.ENV.preview_min_height);
+        const scaling = 0.6;
+        const max_width = Math.max(Math.round(window.innerWidth * scaling), window.ENV.preview_min_width);
+        const max_height = Math.max(Math.round(window.innerHeight * scaling), window.ENV.preview_min_height);
 
         // get the metadata
         const metadata_lists = Api.getMetadataLists(item && item.metadata ? item.metadata : {});
@@ -112,10 +113,10 @@ export default class PreviewModal extends Component {
 
         // get a scale factor for the width and height
         let scale = 1.0;
-        if (w > 0 && w > h && w > max_width) {
+        if (w > 0 && w > h) {
             // wider than taller
             scale = max_width / w;
-        } else if (h > 0 && h > w && h > max_height) {
+        } else if (h > 0 && h > w) {
             scale = max_height / h;
         }
         w = Math.round(w) + "px";
