@@ -276,6 +276,7 @@ export default class SearchResults extends Component {
                             result_list.map( (result, i) => {
                                 const last_modified = Api.unixTimeConvert(result.lastModified);
                                 const text = Api.highlight((result.textList && result.textList.length > 0) ? result.textList[0] : "");
+                                const title = result.title ? result.title : "";
                                 const metadata_lists = Api.getMetadataLists(result.metadata);
                                 const tag_list = metadata_lists["tag_list"];
                                 const image_url = this.getPreviewSource(result);
@@ -287,6 +288,11 @@ export default class SearchResults extends Component {
                                                 <p className="mb-0 result-breadcrumb me-2">{this.urlToBreadCrumb(result)}</p>
                                             </div>
                                             <span className="mb-2 results-filename text-break pointer-cursor" onClick={() => { if (this.props.onFocus) this.props.onFocus(result)}} title={result.url}>{result.url}</span>
+                                            { title &&
+                                                <div className="d-flex align-items-center mb-1">
+                                                    <span className="mb-0 result-details-title">&#12299;{title}&#12298;</span>
+                                                </div>
+                                            }
                                             <div className="d-flex align-items-center mb-1">
                                                 <span className="mb-0 result-details">Last modified {last_modified}</span>
                                                 {result.author &&
