@@ -39,24 +39,21 @@ import Api from "../common/api";
 // application creators / actions
 export const appCreators = {
 
-    // do a sign in
-    signIn: (email, password, on_success) => async (dispatch, getState) => {
-        if (email && email.length > 0 && password && password.length > 0) {
-            dispatch({type: BUSY, busy: true});
-            await Comms.http_post('/auth/sign-in', null, {"email": email, "password": password},
-                (response) => {
-                        dispatch({type: SIGN_IN, session: response.data.session, user: response.data.user});
-                        if (on_success) {
-                            on_success();
-                        }
-                },
-                (errStr) => {
-                    dispatch({type: ERROR, title: "Error", error: errStr})
+    signIn: (jwt, on_success, on_fail) => async (dispatch) => {
+        await Comms.http_get_jwt('/auth/authenticate/msal', jwt,
+            (response) => {
+                dispatch({type: SIGN_IN, data: response.data})
+                if (on_success)
+                    on_success(response.data);
+            },
+            (errStr) => {
+                console.error(errStr);
+                dispatch({type: ERROR, title: "Error", error: errStr})
+                if (on_fail) {
+                    on_fail();
                 }
-            )
-        } else {
-            dispatch({type: ERROR, title: "Error", error: 'please complete and check all fields'});
-        }
+            }, jwt
+        )
     },
 
     signOut: (callback) => async (dispatch, getState) => {

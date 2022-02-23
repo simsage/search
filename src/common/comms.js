@@ -62,6 +62,30 @@ export class Comms {
             });
     };
 
+    static http_get_jwt(url, jwt, fn_success, fn_fail) {
+        const api_base = window.ENV.api_base;
+        if (url !== '/stats/stats/os') {
+            console.log('GET ' + api_base + url);
+        }
+        return axios.get(api_base + url,{
+            headers: {"API-Version": window.ENV.api_version, "Content-Type": "application/json", "jwt": jwt,}
+        })
+            .then(function (response) {
+                if (fn_success) {
+                    fn_success(response);
+                }
+            })
+            .catch((error) => {
+                if (fn_fail) {
+                    if (error.response === undefined) {
+                        fn_fail('Servers not responding or cannot contact Servers');
+                    } else {
+                        fn_fail(Comms.get_error(error));
+                    }
+                }
+            });
+    };
+
     static http_delete(url, session_id, fn_success, fn_fail) {
         const api_base = window.ENV.api_base;
         console.log('DELETE ' + api_base + url);

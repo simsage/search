@@ -1,6 +1,6 @@
 {
-  "name": "simsage-dms-v2",
-  "version": "7.3.6",
+  "name": "simsage-search",
+  "version": "7.3.30",
   "private": true,
   "description": "SimSage: connecting people in the workplace with the information they need",
   "repository": "git@github.com:simsage/dms2.git",
@@ -9,12 +9,14 @@
   "author": "Rock de Vocht",
   "license": "GPLv3",
   "scripts": {
-    "start": "export PORT=4210 && react-scripts start",
+    "start": "export PORT=4220 && react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
   "dependencies": {
+    "@azure/msal-browser": "^2.15.0",
+    "@azure/msal-react": "^1.0.1",
     "@date-io/core": "^2.11.0",
     "@date-io/date-fns": "^2.10.11",
     "axios": "^0.21.1",

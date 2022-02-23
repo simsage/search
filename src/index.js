@@ -1,24 +1,24 @@
 import React from 'react';
 
-// import $ from 'jquery';
-// import Popper from 'popper.js';
 import 'bootstrap/dist/js/bootstrap.bundle.min';
 import 'bootstrap/dist/css/bootstrap.css';
 import 'typeface-roboto';
 
-// import 'babel-polyfill'
 import ReactDOM from 'react-dom'
 import {Provider} from 'react-redux'
-// import {BrowserRouter} from 'react-router-dom'
 import {Route} from 'react-router'
 
 import configureStore from "./reducers/configureStore";
 import {saveState} from "./reducers/stateLoader";
 
-import ResetPasswordRequest from "./auth/reset-password-request";
-import ResetPasswordResponse from "./auth/reset-password-response";
 import SearchPage from "./search/search-page";
 import {HashRouter} from "react-router-dom";
+
+import { MsalProvider } from "@azure/msal-react";
+import { msalConfig } from "./authConfig";
+import {PublicClientApplication} from "@azure/msal-browser";
+import { AuthenticatedTemplate, UnauthenticatedTemplate } from "@azure/msal-react";
+import {PageLayout} from "./pageLayout";
 
 
 const store = configureStore();
@@ -26,16 +26,26 @@ store.subscribe(() => {
     saveState(store.getState());
 });
 
+/**
+ * Initialize a PublicClientApplication instance which is provided to the MsalProvider component
+ * We recommend initializing this outside of your root component to ensure it is not re-initialized on re-renders
+ */
+const msalInstance = new PublicClientApplication(msalConfig);
 
 ReactDOM.render(
     <Provider store={store}>
-    <div className="App">
-        <HashRouter basename={'/'}>
-            <Route exact path="/" component={SearchPage} />
-            <Route exact path="/forgot-password" component={ResetPasswordRequest} />
-            <Route exact path="/reset-password-response" component={ResetPasswordResponse} />
-        </HashRouter>
-    </div>
+        <MsalProvider instance={msalInstance}>
+            <HashRouter basename={'/'}>
+                <PageLayout>
+                    <AuthenticatedTemplate>
+                        <Route exact path="/" component={SearchPage} />
+                    </AuthenticatedTemplate>
+                    <UnauthenticatedTemplate>
+                        <Route exact path="/" component={SearchPage} />
+                    </UnauthenticatedTemplate>
+                </PageLayout>
+            </HashRouter>
+        </MsalProvider>
     </Provider>,
     document.getElementById('content')
 );

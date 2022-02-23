@@ -125,27 +125,6 @@ export default class Navbar extends Component {
                             </div>
                         </div>
                     }
-                    <div className="d-flex align-items-center">
-                        <div className="d-none d-lg-flex flex-column text-end me-3">
-                            <p className="org-name mb-0 small">{this.props.organisation ? this.props.organisation.name : ""}</p>
-                            <p className="user-name mb-0">{this.getFullUsername()}</p>
-                        </div>
-                        {/* <div className="notifications me-2">
-                            <div className="indicator"></div>
-                            <button className={(this.props.isNotificationsDropdown ? "active" : "") + " btn nav-btn"}
-                                onClick={(e) => this.toggleNotificationsDropdown(e)}>
-                                <img src="../images/icon/icon_n-notification.svg" alt="" className={this.props.isNotificationsDropdown ? "d-none" : ""} />
-                                <img src="../images/icon/icon_n-notification-active.svg" alt="" className={!this.props.isNotificationsDropdown ? "d-none" : ""} />
-                            </button>
-                        </div> */}
-                        <div className="account" title="this is the sign-out button for now">
-                            <button className={(this.props.isAccountsDropdown ? "active" : "") + " btn nav-btn"}
-                                onClick={(e) => this.toggleAccountsMenu(e)}>
-                                <img src="../images/icon/icon_n-account.svg" alt="" className={this.props.isAccountsDropdown ? "d-none" : ""} />
-                                <img src="../images/icon/icon_n-account-active.svg" alt="" className={!this.props.isAccountsDropdown ? "d-none" : ""} />
-                            </button>
-                        </div>
-                    </div>
 
                 </div>
             </div>

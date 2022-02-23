@@ -27,8 +27,10 @@ export default class SearchResults extends Component {
         console.log(error, info);
     }
 
+
     handleObserver(entities, observer) {
         const y = entities[0].boundingClientRect.y;
+
         if (this.state.prevY > y) {
             const sr = this.props.search_result;
             // let page = sr.page ? sr.page : 0;
@@ -67,7 +69,6 @@ export default class SearchResults extends Component {
         const sr2 = prevProps.search_result;
         if (sr1.search_text !== sr2.search_text) {
             window.setTimeout(() => {this.scrollRef.current.scrollIntoView()}, 100);
-
         }
     }
 
@@ -122,6 +123,12 @@ export default class SearchResults extends Component {
         }
         return null;
     }
+
+
+
+
+
+
     getTimeRangeMetadata(category_list, category_values, metadata_name) {
         if (category_list) {
             for (const md of category_list) {
@@ -166,6 +173,7 @@ export default class SearchResults extends Component {
         }
     }
 
+
     hashTagKeyPress(event) {
         if (event.key === "Enter") {
             event.preventDefault();
@@ -203,6 +211,7 @@ export default class SearchResults extends Component {
 
     // update the values of the range slider - and do a search
     onSetRangerSlider(name, values) {
+
         if (this.props.onSetCategoryValue) {
             this.props.onSetCategoryValue(name, values);
             this.onSearch(this.props.search_page);
@@ -235,6 +244,7 @@ export default class SearchResults extends Component {
             return <h1>SearchResults.js: Something went wrong.</h1>;
         }
         const sr = this.props.search_result;
+
         const category_list = this.props.category_list ? this.props.category_list : [];
         const category_values = this.props.category_values ? this.props.category_values : {};
         const result_list = this.props.search_result_list ? this.props.search_result_list : [];
@@ -248,7 +258,9 @@ export default class SearchResults extends Component {
         } else {
             srText = "" + sr.totalDocumentCount + " results";
         }
+
         const hash_tag_list = (this.props.hash_tag_list && this.props.hash_tag_list.length > 0) ? this.props.hash_tag_list : [];
+
         return (
             <div className={this.props.busy ? "h-100 wait-cursor" : "h-100"}>
                 <div className="row mx-0 px-2 results-container overflow-auto h-100 justify-content-center">
@@ -273,6 +285,7 @@ export default class SearchResults extends Component {
                             </div>
                         }
                         {
+
                             result_list.map( (result, i) => {
                                 const last_modified = Api.unixTimeConvert(result.lastModified);
                                 const text = Api.highlight((result.textList && result.textList.length > 0) ? result.textList[0] : "");

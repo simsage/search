@@ -88,6 +88,7 @@ export default class PreviewModal extends Component {
         this.getHtmlPage(page + 1);
     }
     render() {
+        console.log("Preview Modal")
         if (this.state.has_error) {
             return <h1>modal.js: Something went wrong.</h1>;
         }
@@ -148,7 +149,7 @@ export default class PreviewModal extends Component {
                                 {preview_page_list && preview_page_list.map((preview_data, i) => {
                                     return (
                                             <div className="d-flex justify-content-center" key={i} style={{height: parent_height}}>
-                                                <iframe className="rounded-3" srcDoc={preview_data.html} width={w} height={h} style={{"transform": "scale(" + scale + ")", "transformOrigin": "center top"}}
+                                                <iframe title="preview" className="rounded-3" srcDoc={preview_data.html} width={w} height={h} style={{"transform": "scale(" + scale + ")", "transformOrigin": "center top"}}
                                                         frameBorder="0" scrolling="no" />
                                             </div>
                                             )

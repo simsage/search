@@ -1,11 +1,14 @@
 import {
     BUSY,
     ERROR,
-    DO_SEARCH, SELECT_FOLDER,
+    DO_SEARCH,
+    SELECT_FOLDER,
 } from "./actions";
+
 
 import Comms from "../common/comms";
 import Api from "../common/api";
+
 
 // helper
 export async function do_search(text, original_text, page, shard_list, session_id, user_id,
@@ -33,7 +36,10 @@ export async function do_search(text, original_text, page, shard_list, session_i
         sortByAge: newest_first,
         sourceId: '',
     };
+    // the ins and outs of these two end-points are identical, except that semantic/query accepts anonymous
+    // queries and dms/query only accepts authenticated queries
     const url = session_id !== "" ? '/dms/query' : '/semantic/query';
+
     await Comms.http_post(url, session_id, data,
         (result) => {
             if (result && result.data && result.data.messageType === 'message') {
@@ -126,6 +132,8 @@ export function add_filter_to_search_text(_text, category_list, category_values,
         for (const md of category_list) {
 
             const category_type = Api.simplifyMetadataType(md.categoryType);
+
+
 
             if (category_values && category_values[md.metadata] && category_type === "date range") {
                 const v = category_values[md.metadata];

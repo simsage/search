@@ -110,8 +110,8 @@ export const reducer = (state, action) => {
         case SIGN_IN: {
             return {
                 ...state,
-                session: action.session,
-                user: action.user,
+                session: action.data.session,
+                user: action.data.user,
                 busy: false,
             };
         }
@@ -407,6 +407,7 @@ export const reducer = (state, action) => {
             const save_search_list = (data && data.savedSearchList) ? data.savedSearchList : [];
             // add it to the rest (if page > 0) or replace the list?
             let search_result_list = [];
+
             if (data && data.page > 0) {
                 search_result_list = state.search_result_list;
                 const new_list = (data && data.resultList) ? data.resultList : [];
@@ -416,6 +417,7 @@ export const reducer = (state, action) => {
             } else {
                 search_result_list = (data && data.resultList) ? data.resultList : [];
             }
+
             return {
                 ...state,
                 search_result: data,            // this is the complete set

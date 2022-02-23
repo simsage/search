@@ -1,4 +1,4 @@
-# SimSage Document Management System UX version 2
+# SimSage Search UX REACT version
 
 ## installing
 Make sure you remove any existing `package-lock.json` first
