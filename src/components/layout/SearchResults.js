@@ -295,7 +295,7 @@ export default class SearchResults extends Component {
                                 const image_url = this.getPreviewSource(result);
                                 return (
                                     <div className="result-content d-flex pb-4 mb-3 px-3" key={i}>
-                                        <img src={image_url} alt="" className="result-preview d-none d-lg-block" />
+                                        <img onClick={() => { if (this.props.onFocus) this.props.onFocus(result)}} src={image_url} alt="" className="result-preview d-none d-lg-block pointer-cursor" />
                                         <div className="ms-3 w-100">
                                             <div className="d-flex align-items-center text-align-end mb-1">
                                                 <p className="mb-0 result-breadcrumb me-2">{this.urlToBreadCrumb(result)}</p>

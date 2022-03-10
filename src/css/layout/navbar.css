@@ -14,6 +14,14 @@
     border-radius: 10px;
     transition: all .3s ease;
 }
+.nav-search-container.xl {
+    min-width: 550px;
+    height: 55px;
+    background-color: #f2f2f2;
+    border: 1px solid #f2f2f2;
+    border-radius: 10px;
+    transition: all .3s ease;
+}
 .nav-search-icon {
     width: 40px;
     height: 40px;
