@@ -124,6 +124,18 @@ export default class SearchResults extends Component {
         return null;
     }
 
+    // return all the classification metadata items
+    getClassificationItems(category_list) {
+        const result_list = [];
+        if (category_list) {
+            for (const md of category_list) {
+                if (md.order >= 2000) {
+                    result_list.push(md);
+                }
+            }
+        }
+        return result_list;
+    }
 
 
 
@@ -239,6 +251,13 @@ export default class SearchResults extends Component {
         }
     }
 
+    onSetCategorizationValue(metadata, value) {
+        if (this.props.onSetCategoryValue) {
+            this.props.onSetCategoryValue(metadata, value);
+            this.onSearch(this.props.search_page);
+        }
+    }
+
     render() {
         if (this.state.has_error) {
             return <h1>SearchResults.js: Something went wrong.</h1>;
@@ -252,6 +271,7 @@ export default class SearchResults extends Component {
         const synset_list = this.getSynsetData(sr);
         const createdMetadata = this.getTimeRangeMetadata(category_list, category_values, "created");
         const lastModifiedMetadata = this.getTimeRangeMetadata(category_list, category_values, "last-modified");
+        const classificationList = this.getClassificationItems(category_list);
         let srText = ""
         if (sr.totalDocumentCount === 0) {
             srText = "No results...";
@@ -295,7 +315,7 @@ export default class SearchResults extends Component {
                                 const image_url = this.getPreviewSource(result);
                                 return (
                                     <div className="result-content d-flex pb-4 mb-3 px-3" key={i}>
-                                        <img onClick={() => { if (this.props.onFocus) this.props.onFocus(result)}} src={image_url} alt="" className="result-preview d-none d-lg-block pointer-cursor" />
+                                        <img src={image_url} alt="" className="result-preview d-none d-lg-block" />
                                         <div className="ms-3 w-100">
                                             <div className="d-flex align-items-center text-align-end mb-1">
                                                 <p className="mb-0 result-breadcrumb me-2">{this.urlToBreadCrumb(result)}</p>
@@ -435,6 +455,20 @@ export default class SearchResults extends Component {
                                     </div>
                                     }
                                 </div>
+
+                                { classificationList.map((item, index) => {
+                                    return (
+                                        <div className="col-4 ps-0" key={index}>
+                                            <div className="w-100 result-document-filter pb-3">
+                                                <CategorySelector
+                                                    title={item.displayName}
+                                                    busy={this.props.busy}
+                                                    onSetValue={(value) => this.onSetCategorizationValue(item.metadata, value)}
+                                                    items={item.items}/>
+                                            </div>
+                                        </div>
+                                    )
+                                })}
 
 
                             </div>

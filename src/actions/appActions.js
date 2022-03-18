@@ -40,7 +40,7 @@ import Api from "../common/api";
 export const appCreators = {
 
     signIn: (jwt, on_success, on_fail) => async (dispatch) => {
-        await Comms.http_get_jwt('/auth/authenticate/msal', jwt,
+        await Comms.http_get_jwt('/auth/search/authenticate/msal', jwt,
             (response) => {
                 dispatch({type: SIGN_IN, data: response.data})
                 if (on_success)

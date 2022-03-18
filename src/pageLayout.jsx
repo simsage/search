@@ -85,7 +85,7 @@ export const PageLayout = (props) => {
         // if we have an account but no session, ask SimSage to provide the session
         // and user's ID from SimSage itself using the JWT
         instance.acquireTokenSilent(request).then((response) => {
-            Comms.http_get_jwt('/auth/authenticate/msal', response.idToken,
+            Comms.http_get_jwt('/auth/search/authenticate/msal', response.idToken,
                 (response2) => {
                 console.log(response2.data);
                     dispatch({type: SIGN_IN, data: response2.data})

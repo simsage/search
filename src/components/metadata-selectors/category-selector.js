@@ -13,9 +13,9 @@ export class CategorySelector extends Component {
     }
     getItems() {
         let items = this.props.items && this.props.items.length > 0 ? this.props.items : [];
-        const trim_filter = this.state.filter.trim();
+        const trim_filter = this.state.filter.trim().toLowerCase();
         items = items.sort((a, b) => (a.count > b.count) ? -1 : 1)
-            .filter((item) => {return trim_filter.length === 0 || item.name === this.state.selected_value || item.name.indexOf(trim_filter) >= 0 });
+            .filter((item) => {return trim_filter.length === 0 || item.name === this.state.selected_value || item.name.toLowerCase().indexOf(trim_filter) >= 0 });
         return items;
     }
     onSetValue(name, checked) {
@@ -36,12 +36,7 @@ export class CategorySelector extends Component {
         // items: [] {name: "", count: #}
         return (
             <div className="category-selector list-group pt-1">
-                {/* <div className="selector-title">{this.props.title ? this.props.title : ""}</div> */}
-                {/* <div>
-                    <input type="text" value={this.state.filter} placeholder="filter"
-                           onChange = {(event) => this.setState({filter: event.target.value}) } />
-                </div> */}
-                {/* <div> */}
+                 <div className="selector-title">{this.props.title ? this.props.title : ""}</div>
                 <label className="list-group-item p-0 overflow-hidden">
                     <input type="text" value={this.state.filter} placeholder="Filter type..." className="py-2 px-3 w-100 border-0"
                            disabled={this.props.busy}

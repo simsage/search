@@ -77,10 +77,7 @@ export default class Navbar extends Component {
             <div className={(!this.props.showSearchBar ? "border-bottom-0" : "") + " row mx-0 px-0 navbar justify-content-start"}>
                 {this.props.showSearchBar &&
                     <div className={"col-1 ps-4 pe-0 h-100 d-flex justify-content-end"}>
-                        {/* <img src="../images/brand/simsage-logo-no-strapline.svg" alt="" className="h-100" onClick={() => this.home() }/> */}
-                        <div className="d-flex align-items-center">
-                            <img src="../images/brand/brand_enterprise-search.png" alt="" className="w-100" onClick={() => this.home() }/>
-                        </div>
+                        <img src="../images/brand/simsage-logo-no-strapline.svg" alt="" className="h-100" onClick={() => this.home() }/>
                     </div>
                 }
                 <div className={(!this.props.showSearchBar ? " justify-content-end col-12" : "justify-content-between col-11") + " d-flex align-items-center px-4"}>

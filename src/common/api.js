@@ -281,7 +281,9 @@ export class Api {
     // convert a source-type (SimSage Source.CT_ ...) to a icon_ci-...svg type
     static sourceTypeToIcon(source_type) {
         if (source_type === "database") return "database";
-        if (source_type === "office365") return "office";
+        if (source_type === "onedrive" || source_type === "sharepoint365" || source_type === "exchange365") return "office";
+        if (source_type === "box") return "dropbox";
+        if (source_type === "imanage") return "dropbox";
         if (source_type === "dropbox") return "dropbox";
         if (source_type === "wordpress") return "wordpress";
         if (source_type === "file" || source_type === "search") return "drive";
@@ -295,7 +297,11 @@ export class Api {
     // convert a source-type (SimSage Source.CT_ ...) to a text-name
     static sourceTypeToName(source_type) {
         if (source_type === "database") return "Database Crawler";
-        if (source_type === "office365") return "Office365 Crawler";
+        if (source_type === "exchange365") return "Exchange365 Crawler";
+        if (source_type === "onedrive") return "OneDrive Crawler";
+        if (source_type === "sharepoint365") return "Sharepoint365 Crawler";
+        if (source_type === "box") return "Box Crawler";
+        if (source_type === "imanage") return "iManage Crawler";
         if (source_type === "dropbox") return "Dropbox Crawler";
         if (source_type === "wordpress") return "WordPress Crawler";
         if (source_type === "search") return "DMS Source";
