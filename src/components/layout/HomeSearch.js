@@ -52,43 +52,50 @@ export default class HomeSearch extends Component {
         return (
             <div className="h-100 d-flex justify-content-center align-items-center">
                 <div className="d-flex flex-column justify-content-center align-items-center pb-5 mb-5">
-                    <img src="images/brand/simsage-logo-no-strapline.svg" alt="" className="mb-2" style={{"width" : "200px"}}/>
-                    <div className="nav-search-container d-flex align-items-center position-relative mb-5">
-                        <span className="nav-search-icon ms-2 d-flex align-items-center">
-                            <img src="../images/icon/icon_n-search.svg" alt="search"/>
-                        </span>
-                        <input type="text" className="nav-search-input ps-1 pe-3" id="simsage-search-text"
-                               onChange={(event) => {
-                                   if (this.props.onUpdateSearchText) this.props.onUpdateSearchText(event.target.value)
-                               }}
-                               onKeyDown={(event) => this.doSearch(event)}
-                               onBlur={() => {
-                                   window.setTimeout(() => this.setState({show_recents: false}), 100)
-                               }}
-                               onClick={() => this.setState({show_recents: true})}
-                               autoComplete={"off"}
-                               autoFocus
-                               value={this.props.search_text}
-                               onFocus={() => this.recentsDropdown()}
-                               placeholder="SimSage Search..."/>
-                        <div className={((this.state.show_recents && this.props.save_search_list && this.props.save_search_list.length > 0) ? "d-block" : "d-none") + " recents-menu end-0 position-absolute"}>
-                            <ul className="more-list">
-                                {
-                                    this.props.save_search_list && this.props.save_search_list.map((ss, i) => {
-                                        return (
-                                            <li className="more-list-items px-3 py-3 d-flex justify-content-between align-items-center"
-                                                key={i}
-                                                onClick={(e) => this.onSearchFromSuggestion(e, ss.text)}>
-                                                <span className="no-select">{ss.text}</span>
-                                                <img src="../images/icon/icon_rs-close.svg" alt="search"
-                                                     title={"remove \"" + ss.text + "\""}
-                                                     onClick={(e) => this.removeSavedSearch(e, ss.text)}
-                                                     className="remove-recent"/>
-                                            </li>
-                                        )
-                                    })
-                                }
-                            </ul>
+                    {/* <img src="images/brand/simsage-logo-no-strapline.svg" alt="" className="mb-2" style={{"height" : "100px"}}/> */}
+                    <img src="images/brand/brand_enterprise-search.png" alt="" className="mb-2" style={{"height" : "100px"}}/>
+
+                    <div className="nav-search-container mb-5">
+                        <div className="inner xl d-flex align-items-center position-relative">
+                            <span className="nav-search-icon ms-2 d-flex align-items-center">
+                                <img src="../images/icon/icon_n-search.svg" alt="search"/>
+                            </span>
+                            <input type="text" className="nav-search-input ps-1 pe-3" id="simsage-search-text"
+                                onChange={(event) => {
+                                    if (this.props.onUpdateSearchText) this.props.onUpdateSearchText(event.target.value)
+                                }}
+                                onKeyDown={(event) => this.doSearch(event)}
+                                onBlur={() => {
+                                    window.setTimeout(() => this.setState({show_recents: false}), 100)
+                                }}
+                                onClick={() => this.setState({show_recents: true})}
+                                autoComplete={"off"}
+                                autoFocus
+                                value={this.props.search_text}
+                                onFocus={() => this.recentsDropdown()}
+                                placeholder="Enterprise Search..."/>
+                            <div className={((this.state.show_recents && this.props.save_search_list && this.props.save_search_list.length > 0) ? "d-block" : "d-none") + " recents-menu end-0 position-absolute"}>
+                                <ul className="more-list">
+                                    {
+                                        this.props.save_search_list && this.props.save_search_list.map((ss, i) => {
+                                            return (
+                                                <li className="more-list-items px-3 py-3 d-flex justify-content-between align-items-center"
+                                                    key={i}
+                                                    onClick={(e) => this.onSearchFromSuggestion(e, ss.text)}>
+                                                    <span className="no-select">{ss.text}</span>
+                                                    <img src="../images/icon/icon_rs-close.svg" alt="search"
+                                                        title={"remove \"" + ss.text + "\""}
+                                                        onClick={(e) => this.removeSavedSearch(e, ss.text)}
+                                                        className="remove-recent"/>
+                                                </li>
+                                            )
+                                        })
+                                    }
+                                </ul>
+                            </div>
+                        </div>
+                        <div className="text-end mt-1">
+                            <small className="text-black-50 fst-italic fw-lighter">Powered by <strong>SimSage</strong></small>
                         </div>
                     </div>
 
