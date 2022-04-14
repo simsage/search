@@ -36,6 +36,21 @@ export class Api {
         }
     }
 
+    // map a metadata name to a friendly name if possible
+    static mapMetadataName(name) {
+        if (name && name.trim) {
+            const name_lwr = name.trim().toLowerCase();
+            if (name_lwr.includes("document type") || name_lwr.includes("document-type") || name_lwr.includes("documenttype"))
+                return "document-type";
+            if (name_lwr.includes("created"))
+                return "created";
+            if (name_lwr.includes("last modified") || name_lwr.includes("last-modified") || name_lwr.includes("lastmodified"))
+                return "last-modified";
+            return name_lwr;
+        }
+        return name;
+    }
+
     // make sure a string doesn't exceed size
     static limitStringLength(str, size) {
         if (str && str.length > size) {

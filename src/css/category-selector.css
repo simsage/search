@@ -1,7 +1,6 @@
 
 
 .category-selector {
-   
 }
 
 .category-selector .selector-title {
@@ -38,4 +37,20 @@
     padding: 2px;
     border-radius: 2px;
     cursor: default;
+}
+
+.category-selector .parent-width {
+    width: 300px;
+}
+
+.category-selector .input-width {
+    width: 14px;
+    display: inline-block;
+}
+
+.category-selector .overflow-management {
+    overflow: hidden;
+    width: 200px;
+    text-overflow: ellipsis;
+    display: inline-block;
 }

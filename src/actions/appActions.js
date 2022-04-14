@@ -8,7 +8,7 @@ import {
 
     SELECT_ROOT,
     SELECT_SOURCE,
-    HIDE_SEARCH_RESULTS,
+    GO_HOME_SEARCH_SCREEN,
 
     CLEAR_CATEGORY_FILTER,
     SET_CATEGORY_FILTER,
@@ -189,6 +189,7 @@ export const appCreators = {
                 const user_id = Api.getUserId(ar.user);
                 const hash_tag_list = ar.hash_tag_list;
                 const text = add_filter_to_search_text(search_text, ar.category_list, ar.category_values, ar.syn_sets, hash_tag_list);
+                console.log("super search text", text);
                 if (text !== ar.search_text) {
                     page = 0;
                 }
@@ -223,8 +224,8 @@ export const appCreators = {
         }
     },
 
-    hideSearchResults: (search_text) => async (dispatch, getState) => {
-        dispatch({type: HIDE_SEARCH_RESULTS});
+    hideSearchResults: () => async (dispatch, getState) => {
+        dispatch({type: GO_HOME_SEARCH_SCREEN});
     },
 
     clearCategories: (search_text) => async (dispatch, getState) => {
@@ -234,7 +235,7 @@ export const appCreators = {
     // search UI sets category item (metadata searches), value can be an array for date-range
     setCategoryValue: (metadata, value) => async (dispatch, getState) => {
         if (metadata) {
-            if (metadata === 'created' || metadata === 'last-modified') {
+            if (Api.mapMetadataName(metadata) === "created" || Api.mapMetadataName(metadata) === "last-modified") {
                 if (value.length === 2) {
                     const lhs = value[0];
                     const rhs = value[1];

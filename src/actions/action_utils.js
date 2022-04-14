@@ -132,11 +132,12 @@ export function add_filter_to_search_text(_text, category_list, category_values,
         for (const md of category_list) {
 
             const category_type = Api.simplifyMetadataType(md.categoryType);
+            const simplified_md = Api.mapMetadataName(md.metadata);
 
 
 
-            if (category_values && category_values[md.metadata] && category_type === "date range") {
-                const v = category_values[md.metadata];
+            if (category_values && category_values[simplified_md] && category_type === "date range") {
+                const v = category_values[simplified_md];
                 const d1 = (v.minValue - md.minValue);
                 const d2 = (md.maxValue - v.maxValue);
                 if (v && (d1 > delta ||  d2 > delta)) {
@@ -151,8 +152,8 @@ export function add_filter_to_search_text(_text, category_list, category_values,
             }
 
             let type_filter = "";
-            if (category_values && category_values[md.metadata] && category_values[md.metadata].value && category_type === "category") {
-                const v_set = category_values[md.metadata].value;
+            if (category_values && category_values[simplified_md] && category_values[simplified_md].value && category_type === "category") {
+                const v_set = category_values[simplified_md].value;
                 let temp_filter = "";
                 for (const [k, v] of Object.entries(v_set)) {
                     if (v && k) {

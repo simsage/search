@@ -116,7 +116,8 @@ export default class SearchResults extends Component {
     getDocumentTypeMetadata(sr) {
         if (sr && sr.categoryList) {
             for (const md of sr.categoryList) {
-                if (md.metadata === "document-type") {
+                const name = md.metadata.toLowerCase();
+                if (Api.mapMetadataName(name) === "document-type") {
                     return md;
                 }
             }
@@ -141,11 +142,11 @@ export default class SearchResults extends Component {
 
 
 
-    getTimeRangeMetadata(category_list, category_values, metadata_name) {
+    getTimeRangeMetadata(category_list, category_values, name) {
         if (category_list) {
             for (const md of category_list) {
-                if (md.metadata === metadata_name && md.maxValue && md.minValue) {
-                    const data = category_values[metadata_name];
+                if (Api.mapMetadataName(md.metadata) === name && md.maxValue && md.minValue) {
+                    const data = category_values[md.metadata];
                     if (data) {
                         const minValue = md && md["minValue"] ? md["minValue"] : 0;
                         const maxValue = md && md["maxValue"] ? md["maxValue"] : 0;

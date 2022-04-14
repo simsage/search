@@ -17,7 +17,7 @@ import {
 
     DO_SEARCH,
     SET_SAVED_SEARCHES,
-    HIDE_SEARCH_RESULTS,
+    GO_HOME_SEARCH_SCREEN,
     SET_COMMENTS,
 
     SET_FILE_HASH_TAGS,
@@ -46,6 +46,7 @@ import {
 } from "../actions/actions";
 import {initializeState} from './stateLoader'
 import {get_source_by_id, get_parent_folder, show_menus} from './reducer_utils'
+import Api from "../common/api";
 
 export const reducer = (state, action) => {
     state = state || initializeState();
@@ -440,10 +441,26 @@ export const reducer = (state, action) => {
             }
         }
 
-        case HIDE_SEARCH_RESULTS: {
+        case GO_HOME_SEARCH_SCREEN: {
             return {
                 ...state,
                 show_search_results: false,
+                user_search_text: "",
+                search_text: "",
+                search_result: {},
+                search_page: 0,
+                search_result_list: [],
+                search_focus: null,
+                preview_page_list: [],
+                error: "",
+                hash_tag_list: [],
+                syn_sets: {},
+                category_values: {},
+                group_similar: false,
+                newest_first: false,
+                current_folder: null,
+                selected_source: null,
+                selected_file: null,
                 busy: false,
             }
         }
@@ -514,16 +531,15 @@ export const reducer = (state, action) => {
         }
 
         case SET_CATEGORY_FILTER: {
-            const metadata = action.metadata;
+            const metadata = Api.mapMetadataName(action.metadata);
             const value = action.value;
-            const cf = state.category_values;
+            const c_values = state.category_values;
             if (metadata) {
-                cf[metadata] = {metadata: metadata, value: value,
-                                minValue: action.minValue, maxValue: action.maxValue};
+                c_values[metadata] = {metadata: metadata, value: value, minValue: action.minValue, maxValue: action.maxValue};
             }
             return {
                 ...state,
-                category_values: {...state.category_values, ...cf},
+                category_values: {...state.category_values, ...c_values},
                 busy: false,
             };
         }
