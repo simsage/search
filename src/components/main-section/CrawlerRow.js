@@ -27,7 +27,14 @@ export class CrawlerRow extends Component {
                 <td className="py-2 pe-0 ps-3 favourite-col"></td>
                 <td className="py-3 crawler-label name-col text-nowrap ps-2 pe-5">
                     <span className=" d-flex align-items-center">
-                        <img src={"../images/icon/icon_ci-" + type_str + ".svg"} alt={type_name} title={type_name} className="crawler-icon me-2"/>
+                        { type_str.indexOf('.') === -1 &&
+                            <img src={"../images/icon/icon_ci-" + type_str + ".svg"} alt={type_name} title={type_name}
+                                 className="crawler-icon me-2"/>
+                        }
+                        { type_str.indexOf('.') > 0 &&
+                            <img src={"../images/icon/" + type_str} alt={type_name} title={type_name}
+                                 className="crawler-icon me-2"/>
+                        }
                         <div>
                         <p className="mb-0">{this.props.name}</p>
                         <p className="small mb-0 crawler-sm-desc" title={type_name}>{type_name}</p>

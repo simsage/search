@@ -140,12 +140,45 @@ export class Comms {
 
     // get a url that can be used to get a zip archive of a wp export
     static download_document(session_id, dl_url) {
-        Comms.http_put('/auth/ott/' + encodeURIComponent(window.ENV.organisation_id), session_id, {}, (response) => {
-            const url = window.ENV.api_base + '/search/binary/latest/' + encodeURIComponent(window.ENV.organisation_id) + '/' +
-                        encodeURIComponent(window.ENV.kb_id) + '/' + btoa(unescape(encodeURIComponent(dl_url)));
-            Comms.download_new_window_post(url, response.data);
-        });
+        const url = window.ENV.api_base + '/dms/binary/latest/' + encodeURIComponent(window.ENV.organisation_id) + '/' +
+                    encodeURIComponent(window.ENV.kb_id) + '/' + btoa(decodeURI(encodeURIComponent(dl_url)));
+        Comms.do_fetch(url, session_id);
     };
+
+    // redact a document given an entity-type-list (semantics) and return a redacted PDF for this item
+    static redact_document(session_id, dl_url, entity_type_list, additional_words, never_redact, fn_success, fn_fail) {
+        // /document/redact/{organisationId}/{kbId}/{url}/{entityCsv}
+        const url = window.ENV.api_base + '/language/redact/' + encodeURIComponent(window.ENV.organisation_id) + '/' +
+                    encodeURIComponent(window.ENV.kb_id) + '/' + btoa(decodeURI(encodeURIComponent(dl_url))) + '/' +
+                    encodeURIComponent(entity_type_list) + '/' + encodeURIComponent(additional_words) + '/' +
+                    encodeURIComponent(never_redact);
+        Comms.do_fetch(url, session_id);
+    };
+
+
+    // fetch helper
+    static do_fetch(url, session_id, fn_success, fn_fail) {
+        if (!session_id || session_id.length === 0)
+            session_id = "";
+
+        fetch(url, {headers:{"session-id": session_id}} )
+            .then((response) => response.blob())
+            .then((blob) => { // RETRIEVE THE BLOB AND CREATE LOCAL URL
+                if (fn_success)
+                    fn_success();
+                const _url = window.URL.createObjectURL(blob);
+                window.open(_url, "_blank").focus(); // window.open + focus
+            }).catch((error) => {
+            if (fn_fail) {
+                if (error.response === undefined) {
+                    fn_fail('Servers not responding or cannot contact Servers');
+                } else {
+                    fn_fail(Comms.get_error(error));
+                }
+            }
+        });
+    }
+
 
     // get a url that can be used to get a zip archive of a wp export
     static download_document_version(session_id, dl_url, version) {
@@ -176,12 +209,12 @@ export class Comms {
 
 
     static getHeaders(session_id) {
-        if (session_id) {
+        if (session_id && session_id.length > 0) {
             return {
                 headers: {
                     "API-Version": window.ENV.api_version,
                     "Content-Type": "application/json",
-                    "Session-Id": session_id,
+                    "session-id": session_id,
                 }
             }
         }

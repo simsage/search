@@ -4,7 +4,6 @@ import {createLogger} from "redux-logger";
 import {routerReducer} from "react-router-redux";
 import * as AppReducer from "./appReducer";
 
-import {loadState} from "./stateLoader";
 
 // only log when debug = false in settings.js
 const loggerMiddleware = createLogger({
@@ -32,7 +31,6 @@ export default function configureStore() {
 
     return createStore(
         rootReducer,
-        loadState(),
         compose(
             applyMiddleware(...middleware),
             ...enhancers

@@ -15,6 +15,23 @@ export function initializeState() {
         // session and user objects
         session: null,
 
+        // redaction
+        redaction: {
+            // semantics to filter
+            person: false,
+            location: false,
+            money: false,
+            company: false,
+            law_firm: false,
+            brand: false,
+            // unknowns to add to the semantics
+            semantic_csv: '',
+            // additional words to filter
+            additional_word_csv: '',
+            // list of words overriding any redaction(s)
+            allow_word_csv: ''
+        },
+
         // search info
         search_info_loaded: false,
 
@@ -60,6 +77,9 @@ export function initializeState() {
 
         // list of saved searches for this user
         save_search_list: [],
+
+        // Source selection in results page
+        source_selection:{},
 
         // metadata search controls
         category_list: [],
@@ -115,39 +135,6 @@ export function initializeState() {
         // application error messages
         error_title: "Error",
         error: "",
-    }
-}
-
-
-export function loadState() {
-    try {
-        let serializedState = localStorage.getItem("https://simsage.ai:dms-state");
-        if (serializedState === null || window.location.href.endsWith("/")) {
-            return {"appReducer": initializeState()};
-        }
-        return JSON.parse(serializedState);
-    }
-    catch (err) {
-        return {"appReducer": initializeState()};
-    }
-}
-
-
-export function saveState(state) {
-    try {
-        let serializedState = JSON.stringify(state);
-        localStorage.setItem("https://simsage.ai:dms-state", serializedState);
-    }
-    catch (err) {
-    }
-}
-
-
-export function clearState(state) {
-    try {
-        localStorage.removeItem("https://simsage.ai:dms-state");
-    }
-    catch (err) {
     }
 }
 

@@ -34,3 +34,17 @@ export function show_menus(url, list) {
     return use_list;
 }
 
+
+// helper - get the knowledge-base selected in settings.js
+export function get_kb(kb_list) {
+    const use_list = kb_list && kb_list.length ? kb_list : [];
+    for (const kb of use_list) {
+        if (kb.id === window.ENV.kb_id) {
+            return kb;
+        }
+    }
+    // show an error we haven't found the KB - this is bad configuration!
+    console.error("!!! knowledge-base id " + window.ENV.kb_id + " NOT FOUND in getSearchInfo() kbList - please check kb_id in settings.js !!!");
+    return {};
+}
+

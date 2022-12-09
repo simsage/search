@@ -11,7 +11,7 @@ import Api from "../common/api";
 
 
 // helper
-export async function do_search(text, original_text, page, shard_list, session_id, user_id,
+export async function do_search(text, filter_text, page, shard_list, session_id, user_id,
                                 group_similar, newest_first, dispatch) {
 
     dispatch({type: BUSY, busy: true});
@@ -23,13 +23,14 @@ export async function do_search(text, original_text, page, shard_list, session_i
         clientId: user_id,
         semanticSearch: true,
         query: text,
+        filter: filter_text,
         numResults: 1,
         page: page,
         pageSize: window.ENV.page_size,
         shardSizeList: shard_list,
         fragmentCount: window.ENV.fragment_count,
         maxWordDistance: window.ENV.max_word_distance,
-        spellingSuggest: false,
+        spellingSuggest: window.ENV.use_spell_checker,
         contextLabel: '',
         contextMatchBoost: 0.01,
         groupSimilarDocuments: group_similar,
@@ -44,7 +45,7 @@ export async function do_search(text, original_text, page, shard_list, session_i
         (result) => {
             if (result && result.data && result.data.messageType === 'message') {
                 result.data.search_text = text;
-                result.data.original_text = original_text;
+                result.data.original_text = text;
                 result.data.page = page;
                 dispatch({type: DO_SEARCH, data: result.data});
             } else {
@@ -82,17 +83,17 @@ export async function select_folder(folder, folder_tracker, force_get, session_i
     }
 }
 
-/**
+/*
  * remove AND OR and NOT and any duplicates from the text
  */
-function filter_text(text, syn_sets) {
+export function setup_syn_sets(text, syn_sets) {
     // remove any : and / as well as they are special characters
-    const text_list = text.replace(':', ' ').replace('/', ' ').split(' ');
+    const text_list = text.split(' ');
     const final_text_list = [];
     const text_set = {};
     for (const t of text_list) {
         const item = t.trim().toLowerCase();
-        if (item.length > 0 && !text_set[item] && item !== "or" && item !== "and" && item !== "not") {
+        if (item.length > 0 && !text_set[item]) {
             text_set[item] = true;
             let syn_set = -1;
             if (syn_sets && syn_sets[item] >= 0) {
@@ -112,14 +113,14 @@ function filter_text(text, syn_sets) {
 /**
  * process the filters and add them to the text string to create a super search string
  *
- * @param _text the user's search text
  * @param category_list the list of all metadata items to check
  * @param category_values a value-data structure for each metadata categorical item metadata -> {categoryType, metadata, minValue, maxValue, value}
- * @param syn_sets selected syn-set values
+ * @param entity_values selected entity types
+ * @param sources list of sources to filter on
  * @param hash_tag_list list of hash-tags to filter on
  * @returns {string} the modified (or original search string)
  */
-export function add_filter_to_search_text(_text, category_list, category_values, syn_sets, hash_tag_list) {
+export function get_filters(category_list, category_values, entity_values, sources, hash_tag_list) {
     // todo: get filter data and modify the query
     // range(metadata, start#, end#)
     // doc(metadata, '')
@@ -134,13 +135,11 @@ export function add_filter_to_search_text(_text, category_list, category_values,
             const category_type = Api.simplifyMetadataType(md.categoryType);
             const simplified_md = Api.mapMetadataName(md.metadata);
 
-
-
             if (category_values && category_values[simplified_md] && category_type === "date range") {
                 const v = category_values[simplified_md];
                 const d1 = (v.minValue - md.minValue);
                 const d2 = (md.maxValue - v.maxValue);
-                if (v && (d1 > delta ||  d2 > delta)) {
+                if (v && (d1 > delta || d2 > delta)) {
                     const lhs = v.minValue;
                     const rhs = v.maxValue;
                     if (filter_str.length > 0) {
@@ -175,9 +174,19 @@ export function add_filter_to_search_text(_text, category_list, category_values,
                 if (needs_and) filter_str += " and (";
                 filter_str += type_filter;
                 if (needs_and) filter_str += ")";
+                needs_and = true;
             }
         }
     }
+
+    if (sources && sources.length > 0) {
+        let sourceFilter = "source(" + sources.join(",") + ")"
+        if (needs_and) filter_str += " and (";
+        filter_str += sourceFilter;
+        if (needs_and) filter_str += ")";
+        needs_and = true;
+    }
+
     if (hash_tag_list && hash_tag_list.length > 0) {
         if (needs_and) filter_str += " and (";
         let ht_filter = "";
@@ -189,22 +198,6 @@ export function add_filter_to_search_text(_text, category_list, category_values,
         filter_str += ht_filter;
         if (needs_and) filter_str += ")";
     }
-    let search_text = "";
-    let text = filter_text(_text, syn_sets);
-    if (filter_str.length > 0 && text.length > 0) {
-        if (text.indexOf(':') < 0) {
-            search_text = "(body:" + text + " and " + filter_str + ")";
-        } else {
-            search_text = "(" + text + " and " + filter_str + ")";
-        }
-    } else if (filter_str.length > 0) {
-        search_text = "(" + filter_str + ")";
-    } else {
-        if (text.indexOf(':') < 0) {
-            search_text = "(body: " + text + ")";
-        } else {
-            search_text = "(" + text + ")";
-        }
-    }
-    return search_text;
+
+    return filter_str;
 }

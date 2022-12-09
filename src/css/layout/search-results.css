@@ -89,3 +89,28 @@
 .result-time-filter {
     font-size: 13px;
 }
+.redact-image {
+    width: 24px;
+    height: 24px;
+}
+.link-style {
+    color: dodgerblue;
+    text-decoration: underline;
+    cursor: pointer;
+}
+.categorical-item {
+    width: 200px;
+}
+
+.similar-document-title {
+    font-size: 14px;
+    cursor: default;
+    font-style: italic;
+}
+
+.similar-document-link {
+    font-size: 12px;
+    cursor: default;
+    color: #1c9bd2;
+}
+

@@ -27,6 +27,8 @@ import {
 
     CLEAR_CATEGORY_FILTER,
     SET_CATEGORY_FILTER,
+    SET_ENTITY_FILTER,
+    SET_SOURCE_FILTER,
     SET_GROUP_SIMILAR,
     SET_NEWEST_FIRST,
     SET_SYNSET,
@@ -42,10 +44,11 @@ import {
     SET_SEARCH_FOCUS,
 
     HTML_PREVIEW,
+    UPDATE_REDACTION,
 
 } from "../actions/actions";
 import {initializeState} from './stateLoader'
-import {get_source_by_id, get_parent_folder, show_menus} from './reducer_utils'
+import {get_source_by_id, get_parent_folder, show_menus, get_kb} from './reducer_utils'
 import Api from "../common/api";
 
 export const reducer = (state, action) => {
@@ -135,11 +138,13 @@ export const reducer = (state, action) => {
             let dashboard_root = state.dashboard_root;
             let source_tracker = state.source_tracker;
             let folder_tracker = state.folder_tracker;
-            const category_list = action.dashboard.kbList && action.dashboard.kbList.length > 0 ? action.dashboard.kbList[0].categoryList : [];
+
+            const kb = get_kb(action.dashboard.kbList)
+            const category_list = kb && kb.categoryList ? kb.categoryList : [];
+            const contentList = kb && kb.sourceList ? kb.sourceList : [];
 
             // get the top level content, which is the set of sources for this user
             const dashboard = action.dashboard;
-            const contentList = dashboard && dashboard.folderList ? dashboard.folderList : [];
             const subscriptionList = dashboard && dashboard.subscriptionList ? dashboard.subscriptionList : [];
             const checkoutList = dashboard && dashboard.checkoutList ? dashboard.checkoutList : [];
             // wrap the sources as a content-item folder
@@ -419,6 +424,12 @@ export const reducer = (state, action) => {
                 search_result_list = (data && data.resultList) ? data.resultList : [];
             }
 
+            // reset syn-sets?
+            let syn_sets = state.syn_sets;
+            if (data && data.synSetList && data.synSetList.length === 0) {
+                syn_sets = {};
+            }
+
             return {
                 ...state,
                 search_result: data,            // this is the complete set
@@ -429,6 +440,7 @@ export const reducer = (state, action) => {
                 show_locks: false,
                 search_result_list: search_result_list,
                 save_search_list: save_search_list,
+                syn_sets: syn_sets, // syn-set selections
                 busy: false,
             }
         }
@@ -456,6 +468,7 @@ export const reducer = (state, action) => {
                 hash_tag_list: [],
                 syn_sets: {},
                 category_values: {},
+                entity_values: {},
                 group_similar: false,
                 newest_first: false,
                 current_folder: null,
@@ -530,16 +543,37 @@ export const reducer = (state, action) => {
             }
         }
 
+        case SET_SOURCE_FILTER: {
+            return {
+                ...state,
+                source_selection: action.value,
+                busy: false,
+            };
+        }
+
         case SET_CATEGORY_FILTER: {
             const metadata = Api.mapMetadataName(action.metadata);
-            const value = action.value;
+            let value = action.value;
             const c_values = state.category_values;
             if (metadata) {
+                // for doc type meta searches, only change the checked state of the changed doc type
+                if (metadata==="document-type"){
+                    value = state.category_values[metadata]?{...state.category_values[metadata].value, ...value}:value
+                }
                 c_values[metadata] = {metadata: metadata, value: value, minValue: action.minValue, maxValue: action.maxValue};
             }
             return {
                 ...state,
                 category_values: {...state.category_values, ...c_values},
+                busy: false,
+            };
+        }
+
+        case SET_ENTITY_FILTER: {
+            let value = action.value;
+            return {
+                ...state,
+                entity_values: value,
                 busy: false,
             };
         }
@@ -675,6 +709,14 @@ export const reducer = (state, action) => {
                 ...state,
                 preview_page_list: existing_list,
                 busy: false,
+            }
+        }
+
+        case UPDATE_REDACTION: {
+            const redaction = action.redaction;
+            return {
+                ...state,
+                redaction: { ...state.redaction, ...redaction}
             }
         }
 

@@ -7,9 +7,15 @@
     display: inline-block;
     text-align: center;
     width: 100%;
-    height: 30px;
-    font-size: 14px;
+    height: 22px;
+    font-size: 13px;
     cursor: default;
+    margin-top: 10px;
+}
+
+.sourceTypeIcon {
+    width: 20px;
+    margin-right: 5px;
 }
 
 .category-selector .items-box {
@@ -50,7 +56,12 @@
 
 .category-selector .overflow-management {
     overflow: hidden;
-    width: 200px;
+    width: 130px;
     text-overflow: ellipsis;
     display: inline-block;
+    white-space: nowrap;
+}
+
+.list-group-item .min-width {
+    min-width: 12px;
 }

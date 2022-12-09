@@ -31,18 +31,18 @@ export class SynsetSelector extends Component {
     render() {
         // items: [] {name: "", description: ""}
         return (
-            <div className="w-100 result-document-filter pb-4">
-            <span title={"please select a specific meaning for \"" + this.props.name + "\" below to search for more specific results."}>
-            Meaning for: <b>{this.props.name}</b></span>
+            <div>
+            <span className="selector-title" title={"please select a specific meaning for \"" + this.props.name + "\" below to search for more specific results."}>
+            Meaning for: <i>{this.props.name}</i></span>
             <div className="category-selector list-group pt-1">
             {
                 this.props.description_list.map((item, i) => {
                     return (
-                        <label className="list-group-item bg-light d-flex ps-3 pe-3 no-select parent-width" key={i}>
-                            <input className="form-check-input me-2 input-width" type="checkbox" checked={this.getChecked(this.props.name, i, this.props.syn_sets)}
+                        <label className="list-group-item bg-light d-flex ps-3 pe-3 no-select" key={i}>
+                            <input className="form-check-input me-2 min-width" type="checkbox" checked={this.getChecked(this.props.name, i, this.props.syn_sets)}
                                    onChange={(event) => this.onSetValue(this.props.name, i, event.target.checked)} />
                             <div className="d-flex justify-content-between flex-fill overflow-management">
-                                <span className="" title={"select a meaning of \"" + this.props.name + "\" related to " + item}>{item}</span>
+                                <span className="small" title={"select a meaning of \"" + this.props.name + "\" related to " + item}>{item}</span>
                             </div>
                         </label>
                     )

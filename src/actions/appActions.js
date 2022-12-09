@@ -12,6 +12,7 @@ import {
 
     CLEAR_CATEGORY_FILTER,
     SET_CATEGORY_FILTER,
+    SET_ENTITY_FILTER,
     SET_GROUP_SIMILAR,
     SET_NEWEST_FIRST,
     SET_SYNSET,
@@ -28,11 +29,13 @@ import {
     SET_SEARCH_FOCUS,
 
     HTML_PREVIEW,
+    SET_SOURCE_FILTER,
+    UPDATE_REDACTION,
 
 } from "./actions";
 
 import {Comms} from "../common/comms";
-import {add_filter_to_search_text, do_search} from "./action_utils";
+import {setup_syn_sets, get_filters, do_search} from "./action_utils";
 import Api from "../common/api";
 
 
@@ -118,7 +121,7 @@ export const appCreators = {
     // user dashboard
 
     // get initial search data
-    getSearchInfo: () => async (dispatch, getState) => {
+    getSearchInfo: (onSuccess) => async (dispatch, getState) => {
         dispatch({type: BUSY, busy: true});
         const ar = getState().appReducer;
         const session_id = "";
@@ -126,7 +129,10 @@ export const appCreators = {
         await Comms.http_get('/knowledgebase/search/info/' + encodeURIComponent(window.ENV.organisation_id) + '/' + encodeURIComponent(user_id),
             session_id,
             (response) => {
+                console.log('SimSage UX version ' + window.ENV.version);
                 dispatch({type: SET_USER_DASHBOARD, dashboard: response.data});
+                if (onSuccess)
+                    onSuccess();
             },
             (errStr) => {
                 dispatch({type: ERROR, title: "Error", error: errStr})
@@ -156,15 +162,7 @@ export const appCreators = {
         dispatch({type: CLOSE_MENUS});
         if (file && file.url) {
             const session_id = Api.getSessionId(getState().appReducer.session);
-            if (session_id !== "") {
-                Comms.download_document(session_id, file.url);
-            } else {
-                dispatch({
-                    type: ERROR,
-                    title: "Error",
-                    error: "downloadFile: not signed-in"
-                });
-            }
+            Comms.download_document(session_id, file.url);
         } else {
             dispatch({
                 type: ERROR,
@@ -174,26 +172,84 @@ export const appCreators = {
         }
     },
 
+    // update the redaction structure
+    updateRedaction: (redaction) => async (dispatch) => {
+        dispatch({type: UPDATE_REDACTION, redaction: redaction});
+    },
+
+    // redact the latest version of a file
+    redactFile: (url) => async (dispatch, getState) => {
+        dispatch({type: BUSY, busy: true});
+        if (url) {
+            const ar = getState().appReducer;
+            const session_id = Api.getSessionId(ar.session);
+            const red = ar.redaction ? ar.redaction : {};
+            let entity_csv = red.semantic_csv;
+            if (red.person) entity_csv += ",person";
+            if (red.brand) entity_csv += ",brand";
+            if (red.company) entity_csv += ",company";
+            if (red.location) entity_csv += ",location";
+            if (red.money) entity_csv += ",money";
+            if (red.law_firm) entity_csv += ",law-firm";
+            entity_csv = entity_csv ? entity_csv : "null";
+            const other_words = red.additional_word_csv ? red.additional_word_csv : "null";
+            if (entity_csv === "null" && other_words === "null") {
+                dispatch({type: ERROR, title: "Error", error: "nothing to redact, please specify your redaction requirements first."})
+            } else {
+                const never_redact = red.allow_word_csv ? red.allow_word_csv : "null";
+                Comms.redact_document(session_id, url, entity_csv, other_words, never_redact,
+                    () => {
+                        dispatch({type: BUSY, busy: false});
+                    },
+                    (error) => {
+                        dispatch({type: ERROR, title: "Error", error: error})
+                    });
+            }
+        } else {
+            dispatch({
+                type: ERROR,
+                title: "Error",
+                error: "redactFile: binary document cannot be downloaded, invalid url"
+            });
+        }
+    },
+
     /////////////////////////////////////////////////////////////////////////////////////////////////////
     // searching
 
     search: (search_text, page) => async (dispatch, getState) => {
         dispatch({type: CLOSE_MENUS});
-        if (search_text) {
+        if (search_text.length >= 0) {
             const ar = getState().appReducer;
             if (ar) {
                 if (!page)
                     page = ar.search_page;
-                const shard_list = (ar.search_result && ar.search_result.shard_list) ? ar.search_result.shard_list : [];
+                const shard_list = (ar.search_result && ar.search_result.shardSizeList) ? ar.search_result.shardSizeList : [];
                 const session_id = Api.getSessionId(ar.session);
                 const user_id = Api.getUserId(ar.user);
                 const hash_tag_list = ar.hash_tag_list;
-                const text = add_filter_to_search_text(search_text, ar.category_list, ar.category_values, ar.syn_sets, hash_tag_list);
-                console.log("super search text", text);
-                if (text !== ar.search_text) {
+                const sourceIds = [];
+                ar.source_list.forEach(curSource=>{
+                    if (ar.source_selection[curSource.name]===true){
+                        sourceIds.push(curSource.sourceId);
+                    }
+                })
+
+                let text = setup_syn_sets(search_text.trim(), ar.syn_sets);
+                let filter_text = ""
+                if (!(text.startsWith("(") && text.endsWith(")"))) {
+                    filter_text = get_filters(ar.category_list, ar.category_values, ar.entity_values, sourceIds, hash_tag_list);
+                } else {
+                    text = text.replaceAll("|", " SUB ");
+                }
+                console.log("super search text:", text, ", filter text:", filter_text);
+                if (text !== ar.search_text || (ar.search_result && ar.search_result.length === 0)) { // no results or different search?
                     page = 0;
                 }
-                await do_search(text, search_text, page, shard_list, session_id, user_id, ar.group_similar, ar.newest_first, dispatch);
+                if (text.trim().length > 1 && text !== "()") {
+                    await do_search(text, filter_text, page, shard_list, session_id, user_id, ar.group_similar, ar.newest_first, dispatch);
+                }
+                window.history.replaceState(null, null, "?query=" + encodeURIComponent(text))
             }
         }
     },
@@ -225,11 +281,19 @@ export const appCreators = {
     },
 
     hideSearchResults: () => async (dispatch, getState) => {
+        window.history.replaceState(null, null, window.location.pathname);
         dispatch({type: GO_HOME_SEARCH_SCREEN});
     },
 
     clearCategories: (search_text) => async (dispatch, getState) => {
         dispatch({type: CLEAR_CATEGORY_FILTER});
+    },
+
+    setSourceValue: (value) => async (dispatch, getState) => {
+        dispatch({
+            type: SET_SOURCE_FILTER,
+            value: value
+        });
     },
 
     // search UI sets category item (metadata searches), value can be an array for date-range
@@ -250,6 +314,13 @@ export const appCreators = {
                     value: value, minValue: 0, maxValue: 0
                 });
             }
+        }
+    },
+
+    // search UI sets entity value
+    setEntityValue: (value) => async (dispatch, getState) => {
+        if (value) {
+            dispatch({type: SET_ENTITY_FILTER, value: value});
         }
     },
 

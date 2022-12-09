@@ -5,6 +5,9 @@ import Api from "../../common/api";
 import {RangeSlider} from "../range-slider/range-slider";
 import {CategorySelector} from "../metadata-selectors/category-selector";
 import {SynsetSelector} from "../metadata-selectors/synset-selector";
+import {SourceSelector} from "../metadata-selectors/source-selector";
+import RedactDialog from "./RedactDialog";
+import SearchResultFragment from "./SearchResultFragment";
 
 // at least one day's difference between min- and max-value to display
 const min_date_difference = 24 * 3600;
@@ -18,8 +21,10 @@ export default class SearchResults extends Component {
             has_error: false,  // error trapping
             show_dropdown: false,
             prevY: 0, // infinite scrolling
+
+            // redaction dialog
+            redactUrl: '',
         }
-        this.scrollRef = React.createRef();
     }
 
     componentDidCatch(error, info) {
@@ -63,12 +68,17 @@ export default class SearchResults extends Component {
         this.observer.observe(this.loadingRef);
     }
 
+    // assure observers will be disconnected on unmount
+    componentWillUnmount() {
+        this.observer.unobserve(this.loadingRef)
+    }
+
     componentDidUpdate(prevProps, prevState, snapshot) {
         // scroll to the top when the search results have changed
         const sr1 = this.props.search_result;
         const sr2 = prevProps.search_result;
         if (sr1.search_text !== sr2.search_text) {
-            window.setTimeout(() => {this.scrollRef.current.scrollIntoView()}, 100);
+            window.setTimeout(() => window.scrollTo(0, 0), 100);
         }
     }
 
@@ -131,6 +141,19 @@ export default class SearchResults extends Component {
         if (category_list) {
             for (const md of category_list) {
                 if (md.order >= 2000) {
+                    result_list.push(md);
+                }
+            }
+        }
+        return result_list;
+    }
+
+    // return all the categorical metadata items
+    getCategoricalItems(category_list) {
+        const result_list = [];
+        if (category_list) {
+            for (const md of category_list) {
+                if (md.categoryType === "categorical list") {
                     result_list.push(md);
                 }
             }
@@ -203,7 +226,10 @@ export default class SearchResults extends Component {
 
     urlToBreadCrumb(result) {
         if (result && result.url && result.url.length > 0) {
-            const list = Api.pathFromUrl(result.url);
+            // Prefer the metadata url to the doc's url as the later might be the source id (Sharepoint)
+            const url = result.metadata["{url}"] && result.metadata["{url}"].trim().length>0 ? result.metadata["{url}"] : result.url
+
+            const list = Api.pathFromUrl(url)
             let str = "";
             for (const item of list) {
                 if (str.length > 0) {
@@ -226,8 +252,11 @@ export default class SearchResults extends Component {
     onSetRangerSlider(name, values) {
 
         if (this.props.onSetCategoryValue) {
+            // check this is an update rather than the initial set
+            const doSearch = this.props.category_values.hasOwnProperty(name);
             this.props.onSetCategoryValue(name, values);
-            this.onSearch(this.props.search_page);
+            // only search when this is an update
+            doSearch && this.onSearch(this.props.search_page);
         }
     }
 
@@ -252,10 +281,37 @@ export default class SearchResults extends Component {
         }
     }
 
+    onSetEntityValue(value) {
+        if (this.props.onSetEntityValue) {
+            this.props.onSetEntityValue(value);
+            this.onSearch(this.props.search_page);
+        }
+    }
+
+    onSetSourceValue(value) {
+        if (this.props.onSetSourceValue) {
+            this.props.onSetSourceValue(value);
+            this.onSearch(this.props.search_page);
+        }
+    }
+
     onSetCategorizationValue(metadata, value) {
         if (this.props.onSetCategoryValue) {
             this.props.onSetCategoryValue(metadata, value);
             this.onSearch(this.props.search_page);
+        }
+    }
+
+    redact(url) {
+        if (url && this.props.onRedact) {
+            this.props.onRedact(url);
+            this.setState({showRedact: false});
+        }
+    }
+
+    setSearchText(text) {
+        if (this.props.onUpdateSearchText) {
+            this.props.onUpdateSearchText(text);
         }
     }
 
@@ -273,23 +329,36 @@ export default class SearchResults extends Component {
         const createdMetadata = this.getTimeRangeMetadata(category_list, category_values, "created");
         const lastModifiedMetadata = this.getTimeRangeMetadata(category_list, category_values, "last-modified");
         const classificationList = this.getClassificationItems(category_list);
+        const categoricalList = this.getCategoricalItems(category_list);
+        const hasQNAResult = sr && sr.text && sr.text.length > 0;
+        const hasSearchResult = sr && sr.totalDocumentCount > 0;
         let srText = ""
-        if (sr.totalDocumentCount === 0) {
+        if (!hasSearchResult) {
             srText = "No results...";
         } else {
             srText = "" + sr.totalDocumentCount + " results";
         }
-
-        const hash_tag_list = (this.props.hash_tag_list && this.props.hash_tag_list.length > 0) ? this.props.hash_tag_list : [];
+        const hasSpellingSuggestion = window.ENV.use_spell_checker && sr.totalDocumentCount === 0 &&
+            sr.spellingCorrection && sr.spellingCorrection.length > 0 && sr.spellingCorrection !== sr.original_text;
 
         return (
             <div className={this.props.busy ? "h-100 wait-cursor" : "h-100"}>
                 <div className="row mx-0 px-2 results-container overflow-auto h-100 justify-content-center">
                     <div className="col-xxl-7 col-xl-8 pe-4">
-                        <div className="small text-muted ms-2 fw-light px-3 pb-3" ref={this.scrollRef}>
-                            {srText}
-                        </div>
-                        { sr && sr.text && sr.text.length > 0 &&
+                        { hasSpellingSuggestion &&
+                            <div className="small text-muted ms-2 fw-light px-3 pb-3">
+                                <span>No results.  Did you mean </span>
+                                <span className="link-style" onClick={() => this.setSearchText(sr.spellingCorrection)}
+                                      title={"search for \"" + sr.spellingCorrection + "\""}>{sr.spellingCorrection}</span>
+                                <span>?</span>
+                            </div>
+                        }
+                        { ((!hasQNAResult && !hasSearchResult) || hasSearchResult) && !hasSpellingSuggestion &&
+                            <div className="small text-muted ms-2 fw-light px-3 pb-3">
+                                {srText}
+                            </div>
+                        }
+                        { hasQNAResult &&
                             <div className="result-mind p-4 mb-5 mx-3">
                                 {sr.text}
                                 { sr && sr.urlList && sr.urlList.length > 0 &&
@@ -305,23 +374,31 @@ export default class SearchResults extends Component {
                                 }
                             </div>
                         }
+                        {this.state.showRedact &&
+                            <RedactDialog
+                                redaction={this.props.redaction}
+                                updateRedaction={(redaction) => this.props.updateRedaction(redaction)}
+                                onRedact={() => this.redact(this.state.redactUrl)}
+                                onClose={() => this.setState({showRedact: false, redactUrl: ''})}/>
+                        }
                         {
 
                             result_list.map( (result, i) => {
                                 const last_modified = Api.unixTimeConvert(result.lastModified);
-                                const text = Api.highlight((result.textList && result.textList.length > 0) ? result.textList[0] : "");
                                 const title = result.title ? result.title : "";
                                 const metadata_lists = Api.getMetadataLists(result.metadata);
                                 const tag_list = metadata_lists["tag_list"];
                                 const image_url = this.getPreviewSource(result);
+                                // Prefer the metadata url to the doc's url as the later might be the source id (Sharepoint)
+                                const url = result.metadata["{url}"] && result.metadata["{url}"].trim().length>0 ? result.metadata["{url}"] : result.url
                                 return (
-                                    <div className="result-content d-flex pb-4 mb-3 px-3" key={i}>
+                                    <div className="result-content d-flex pb-4 mb-3 px-3" key={url + "_" + i}>
                                         <img onClick={() => { if (this.props.onFocus) this.props.onFocus(result)}} src={image_url} alt="" className="result-preview d-none d-lg-block pointer-cursor" />
                                         <div className="ms-3 w-100">
                                             <div className="d-flex align-items-center text-align-end mb-1">
                                                 <p className="mb-0 result-breadcrumb me-2">{this.urlToBreadCrumb(result)}</p>
                                             </div>
-                                            <span className="mb-2 results-filename text-break pointer-cursor" onClick={() => { if (this.props.onFocus) this.props.onFocus(result)}} title={result.url}>{result.url}</span>
+                                            <span className="mb-2 results-filename text-break pointer-cursor" onClick={() => { if (this.props.onFocus) this.props.onFocus(result)}} title={url}>{url}</span>
                                             { title &&
                                                 <div className="d-flex align-items-center mb-1">
                                                     <span className="mb-0 result-details-title">&#12299;{title}&#12298;</span>
@@ -335,8 +412,16 @@ export default class SearchResults extends Component {
                                                         <span className="mb-0 result-details">{result.author}</span>
                                                     </span>
                                                 }
+                                                {/* not to be used for now *>}
+                                                {/*<span className="d-flex align-items-center">*/}
+                                                {/*    <span className="mb-0 result-details mx-2">|</span>*/}
+                                                {/*    <span className="mb-0 result-details" title="redact document"*/}
+                                                {/*          onClick={() => this.setState({showRedact: true, redactUrl: result.url})}>*/}
+                                                {/*        <img className="redact-image" src="images/icon/icon-redact.svg" />*/}
+                                                {/*    </span>*/}
+                                                {/*</span>*/}
                                             </div>
-                                            <p className="small fw-light mb-2" dangerouslySetInnerHTML={{ __html: text}} />
+                                            <SearchResultFragment text_list={result.textList} similar_document_list={result.similarDocumentList} />
                                             <div className="d-flex align-items-center flex-wrap">
                                                 { tag_list.map((tag, i) => {
                                                     return (<span className="tag me-2 mb-2" key={1000+i}>{tag.value}</span>);
@@ -357,28 +442,8 @@ export default class SearchResults extends Component {
                             
                             <div className="row">
 
-                                <div className="col-8 pe-4">
+                                <div className="col-6 pe-4">
                                     <div className="mx-0 result-time-filter">
-
-
-                                        {/* Some good logic in link below around duplicate tags and backspace in input to remove */}
-                                        {/* https://codepen.io/asuran/pen/GbjwBG?editors=0110 */}
-                                        <div className="category-selector list-group pt-1">
-                                            <label className="list-group-item p-0 overflow-hidden d-flex flex-wrap">
-                                                <ul className="d-flex flex-wrap mb-0 ms-2 ps-0">
-                                                    {
-                                                        hash_tag_list.map((tag, i) => {
-                                                            return (
-                                                                <li key={i} className="tag mt-2 me-1" title={"hash-tag " + tag}>{tag}</li>
-                                                            )
-                                                        })
-                                                    }
-                                                </ul>
-                                                <input type="text" id="hash-tag-text" placeholder="Filter by tags..." className="py-2 px-3 w-100 border-0"
-                                                       disabled={this.props.busy}
-                                                       onKeyPress = {(event) => this.hashTagKeyPress(event) }/>
-                                            </label>
-                                        </div>
 
                                         { lastModifiedMetadata &&
                                         <div className="w-100 mt-4">
@@ -425,18 +490,17 @@ export default class SearchResults extends Component {
 
                                     </div>
 
-
                                     {
                                         synset_list.map((synset, i) => {
                                             return (
-                                                <div className="" key={i}>
+                                                <div className="category-selector list-group pt-1" key={i}>
                                                     {/* <div className=""> */}
-                                                        <SynsetSelector
-                                                            name={synset.name}
-                                                            syn_sets={this.props.syn_sets}
-                                                            busy={this.props.busy}
-                                                            onSelectSynSet={(name, i) => {if (this.props.onSelectSynSet) this.props.onSelectSynSet(name, i)}}
-                                                            description_list={synset.description_list}/>
+                                                    <SynsetSelector
+                                                        name={synset.name}
+                                                        syn_sets={this.props.syn_sets}
+                                                        busy={this.props.busy}
+                                                        onSelectSynSet={(name, i) => {if (this.props.onSelectSynSet) this.props.onSelectSynSet(name, i)}}
+                                                        description_list={synset.description_list}/>
                                                     {/* </div> */}
                                                 </div>
                                             )
@@ -445,25 +509,65 @@ export default class SearchResults extends Component {
 
                                 </div>
 
-                                <div className="col-4 ps-0">
-                                    { documentTypeMetadata && documentTypeMetadata.items && documentTypeMetadata.items.length > 0 &&
+                                <div className="col-6 ps-0">
                                     <div className="w-100 result-document-filter pb-3">
+                                    { this.props.source_list &&
+                                        <div>
+                                            <SourceSelector
+                                                title="Sources"
+                                                busy={this.props.busy}
+                                                source_selection={this.props.source_selection}
+                                                onSetValue={(value) => this.onSetSourceValue(value)}
+                                                has_results={hasSearchResult}
+                                                items={this.props.source_list} />
+                                            <br/>
+                                        </div>
+                                    }
+                                    { documentTypeMetadata && documentTypeMetadata.items && documentTypeMetadata.items.length > 0 &&
+                                        <div>
                                         <CategorySelector
                                             title="File types"
                                             busy={this.props.busy}
+                                            category_values={this.props.category_values}
+                                            has_results={hasSearchResult}
+                                            show_counts={true}
                                             onSetValue={(value) => this.onSetCategoryValue(value)}
                                             items={documentTypeMetadata.items}/>
-                                    </div>
+
+                                        {/*<EntitySelector*/}
+                                        {/*    title="Entities"*/}
+                                        {/*    busy={this.props.busy}*/}
+                                        {/*    entity_values={this.props.entity_values}*/}
+                                        {/*    onSetValue={(value) => this.onSetEntityValue(value)}*/}
+                                        {/*    category_values={this.props.category_values} />*/}
+
+                                        { categoricalList && categoricalList.length > 0 && categoricalList.map((item, index) => {
+                                            return (
+                                                <CategorySelector key={index}
+                                                    title={item.displayName}
+                                                    busy={this.props.busy}
+                                                    metadata={item.metadata}
+                                                    has_results={hasSearchResult}
+                                                    show_counts={false}
+                                                    category_values={this.props.category_values}
+                                                    onSetValue={(value) => this.onSetCategorizationValue(item.metadata, value)}
+                                                    items={item.items}/>
+                                            )
+                                        })}
+                                        </div>
                                     }
+                                    </div>
                                 </div>
 
-                                { classificationList.map((item, index) => {
+                                { classificationList && classificationList.length > 0 && classificationList.map((item, index) => {
                                     return (
                                         <div className="col-4 ps-0" key={index}>
                                             <div className="w-100 result-document-filter pb-3">
                                                 <CategorySelector
                                                     title={item.displayName}
                                                     busy={this.props.busy}
+                                                    show_counts={false}
+                                                    has_results={hasSearchResult}
                                                     onSetValue={(value) => this.onSetCategorizationValue(item.metadata, value)}
                                                     items={item.items}/>
                                             </div>

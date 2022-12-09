@@ -306,6 +306,7 @@ export class Api {
         if (source_type === "nfs") return "nfs";
         if (source_type === "restfull") return "rss";
         if (source_type === "rss") return "rss";
+        if (source_type === "servicenow") return "icon_ci-servicenow.png";
         return "web"; // fallback
     }
 
@@ -325,6 +326,7 @@ export class Api {
         if (source_type === "nfs") return "NFS File Crawler";
         if (source_type === "restfull") return "Restful Crawler";
         if (source_type === "rss") return "RSS Crawler";
+        if (source_type === "servicenow") return "Service now";
         return "Web Crawler"; // fallback
     }
 
@@ -342,7 +344,7 @@ export class Api {
     // convert a more complex metadata-type to the simplest understood type in the UX
     static simplifyMetadataType(metadata_type) {
         if (metadata_type === "author list" || metadata_type === "person list" || metadata_type === "document type" ||
-            metadata_type === "location list" || metadata_type === "hashtag list") return "category";
+            metadata_type === "location list" || metadata_type === "hashtag list" || metadata_type === "categorical list") return "category";
         if (metadata_type === 'date range' || metadata_type === 'last modified date ranges' ||
             metadata_type === 'created date range') return "date range";
         if (metadata_type === 'number range') return "number range";
@@ -397,6 +399,21 @@ export class Api {
         if (user && user.id)
             return user.id;
         return Api.getClientId();
+    }
+
+    // takes a query string (window.location.search / props.location.search) and parses it into a named map
+    static getUrlSearchParamsAsMap(searchString) {
+        let result = {}
+        if (searchString && searchString.length>0 && searchString.startsWith("?")){
+            searchString = searchString.substring(1)
+            let vars = searchString.split("&");
+            for (let i=0;i<vars.length;i++) {
+                let pair = vars[i].split("=");
+                result[pair[0]]=pair[1]
+            }
+        }
+
+        return result;
     }
 
 }

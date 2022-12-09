@@ -29,10 +29,14 @@ export const LOAD_NOTIFICATIONS = "load notifications";
 // metadata category management
 export const CLEAR_CATEGORY_FILTER = "clear category filter";
 export const SET_CATEGORY_FILTER = "set category filter";
+export const SET_ENTITY_FILTER = "set entity filter";
+export const SET_SOURCE_FILTER = "set source filter"
 export const SET_GROUP_SIMILAR = "set group similar";
 export const SET_NEWEST_FIRST = "set newest first";
 export const SET_SYNSET = "set synset";
 export const SET_TAG_LIST = "set tag list";
+
+export const UPDATE_REDACTION = "update redaction";
 
 export const SHOW_MENU = "show menu";
 export const CLOSE_MENUS = "close menus";

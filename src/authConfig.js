@@ -14,11 +14,11 @@ let wl = "" + window.location;
 if (wl.lastIndexOf('/') > 8) {
     wl = wl.substr(0, wl.lastIndexOf('/#'));
 }
-// console.log("redirectUri=", wl);
 export const msalConfig = {
     auth: {
         clientId: window.ENV.client_id,
-        authority: window.ENV.authority,
+        authority: window.ENV.full_authority,
+        knownAuthorities: [window.ENV.known_authority],
         redirectUri: wl
     },
     cache: {
@@ -60,7 +60,7 @@ export const msalConfig = {
  * https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes
  */
 export const loginRequest = {
-    scopes: ["User.Read"]
+    scopes: ["openid"]
 };
 
 /**

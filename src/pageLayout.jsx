@@ -87,7 +87,6 @@ export const PageLayout = (props) => {
         instance.acquireTokenSilent(request).then((response) => {
             Comms.http_get_jwt('/auth/search/authenticate/msal', response.idToken,
                 (response2) => {
-                console.log(response2.data);
                     dispatch({type: SIGN_IN, data: response2.data})
                 },
                 (errStr) => {
@@ -100,7 +99,7 @@ export const PageLayout = (props) => {
 
     return (
         <div onClick={(e) => closeAllMenus(setIsAccountDropdown, e)}>
-            {!ar.search_focus &&
+            {!ar.search_focus && window.ENV.allow_anon &&
                 <div className={ar.busy ? "wait-cursor sign-in-menu" : "sign-in-menu"}>
                     <div className="d-none d-lg-flex flex-column text-end me-3 sign-in-float">
                         <p className="org-name mb-0 small">{ar.organisation ? ar.organisation.name : ""}</p>

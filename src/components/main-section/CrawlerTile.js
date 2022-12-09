@@ -48,6 +48,7 @@ export class CrawlerTile extends Component {
         const source = this.props.source ? this.props.source : {};
         const name = source.name ? source.name : "";
         const type_str = Api.sourceTypeToIcon(source.itemType);
+        console.log("this.props.type", this.props.type, type_str);
         const type_name = Api.sourceTypeToName(source.itemType);
         const show_menu = source.show_menu;
         return (
@@ -55,7 +56,12 @@ export class CrawlerTile extends Component {
                  onClick={() => {if (this.props.onSelectSource) this.props.onSelectSource()}}>
                 <div className="crawler-tile d-flex flex-column" title={name}>
                     <div className="crawler-preview d-flex justify-content-center align-items-center pt-4">
-                        <img src={"../images/icon/icon_ci-" + type_str + ".svg"} alt={type_str} className="crawler-icon" />
+                        {type_str.indexOf('.') === -1 &&
+                            <img src={"../images/icon/icon_ci-" + type_str + ".svg"} alt={type_str} className="crawler-icon"/>
+                        }
+                        {type_str.indexOf('.') > 0 &&
+                            <img src={"../images/icon/" + type_str} alt={type_str} className="crawler-icon"/>
+                        }
                     </div>
                     <div className="d-flex justify-content-between align-items-center p-3">
                         <div className="d-flex flex-column px-3 pb-3 text-start">

@@ -31,6 +31,15 @@ export default class PreviewModal extends Component {
                 options
             );
             this.observer.observe(this.loadingRef);
+            // we need to get focus to catch the 'keydown' event to test for the escape key
+            this.modalRef.focus();
+            // as iFrame events do not bubble up and we can't connect to event inside of it
+            // we get the iframe instead to 'message' us when the keydown event occurs
+            window.addEventListener("message", (event) => {
+                if (event.data === "Escape"){
+                    this.onClose();
+                }
+            }, false);
         });
     }
 
@@ -55,9 +64,16 @@ export default class PreviewModal extends Component {
         if (this.props.onClose)
             this.props.onClose();
     }
+    isViewable(url) {
+        return url && url.startsWith && (url.trim().toLowerCase().startsWith(("https://")) ||
+                                         url.trim().toLowerCase().startsWith(("http://")));
+    }
     download(url) {
-        if (url)
+        if (this.isViewable(url)) {
             window.open(url, "_blank");
+        } else if (url && this.props.onDownloadFile) {
+            this.props.onDownloadFile({"url": url});
+        }
     }
     getPreviewSource(item) {
         if (item && this.props.client_id && item.urlId) {
@@ -68,13 +84,20 @@ export default class PreviewModal extends Component {
         }
     }
     getHtmlPage(page, on_success) {
-        console.log("LOAD PAGE", page);
         const item = this.props.search_focus;
         const urlId = item && item.urlId ? item.urlId : 0;
         if (item && urlId > 0 && this.props.get_html_preview && page > 0) {
             this.props.get_html_preview(item, page, on_success);
         }
     }
+
+    // close the preview if we caught the keydown event for the escape key
+    checkForEscapeKeyToCloseModal(event) {
+        if (event.key === "Escape") {
+            this.onClose();
+        }
+    }
+
     pagePrev() {
         const page = this.state.page;
         if (page > 1) {
@@ -88,13 +111,13 @@ export default class PreviewModal extends Component {
         this.getHtmlPage(page + 1);
     }
     render() {
-        console.log("Preview Modal")
         if (this.state.has_error) {
             return <h1>modal.js: Something went wrong.</h1>;
         }
         const item = this.props.search_focus;
         const filename = item && item.filename ? item.filename : "";
         const url = item && item.url ? item.url : "";
+        const isOnlineView = this.isViewable(url);
 
         const preview_page_list = this.props.preview_page_list;
         const preview_data = preview_page_list && preview_page_list.length > 0 ? preview_page_list[0] : null;
@@ -125,21 +148,22 @@ export default class PreviewModal extends Component {
         h = Math.round(h) + "px";
 
         return (
-            <div className="d-flex justify-content-center align-items-top overflow-auto h-100 w-100">
+            <div ref={modalRef => (this.modalRef = modalRef)} tabIndex="0" onKeyDown={this.checkForEscapeKeyToCloseModal.bind(this)} className="d-flex justify-content-center align-items-top overflow-auto h-100 w-100">
                 <div className="fixed-top text-white px-4 py-3" style={{"backgroundImage" : "linear-gradient(#202731ff, #20273100)"}}>
                     <div className="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 className="mb-0" style={{"textShadow" : "0 0 50px #202731"}} title={filename}>{filename}</h6>
                         </div>
                         <div className="d-flex">
-                            <button className="btn dl-btn ms-2" onClick={() => this.download(url)} title={"download " + url}>
-                                Download
+                            <button className="btn dl-btn ms-2" onClick={() => this.download(url)} title={isOnlineView ? ("visit " + url + " online") : ("download " + url + " from SimSage")}>
+                                {isOnlineView ? "Visit" : "Download"}
                             </button>
                             <button className="btn pre-btn ms-2">
                                 <img src="../images/icon/icon_im-close-white.svg" alt="close" title="close" onClick={() => this.onClose()} />
                             </button>
                         </div>
                     </div>
+
                 </div>
 
                 <div className="container-fluid px-0 mx-0 h-100 overflow-hidden">
@@ -147,6 +171,8 @@ export default class PreviewModal extends Component {
                         <div className="col-9 justify-content-center h-100 overflow-auto preview-cont">
                             <div className="w-100 h-100" style={{"marginTop" : "6rem", "marginBottom" : "6rem"}}>
                                 {preview_page_list && preview_page_list.map((preview_data, i) => {
+                                    // add keydown listener to body to message us. We add tabindex as body won't recive keydown otherwise
+                                    preview_data.html = preview_data.html.replace("<body", "<body tabindex='0' onkeydown='parent.window.postMessage(event.key);' ")
                                     return (
                                             <div className="d-flex justify-content-center" key={i} style={{height: parent_height}}>
                                                 <iframe title="preview" className="rounded-3" srcDoc={preview_data.html} width={w} height={h} style={{"transform": "scale(" + scale + ")", "transformOrigin": "center top"}}

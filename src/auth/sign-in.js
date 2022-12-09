@@ -1,5 +1,4 @@
 import React, { Component } from "react";
-import {clearState} from "../reducers/stateLoader";
 import {appCreators} from "../actions/appActions";
 import {connect} from "react-redux";
 import {bindActionCreators} from "redux";
@@ -8,7 +7,6 @@ import '../css/sign-in.css';
 
 class SignIn extends Component {
     componentDidMount() {
-        clearState();
         this.props.notBusy();
     }
     render() {

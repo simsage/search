@@ -5,3 +5,27 @@
     border: 1px solid #ddd;
     /* box-shadow: 0 0 100px 0 #20273180; */
 }
+
+.redact-label {
+    color: #000;
+}
+
+.dialog-padding {
+    padding: 20px;
+}
+
+.btn-margin-right {
+    margin-right: 10px;
+}
+
+.dialog-dimensions {
+    height: 740px;
+    width: 700px;
+}
+
+.dialog-float {
+    position: absolute;
+    top: 55px;
+    z-index: 1200;
+}
+

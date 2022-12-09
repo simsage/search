@@ -34,15 +34,18 @@ export default class AccountDropdown extends Component {
         return (
             <div className={(this.props.isAccountsDropdown ? "d-flex" : "d-none") + " account-dropdown"}>
                 <ul className="acc-nav ps-0 mb-0">
+                    <li className="acc-item px-4 py-3" onClick={() => window.location = "/"}>
+                        <label>Home</label>
+                    </li>
                     { !isAuthenticated &&
                     <li className="acc-item px-4 py-3" onClick={(e) => this.signIn(e)}>
-                        <label>Sign In using Azure</label>
+                        <label>Sign In</label>
                     </li>
                     }
                     { isAuthenticated &&
                     <li className="acc-item px-4 py-3"
                         onClick={(e) => this.signOut(e)}>
-                        <label>Sign Out from Azure</label>
+                        <label>Sign out</label>
                         </li>
                     }
                 </ul>

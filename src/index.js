@@ -9,22 +9,22 @@ import {Provider} from 'react-redux'
 import {Route} from 'react-router'
 
 import configureStore from "./reducers/configureStore";
-import {saveState} from "./reducers/stateLoader";
 
 import SearchPage from "./search/search-page";
-import {HashRouter} from "react-router-dom";
 
 import { MsalProvider } from "@azure/msal-react";
 import { msalConfig } from "./authConfig";
 import {PublicClientApplication} from "@azure/msal-browser";
 import { AuthenticatedTemplate, UnauthenticatedTemplate } from "@azure/msal-react";
 import {PageLayout} from "./pageLayout";
+import {createBrowserHistory} from "history";
+import {BrowserRouter} from "react-router-dom";
+import SignIn from "./auth/sign-in";
+import {SignInError} from "./components/sign-in/sign_in_error";
+import FullPageSignIn from "./components/sign-in/full-page-sign-in";
 
 
 const store = configureStore();
-store.subscribe(() => {
-    saveState(store.getState());
-});
 
 /**
  * Initialize a PublicClientApplication instance which is provided to the MsalProvider component
@@ -32,20 +32,41 @@ store.subscribe(() => {
  */
 const msalInstance = new PublicClientApplication(msalConfig);
 
+createBrowserHistory();
+
 ReactDOM.render(
     <Provider store={store}>
-        <MsalProvider instance={msalInstance}>
-            <HashRouter basename={'/'}>
-                <PageLayout>
-                    <AuthenticatedTemplate>
-                        <Route exact path="/" component={SearchPage} />
-                    </AuthenticatedTemplate>
-                    <UnauthenticatedTemplate>
-                        <Route exact path="/" component={SearchPage} />
-                    </UnauthenticatedTemplate>
-                </PageLayout>
-            </HashRouter>
-        </MsalProvider>
+        {window.ENV.allow_anon &&
+            <MsalProvider instance={msalInstance}>
+                <BrowserRouter
+                    basename={document.baseURI.substring(document.baseURI.indexOf(window.location.origin) + window.location.origin.length, document.baseURI.lastIndexOf('/'))}>
+                    <PageLayout>
+                        <AuthenticatedTemplate>
+                            <Route exact path="/" component={SearchPage}/>
+                        </AuthenticatedTemplate>
+                        <UnauthenticatedTemplate>
+                            <Route exact path="/" component={SearchPage}/>
+                        </UnauthenticatedTemplate>
+                    </PageLayout>
+                </BrowserRouter>
+            </MsalProvider>
+        }
+        { !window.ENV.allow_anon &&
+            <MsalProvider instance={msalInstance}>
+                <BrowserRouter
+                    basename={document.baseURI.substring(document.baseURI.indexOf(window.location.origin) + window.location.origin.length, document.baseURI.lastIndexOf('/'))}>
+                    <PageLayout>
+                        <AuthenticatedTemplate>
+                            <Route exact path="/" component={SearchPage}/>
+                        </AuthenticatedTemplate>
+                        <UnauthenticatedTemplate>
+                            <Route exact path="/" component={FullPageSignIn}/>
+                            <Route exact path="/error" component={SignInError}/>
+                        </UnauthenticatedTemplate>
+                    </PageLayout>
+                </BrowserRouter>
+            </MsalProvider>
+        }
     </Provider>,
     document.getElementById('content')
 );
