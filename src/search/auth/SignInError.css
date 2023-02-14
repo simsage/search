@@ -1,0 +1,27 @@
+
+.offset-top {
+    margin-top: 100px;
+}
+
+.big-title-left {
+    margin-left: calc(50% - 100px);
+}
+
+.small-title-left {
+    margin-left: calc(50% - 220px);
+}
+
+.sub-header {
+    margin-left: calc(50% - 320px);
+}
+
+.clickable-cursor {
+    cursor: pointer;
+}
+
+.link-style {
+    color: dodgerblue;
+    text-decoration: underline;
+    cursor: pointer;
+}
+

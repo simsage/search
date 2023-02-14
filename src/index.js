@@ -1,30 +1,20 @@
 import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { Provider } from 'react-redux';
+import './index.css';
 
 import 'bootstrap/dist/js/bootstrap.bundle.min';
 import 'bootstrap/dist/css/bootstrap.css';
 import 'typeface-roboto';
-
-import ReactDOM from 'react-dom'
-import {Provider} from 'react-redux'
-import {Route} from 'react-router'
-
-import configureStore from "./reducers/configureStore";
-
-import SearchPage from "./search/search-page";
+import {store} from "./store";
 
 import { MsalProvider } from "@azure/msal-react";
-import { msalConfig } from "./authConfig";
 import {PublicClientApplication} from "@azure/msal-browser";
-import { AuthenticatedTemplate, UnauthenticatedTemplate } from "@azure/msal-react";
+import { msalConfig } from "./AuthConfig";
+
+import reportWebVitals from './reportWebVitals';
 import {PageLayout} from "./pageLayout";
-import {createBrowserHistory} from "history";
-import {BrowserRouter} from "react-router-dom";
-import SignIn from "./auth/sign-in";
-import {SignInError} from "./components/sign-in/sign_in_error";
-import FullPageSignIn from "./components/sign-in/full-page-sign-in";
-
-
-const store = configureStore();
+import {PasswordPageLayout} from "./passwordPageLayout";
 
 /**
  * Initialize a PublicClientApplication instance which is provided to the MsalProvider component
@@ -32,41 +22,21 @@ const store = configureStore();
  */
 const msalInstance = new PublicClientApplication(msalConfig);
 
-createBrowserHistory();
-
-ReactDOM.render(
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
     <Provider store={store}>
-        {window.ENV.allow_anon &&
+        { window.ENV.authentication === "password" &&
+            <PasswordPageLayout />
+        }
+        { window.ENV.authentication !== "password" &&
             <MsalProvider instance={msalInstance}>
-                <BrowserRouter
-                    basename={document.baseURI.substring(document.baseURI.indexOf(window.location.origin) + window.location.origin.length, document.baseURI.lastIndexOf('/'))}>
-                    <PageLayout>
-                        <AuthenticatedTemplate>
-                            <Route exact path="/" component={SearchPage}/>
-                        </AuthenticatedTemplate>
-                        <UnauthenticatedTemplate>
-                            <Route exact path="/" component={SearchPage}/>
-                        </UnauthenticatedTemplate>
-                    </PageLayout>
-                </BrowserRouter>
+                <PageLayout />
             </MsalProvider>
         }
-        { !window.ENV.allow_anon &&
-            <MsalProvider instance={msalInstance}>
-                <BrowserRouter
-                    basename={document.baseURI.substring(document.baseURI.indexOf(window.location.origin) + window.location.origin.length, document.baseURI.lastIndexOf('/'))}>
-                    <PageLayout>
-                        <AuthenticatedTemplate>
-                            <Route exact path="/" component={SearchPage}/>
-                        </AuthenticatedTemplate>
-                        <UnauthenticatedTemplate>
-                            <Route exact path="/" component={FullPageSignIn}/>
-                            <Route exact path="/error" component={SignInError}/>
-                        </UnauthenticatedTemplate>
-                    </PageLayout>
-                </BrowserRouter>
-            </MsalProvider>
-        }
-    </Provider>,
-    document.getElementById('content')
+    </Provider>
 );
+
+// If you want to start measuring performance in your app, pass a function
+// to log results (for example: reportWebVitals(console.log))
+// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
+reportWebVitals();

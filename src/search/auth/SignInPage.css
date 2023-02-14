@@ -1,0 +1,56 @@
+
+body, html, .App, .auth-wrapper {
+    width: 100vw;
+}
+
+.auth-wrapper {
+    min-width: 450px;
+    min-height: 100%;
+}
+
+.auth-wrapper .form-control:focus {
+    border-color: #167bff;
+    box-shadow: none;
+}
+.auth-wrapper h6 {
+    margin: 0;
+    /* padding-bottom: 20px; */
+}
+
+.auth-inner {
+    margin-top: 10%;
+    width: 450px;
+    text-align: left;
+    background: #ffffff;
+    box-shadow: 0 4px 4px rgba(34, 35, 58, 0.2);
+    padding: 35px 50px 40px 50px;
+    border-radius: 20px;
+    transition: all .3s;
+    margin-bottom: 2rem;
+}
+
+.auth-logo {
+    width: 100px;
+}
+
+.auth-text-primary {
+    color: #1c9bd2;;
+}
+
+.version {
+    font-size: 10px;
+    margin-bottom: 7px;
+    color: #20273160;
+}
+
+.forgot-password-link {
+    color: #1c9bd2 !important;
+    cursor: pointer;
+}
+.forgot-password-link:hover {
+    text-decoration: underline;
+}
+
+.reset-password-width {
+    width: 340px;
+}

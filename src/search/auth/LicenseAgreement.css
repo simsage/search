@@ -1,0 +1,27 @@
+
+.page {
+    font-size: 0.9em;
+}
+
+.content {
+    margin-top: 10px;
+    margin-left: 50px;
+}
+
+.link {
+    margin: 10px;
+    color: #c0c0c0;
+}
+
+.bottomLink {
+    text-align: center;
+    margin-top: 50px;
+    margin-bottom: 50px;
+}
+
+.text {
+    line-height: 22px;
+    font-size: 1.2em;
+    color: #222;
+}
+

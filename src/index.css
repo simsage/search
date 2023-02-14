@@ -1,0 +1,34 @@
+body {
+  margin: 0;
+  font-family: -apple-system, Roboto, sans-serif
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+.outer {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+.inner {
+  height: calc(100% - 70px);
+  position: relative;
+  overflow-y: auto;
+}
+.overlay {
+  position: fixed;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  background-color: #202731dd;
+  z-index: 1023;
+}
+

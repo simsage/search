@@ -1,0 +1,22 @@
+
+.alert-message {
+    position: absolute;
+    z-index: 1200;
+    top: 10vh;
+    left: 25vw;
+    width: 50vw;
+    display: inline-block;
+    border-radius: 5px;
+    font-size: 15px;
+    color: #222;
+    background-color: #ff9900;
+
+}
+
+.close-alert {
+    cursor: default;
+    float: right;
+    font-weight: 800;
+    font-size: 20px;
+}
+
