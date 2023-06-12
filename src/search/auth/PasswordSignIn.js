@@ -12,9 +12,14 @@ export function PasswordSignIn() {
 
     const [username, set_username] = useState("");
     const [password, set_password] = useState("");
+    const [show_trial_expired, set_trial_expired] = useState(false);
 
     function do_sign_in() {
-        dispatch(simSagePasswordSignIn({username: username, password: password}));
+        if (window.ENV.trial_expired) {
+            set_trial_expired(true);
+        } else {
+            dispatch(simSagePasswordSignIn({username: username, password: password}));
+        }
     }
 
     function on_key_press(event) {
@@ -30,6 +35,25 @@ export function PasswordSignIn() {
     return (
         <div>
             <ErrorDialog />
+
+            { show_trial_expired &&
+                <div className="expired-dialog modal-dialog">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <h5 className="modal-title">your trial has expired</h5>
+                            <div className="close" title="close this dialog message" onClick={() => set_trial_expired(false)}>&times;</div>
+                        </div>
+                        <div className="modal-body">
+                            <br/>
+                            <p>please contact your account manager</p>
+                            <p>or email <a href="mailto:helpdesk@simsage.co.uk" rel="noreferrer" target="_blank">helpdesk@simsage.co.uk</a></p>
+                        </div>
+                        <div className="modal-footer">
+                            <div className="btn btn-secondary" title="close this dialog message" onClick={() => set_trial_expired(false)}>Close</div>
+                        </div>
+                    </div>
+                </div>
+            }
 
             <div className="no-select auth-wrapper d-flex justify-content-center align-items-center overflow-auto">
 

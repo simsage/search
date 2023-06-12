@@ -32,6 +32,18 @@ export function SignInPage() {
                         }}>Sign in</button>
                     </div>
 
+                    {
+                        window.ENV.customer === 'arista' &&
+                        <div>
+                            <div className="offset-1 small-font-size">
+                                NB. &nbsp;After clicking <b>Sign in</b> you will be taken to the
+                            </div>
+                            <div className="offset-2 small-font-size">
+                                <b>b2clogin.com</b> to complete authentication with Google.
+                            </div>
+                        </div>
+                    }
+
                 </div>
             </div>
 

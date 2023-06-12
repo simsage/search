@@ -5,7 +5,7 @@ import {Handle, SliderRail, Track} from "./range-slider/RangeComponent";
 import {useState} from "react";
 import {useDispatch} from "react-redux";
 import {set_range_slider} from "../../reducers/searchSlice";
-import defined from "defined";
+import {defined} from "../../common/Api";
 
 export function RangeSlider(props) {
     const dispatch = useDispatch();

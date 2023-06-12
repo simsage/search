@@ -54,3 +54,34 @@ body, html, .App, .auth-wrapper {
 .reset-password-width {
     width: 340px;
 }
+
+.expired-dialog {
+    margin-top: 200px;
+    padding: 20px;
+    width: 400px;
+    height: 200px;
+    left: calc(50% - 200px);
+    font-size: 14px;
+    background-color: #fff;
+    position: absolute;
+    z-index: 1022;
+    border: 1px solid black;
+    border-radius: 2px;
+}
+
+.expired-dialog .close {
+    cursor: pointer;
+}
+
+.offset-1 {
+    margin-top: 20px;
+}
+
+.offset-2 {
+    margin-left: 54px;
+}
+
+.small-font-size {
+    font-size: 12px;
+}
+

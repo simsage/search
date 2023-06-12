@@ -1,6 +1,6 @@
 window.ENV = {
     // SimSage platform version (used for display only in UI)
-    version: '7.6.2',
+    version: '7.7.6',
     // api version of api_base
     api_version: 1,
     // is this a production build or not?
@@ -17,6 +17,8 @@ window.ENV = {
     customer_website: '',
     // can set as false to skip previews
     show_previews: true,
+    // trial expiry for customer trials - just set this to true to disable sign-in
+    trial_expired: false,
     // the cloud service layer end-point, change "localhost:8080" to ...
     api_base: 'http://localhost:8080/api',
     // date picker display format
@@ -56,4 +58,6 @@ window.ENV = {
     // override normal source display and show grouped sources
     // e.g. [{"name": 'Legal Group', "sources": ["glp","legal docs",]}, {...]
     override_source_list: [],
+    allow_knowledgbase_selector: true,
+    query_ai_enabled: false
 };

@@ -1,4 +1,4 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import {createAsyncThunk, createSlice} from '@reduxjs/toolkit';
 import axios from "axios";
 import {get_error, get_headers} from "../common/Api";
 
@@ -11,6 +11,7 @@ const initialState = {
     auth_error_text: '',
     // sign-in menu
     show_menu: false,
+    show_kb_menu: false,
     // user wants to sign-in using password auth
     request_sign_on: false,
     // password reset request?
@@ -33,6 +34,13 @@ const authSlice = createSlice({
 
         toggle_menu: (state) => {
             state.show_menu = !state.show_menu
+        },
+
+        close_kb_menu: (state) => {
+            state.show_kb_menu = false
+        },
+        toggle_kb_menu: (state) => {
+            state.show_kb_menu = !state.show_kb_menu
         },
 
         dismiss_auth_error: (state) => {
@@ -68,9 +76,9 @@ const authSlice = createSlice({
 
     },
 
-    extraReducers:(builder) => {
+    extraReducers: (builder) => {
         builder
-            .addCase(simSageMSALSignIn.fulfilled, (state,action) => {
+            .addCase(simSageMSALSignIn.fulfilled, (state, action) => {
                 state.reset_password_request = false;
                 if (action.payload.data) {
                     console.log("signed-in");
@@ -94,14 +102,14 @@ const authSlice = createSlice({
                     console.error("msal-sign-in:" + error_str);
                 }
             })
-            .addCase(simSageMSALSignIn.rejected, (state,action) => {
+            .addCase(simSageMSALSignIn.rejected, (state, action) => {
                 state.reset_password_request = false;
                 const error_string = get_error(action.payload);
                 state.auth_error_text = error_string;
                 console.error("rejected: msal-sign-in:" + error_string);
             })
 
-            .addCase(simSagePasswordSignIn.fulfilled, (state,action) => {
+            .addCase(simSagePasswordSignIn.fulfilled, (state, action) => {
                 state.reset_password_request = false;
                 if (action.payload.session && action.payload.session.id) {
                     state.request_sign_on = false;
@@ -125,7 +133,7 @@ const authSlice = createSlice({
                     console.error("password-sign-in:" + error_str);
                 }
             })
-            .addCase(simSagePasswordSignIn.rejected, (state,action) => {
+            .addCase(simSagePasswordSignIn.rejected, (state, action) => {
                 state.reset_password_request = false;
                 const error_string = get_error(action.payload);
                 state.auth_error_text = error_string;
@@ -133,7 +141,7 @@ const authSlice = createSlice({
             })
 
 
-            .addCase(requestResetPassword.fulfilled, (state,action) => {
+            .addCase(requestResetPassword.fulfilled, (state, action) => {
                 const error_str = get_error(action.payload);
                 if (error_str && error_str.length > 0) {
                     state.search_error_text = error_str;
@@ -141,14 +149,14 @@ const authSlice = createSlice({
                     state.system_message = "we've emailed you a link for resetting your password.";
                 }
             })
-            .addCase(requestResetPassword.rejected, (state,action) => {
+            .addCase(requestResetPassword.rejected, (state, action) => {
                 const error_string = get_error(action.payload);
                 state.auth_error_text = error_string;
                 console.error("rejected: password-reset-request:" + error_string);
             })
 
 
-            .addCase(resetPassword.fulfilled, (state,action) => {
+            .addCase(resetPassword.fulfilled, (state, action) => {
                 const error_str = get_error(action.payload);
                 if (error_str && error_str.length > 0) {
                     state.search_error_text = error_str;
@@ -156,7 +164,7 @@ const authSlice = createSlice({
                     state.system_message = "Password reset.  Click 'sign in' to sign-in.";
                 }
             })
-            .addCase(resetPassword.rejected, (state,action) => {
+            .addCase(resetPassword.rejected, (state, action) => {
                 const error_string = get_error(action.payload);
                 state.auth_error_text = error_string;
                 console.error("rejected: password-reset:" + error_string);
@@ -169,15 +177,21 @@ export const simSageMSALSignIn = createAsyncThunk(
     'authSlice/simSageMSALSignIn',
     async ({jwt}) => {
         const api_base = window.ENV.api_base;
-        const url = api_base + '/auth/search/authenticate/msal';
-        return axios.get(url, {headers: {"API-Version": window.ENV.api_version, "Content-Type": "application/json", "jwt": "" + jwt,}})
+        const url = api_base + '/auth/search/authenticate/msal/' + encodeURIComponent(window.ENV.organisation_id);
+        return axios.get(url, {
+            headers: {
+                "API-Version": window.ENV.api_version,
+                "Content-Type": "application/json",
+                "jwt": "" + jwt,
+            }
+        })
             .then((response) => {
                 return response;
             }).catch(
-            (error) => {
-                return error
-            }
-        )
+                (error) => {
+                    return error
+                }
+            )
     }
 );
 
@@ -191,9 +205,9 @@ export const simSagePasswordSignIn = createAsyncThunk(
             .then((response) => {
                 return response.data;
             }).catch((error) => {
-                return error
-            }
-        );
+                    return error
+                }
+            );
     }
 );
 
@@ -231,6 +245,8 @@ export const resetPassword = createAsyncThunk(
 );
 
 
-export const {close_menu, toggle_menu, dismiss_auth_error, sign_out, password_sign_in, password_reset_start,
-              set_auth_error, dismiss_auth_message} = authSlice.actions
+export const {
+    close_menu, close_kb_menu, toggle_menu, toggle_kb_menu, dismiss_auth_error, sign_out, password_sign_in, password_reset_start,
+    set_auth_error, dismiss_auth_message
+} = authSlice.actions
 export default authSlice.reducer;

@@ -7,11 +7,10 @@ import {
     setup_syn_sets,
     get_time_range_metadata,
     defined,
-    copy, get_error
+    copy, get_error, add_url_search_parameter, getKbId
 } from "../common/Api";
 
 // for paginator
-export let global_page = 0;
 export let global_preview_page = 1;     // starts at page 1
 
 const initialState = {
@@ -23,6 +22,9 @@ const initialState = {
     source_filter: '',
 
     has_info: false,            // get info done?
+
+    search_page: 0,             // the current page
+    pages_loaded: 0,            // how many pages loaded currently
 
     total_document_count: 0,
     has_more: false,
@@ -38,6 +40,9 @@ const initialState = {
     spelling_correction: '',
     entity_values: {},
     hash_tag_list: [],
+
+    // use openAi or equivalent query processors
+    use_query_ai: false,
 
     // preview data
     search_focus: null,             // for previewing items
@@ -58,13 +63,17 @@ const initialState = {
     // syn-sets:  {name: "law", description_list: ['criminal, jail', 'corporate, business']}
     syn_set_list: [],
     syn_set_values: {},
+    all_kbs:[]
 }
 
 const extraReducers = (builder) => {
     builder
         .addCase(do_search.pending, (state) => {
-            console.log("do_search pending: page " + global_page);
+            console.log("do_search pending: page " + state.search_page);
             state.busy = true;
+            if (state.search_page === 0 && state.pages_loaded <= state.search_page)
+                state.result_list = [];
+            state.search_error_text = "";
         })
 
         // search result comes in - success
@@ -74,7 +83,7 @@ const extraReducers = (builder) => {
 
                 const data = action.payload.data;
                 const parameters = action.payload.parameters;
-                console.log("do_search fulfilled, page " + data.page);
+                const pages_loaded = data.pages_loaded;
                 state.show_search_results = true;
 
                 // this is now the previous search
@@ -103,8 +112,9 @@ const extraReducers = (builder) => {
                 state.entity_values = {};
 
                 // only set the total document count on the first page
-                if (global_page === 0)
+                if (data.page === 0) {
                     state.total_document_count = data.totalDocumentCount ? data.totalDocumentCount : 0;
+                }
 
                 // set up range slider(s)
                 state.last_modified_slider = get_time_range_metadata(data.categoryList, parameters.last_modified_slider, "last-modified");
@@ -135,21 +145,29 @@ const extraReducers = (builder) => {
 
                 let has_more = false;
                 let divided = (data.totalDocumentCount ? data.totalDocumentCount : 0) / window.ENV.page_size;
+                let num_pages = 1;
                 if (divided > 0) {
-                    let num_pages = parseInt("" + divided);
+                    num_pages = parseInt("" + divided);
                     if (parseInt("" + divided) < divided) {
                         num_pages += 1;
                     }
                     if (num_pages === 0)
                         num_pages = 1;
-                    has_more = (global_page + 1 < num_pages);
+                    has_more = (state.search_page + 1 < num_pages);
                 }
                 state.has_more = has_more;
 
                 if (filter_text.length > 0)
                     qs_text = qs_text + " " + filter_text;
-                window.history.replaceState(null, null, "?query=" + encodeURIComponent(qs_text))
-                global_page += 1;
+                add_url_search_parameter("query",qs_text)
+
+                // should we move to the next page?
+                if (state.search_page + 1 < num_pages) {
+                    state.search_page += 1;
+                }
+
+                state.pages_loaded = parseInt("" + (state.result_list.length / window.ENV.page_size));
+                console.log("do_search fulfilled, page " + data.page + ", pages_loaded " + pages_loaded);
 
             } else {
                 const error_str = get_error(action.payload);
@@ -185,7 +203,8 @@ const extraReducers = (builder) => {
 
             } else {
                 let kb_list = action.payload.kbList ? action.payload.kbList : [];
-                kb_list = kb_list.filter((kb) => kb.id === window.ENV.kb_id);
+                state.all_kbs = [...kb_list]
+                kb_list = kb_list.filter((kb) => kb.id === getKbId());
                 if (kb_list.length === 1) {
                     state.source_list = kb_list[0].sourceList ? kb_list[0].sourceList : [];
 
@@ -277,6 +296,10 @@ const searchSlice = createSlice({
             global_preview_page = 1;
             state.html_preview_list = [];
             state.has_more_preview_pages = true;
+        },
+
+        toggle_query_ai: (state, action) => {
+           state.use_query_ai = !state.use_query_ai;
         },
 
         set_busy: (state, action) => {
@@ -380,9 +403,24 @@ export const get_info = createAsyncThunk(
 // perform a search
 export const do_search = createAsyncThunk(
     'do_search',
-    async ({session, client_id, user, search_text, prev_search_text, shard_list,
-               group_similar, newest_first, metadata_list, metadata_values, entity_values, source_list,
-               source_values, hash_tag_list, syn_set_values, last_modified_slider, created_slider, result_list
+    async ({
+               session,
+               search_page,
+               client_id,
+               user,
+               search_text,
+               prev_search_text,
+               shard_list,
+               group_similar,
+               newest_first,
+               metadata_list, metadata_values,
+               entity_values, source_list,
+               source_values, hash_tag_list,
+               syn_set_values,
+               last_modified_slider, created_slider,
+               result_list,
+               pages_loaded,
+               use_query_ai
            }) => {
 
         const api_base = window.ENV.api_base;
@@ -427,8 +465,11 @@ export const do_search = createAsyncThunk(
             created_slider: c_created_slider, result_list: result_list, prev_search_text: combined_text};
 
         // reset pagination?  if this is a different search or the previous search had no results
+        let new_search_page = search_page;
+        let new_pages_loaded = pages_loaded;
         if (combined_text !== prev_search_text || (result_list && result_list.length === 0)) {
-            global_page = 0;
+            new_search_page = 0;
+            new_pages_loaded = 0;
             // scroll to the top
             window.setTimeout(() => {
                 const ctrl = document.getElementById("search-results-id");
@@ -438,14 +479,14 @@ export const do_search = createAsyncThunk(
 
         const data = {
             organisationId: window.ENV.organisation_id,
-            kbList: [window.ENV.kb_id],
+            kbList: [getKbId()],
             scoreThreshold: window.ENV.score_threshold,
             clientId: client_id,
             semanticSearch: true,
             query: search_text,
             filter: filter_text,
             numResults: 1,
-            page: global_page,
+            page: new_search_page,
             pageSize: window.ENV.page_size,
             shardSizeList: shard_list,
             fragmentCount: window.ENV.fragment_count,
@@ -456,16 +497,18 @@ export const do_search = createAsyncThunk(
             groupSimilarDocuments: group_similar,
             sortByAge: newest_first,
             sourceId: '',
+            useQueryAi: use_query_ai === true
         };
 
         if (search_text.trim().length > 0) {
-            console.log('put ' + url + ', filter: "' + filter_text + '", page ' + global_page);
+            console.log('put ' + url + ', filter: "' + filter_text + '", page ' + new_search_page);
             return axios.post(url, data, get_headers(session_id))
                 .then((response) => {
                     if (response && response.data && response.data.messageType === 'message') {
                         response.data.search_text = search_text;
                         response.data.original_text = search_text;
-                        response.data.page = global_page;
+                        response.data.page = new_search_page;
+                        response.data.pages_loaded = new_pages_loaded
                         return {data: response.data, parameters: in_parameters};
                     } else {
                         return 'invalid message type:' + response.data.messageType;
@@ -494,7 +537,7 @@ export const get_preview_html = createAsyncThunk(
 
             const data = {
                 "organisationId": window.ENV.organisation_id,
-                "kbId": window.ENV.kb_id,
+                "kbId": getKbId(),
                 "urlId": url_id,
                 "page": global_preview_page,
             }
@@ -514,7 +557,8 @@ export const get_preview_html = createAsyncThunk(
 export const {
         go_home, update_search_text, set_focus_for_preview, set_source_value, set_metadata_value,
         dismiss_search_error, set_group_similar, set_newest_first, set_source_filter, select_syn_set,
-        set_range_slider, set_metadata_values, set_source_values, close_preview
+        set_range_slider, set_metadata_values, set_source_values, close_preview, toggle_query_ai
     } = searchSlice.actions;
 
 export default searchSlice.reducer;
+

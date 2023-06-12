@@ -2,6 +2,7 @@ import React from 'react';
 
 import './AccountDropdown.css';
 import {close_menu, sign_out} from "../reducers/authSlice";
+import {toggle_query_ai} from "../reducers/searchSlice";
 import {useDispatch, useSelector} from "react-redux";
 
 
@@ -12,6 +13,7 @@ import {useDispatch, useSelector} from "react-redux";
 export function AccountDropdown(props) {
     const dispatch = useDispatch();
     const {show_menu} = useSelector((state) => state.authReducer);
+    const {use_query_ai} = useSelector((state) => state.searchReducer);
 
     function sign_in() {
         dispatch(close_menu());
@@ -28,6 +30,10 @@ export function AccountDropdown(props) {
         dispatch(close_menu());
         window.open("/resources/super-search-syntax.pdf", "blank");
     }
+    function set_use_query_ai() {
+        dispatch(close_menu());
+        dispatch(toggle_query_ai());
+    }
     const is_authenticated = (props.isAuthenticated === true);
     return (
         <div className={(show_menu ? "d-flex" : "d-none") + " account-dropdown"}>
@@ -39,6 +45,12 @@ export function AccountDropdown(props) {
                 <li className="acc-item px-4 py-3"
                     onClick={() => view_advanced_query_syntax()}>
                     <label>Advanced query syntax</label>
+                </li>
+                }
+                { window.ENV.query_ai_enabled &&
+                <li className="acc-item px-4 py-3"
+                    onClick={() => set_use_query_ai()}>
+                    <label>{ use_query_ai ? "\u2713 " : ""}use AI queries</label>
                 </li>
                 }
                 { !is_authenticated &&

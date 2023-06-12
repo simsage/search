@@ -34,7 +34,7 @@ export function SearchResults(props) {
     const [sentryRef] = useInfiniteScroll({
         loading: busy,
         hasNextPage: has_more,
-        onLoadMore: () => search(null),
+        onLoadMore: () => search({load_more: true}),
         // When there is an error, we stop infinite loading.
         // It can be reactivated by setting "error" state as undefined.
         disabled: busy,
@@ -52,17 +52,17 @@ export function SearchResults(props) {
 
     function on_set_search_text(text) {
         dispatch(update_search_text(text));
-        search({search_text: text});
+        search({search_text: text, load_more: false});
     }
 
     function on_set_group_similar(group_similar) {
         dispatch(set_group_similar(group_similar));
-        search({group_similar: group_similar});
+        search({group_similar: group_similar, load_more: false});
     }
 
     function on_set_newest_first(newest_first) {
         dispatch(set_newest_first(newest_first));
-        search({newest_first: newest_first});
+        search({newest_first: newest_first, load_more: false});
     }
 
     let document_count_text = (total_document_count === 1) ? "one result" :
@@ -80,7 +80,7 @@ export function SearchResults(props) {
                             <span>?</span>
                         </div>
                     }
-                    { ((!has_qna_result && !has_search_result) || has_search_result) && !has_spelling_suggestion &&
+                    { ((!has_qna_result && !has_search_result) || has_search_result) && !has_spelling_suggestion && !busy &&
                         <div className="small text-muted ms-2 fw-light px-3 pb-3">
                             { document_count_text }
                         </div>
@@ -134,7 +134,7 @@ export function SearchResults(props) {
                                             <label htmlFor="customRange3" className="form-label mb-0">Last modified:</label>
                                             <RangeSlider data={last_modified_slider}
                                                          busy={busy}
-                                                         on_search={(value) => search(value)} />
+                                                         on_search={(value) => search({...value, load_more: false})} />
                                         </div>
                                     }
                                     { created_slider &&
@@ -142,7 +142,7 @@ export function SearchResults(props) {
                                             <label htmlFor="customRange3" className="form-label mb-0">Created:</label>
                                             <RangeSlider data={created_slider}
                                                          busy={busy}
-                                                         on_search={(value) => search(value)} />
+                                                         on_search={(value) => search({...value, load_more: false})} />
                                         </div>
                                     }
                                     <div className="form-check form-switch my-4 ps-0 d-flex align-items-center">
@@ -179,7 +179,7 @@ export function SearchResults(props) {
                                                 <SynSetSelector
                                                     name={syn_set.name}
                                                     syn_set_values={syn_set_values}
-                                                    on_search={(value) => search(value)}
+                                                    on_search={(value) => search({...value, load_more: false})}
                                                     busy={busy}
                                                     description_list={syn_set.description_list}/>
                                             </div>
@@ -193,7 +193,7 @@ export function SearchResults(props) {
                                 <div className="w-100 result-document-filter pb-3">
                                     { source_list &&
                                         <div>
-                                            <SourceSelector on_search={(value) => search(value)}/>
+                                            <SourceSelector on_search={(value) => search({...value, load_more: false})}/>
                                             <br/>
                                         </div>
                                     }
@@ -204,7 +204,7 @@ export function SearchResults(props) {
                                                               busy={busy}
                                                               metadata={item.metadata}
                                                               has_results={has_search_result}
-                                                              on_search={(value) => search(value)}
+                                                              on_search={(value) => search({...value, load_more: false})}
                                                               list={item.items}/>
                                         )})
                                     }

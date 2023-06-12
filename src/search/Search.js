@@ -6,7 +6,7 @@ import {ErrorDialog} from "../common/ErrorDialog";
 import {TitleBar} from "./TitleBar";
 import {SearchResults} from "./SearchResults";
 import {StartSearchPage} from "./StartSearchPage";
-import {close_menu, toggle_menu} from "../reducers/authSlice";
+import {close_kb_menu, close_menu, toggle_kb_menu, toggle_menu} from "../reducers/authSlice";
 import {
     do_search,
     get_info,
@@ -18,6 +18,7 @@ import {
 } from "../common/Api";
 import {AccountDropdown} from "../common/AccountDropdown";
 import {PreviewModal} from "./preview/PreviewModal";
+import {KnowledgebaseDropdown} from "../common/KnowledgebaseDropdown";
 
 
 /**
@@ -27,12 +28,15 @@ import {PreviewModal} from "./preview/PreviewModal";
  */
 function Search(props) {
     const dispatch = useDispatch();
-    const {show_menu} = useSelector((state) => state.authReducer);
-    const {show_search_results, search_focus} = useSelector((state) => state.searchReducer);
+    const {show_menu, show_kb_menu} = useSelector((state) => state.authReducer);
+    const {show_search_results, search_focus, busy, all_kbs} = useSelector((state) => state.searchReducer);
     const {shard_list, search_text, group_similar, newest_first, metadata_list, metadata_values} = useSelector((state) => state.searchReducer);
     const {entity_values, hash_tag_list, syn_sets, last_modified_slider, created_slider} = useSelector((state) => state.searchReducer);
-    const {source_list, source_values, result_list, prev_search_text} = useSelector((state) => state.searchReducer);
+    const {source_list, source_values, result_list, prev_search_text, search_page,
+           pages_loaded, category_list, category_values, source_id_list, use_query_ai} = useSelector((state) => state.searchReducer);
     const {session, organisation, user} = useSelector((state) => state.authReducer);
+
+    const showKbMenu = window.ENV.allow_knowledgbase_selector && all_kbs && all_kbs.length>1
 
     useEffect(() => {
         dispatch(get_info({session: session, user: user}));
@@ -52,7 +56,7 @@ function Search(props) {
             // and perform a search using this data if we need to
             data = {...data, source_list: source_list};
             if (source_list.length > 0)
-                search(data);
+                search({data, load_more: false});
         }
     }, [source_list]) // the dependency on source_list is a convenient one as it relates to get_info finishing
 
@@ -66,6 +70,14 @@ function Search(props) {
         dispatch(toggle_menu());
     }
 
+    function toggle_knowledgebase_menu(e) {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        dispatch(toggle_kb_menu());
+    }
+
     function close_accounts_menu(e) {
         if (e) {
             e.preventDefault();
@@ -74,26 +86,41 @@ function Search(props) {
         dispatch(close_menu());
     }
 
+    function close_knowledgebase_menu(e) {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        dispatch(close_kb_menu());
+    }
+
     // perform search
     function search(values) {
         const data = {
             session: session,
             client_id: get_client_id(),
-            shard_list: shard_list,
+            user: user,
             search_text: search_text,
-            prev_search_text: prev_search_text,
-            group_similar: group_similar,
+            shard_list: shard_list,
             newest_first: newest_first,
-            metadata_list: metadata_list,
-            metadata_values: metadata_values,
+            group_similar: group_similar,
+            search_page: search_page,
+            category_list: category_list,
+            category_values: category_values,
             entity_values: entity_values,
-            source_list: source_list,
-            source_values: source_values,
+            pages_loaded: pages_loaded,
+            source_id_list: source_id_list,
             hash_tag_list: hash_tag_list,
             syn_sets: syn_sets,
+            result_list: result_list,
+            prev_search_text: prev_search_text,
+            metadata_list: metadata_list,
+            metadata_values: metadata_values,
+            source_list: source_list,
+            source_values: source_values,
             last_modified_slider: last_modified_slider,
             created_slider: created_slider,
-            result_list: result_list
+            use_query_ai: (use_query_ai && window.ENV.query_ai_enabled)
         };
         if (values) {
             dispatch(do_search({...data, ...values}));
@@ -107,6 +134,9 @@ function Search(props) {
         if (show_menu) {
             dispatch(close_menu());
         }
+        if (show_kb_menu){
+            dispatch(close_kb_menu())
+        }
     }
 
     const show_preview = (search_focus !== null && window.ENV.show_previews);
@@ -115,15 +145,33 @@ function Search(props) {
         <div className="Search" onClick={() => on_close_menu()}>
             <ErrorDialog />
 
-            <div className="outer">
+            <div className={busy ? "wait-cursor outer" : "outer"}>
 
                 { (show_search_results || !window.ENV.allow_anon) &&
-                    <TitleBar on_search={() => search(null)} />
+                    <TitleBar on_search={() => search({load_more: false})} />
                 }
 
                 { !show_search_results && window.ENV.allow_anon &&
                     <div className="inner">
-                        <StartSearchPage on_search={() => search(null)} />
+                        <StartSearchPage on_search={() => search({load_more: false})} />
+                    </div>
+                }
+
+                {!show_preview && showKbMenu &&
+                    <div className="kb-menu">
+                        <div className="account" title="Select Data Source">
+                            <button className={(show_kb_menu ? "active" : "") + " btn nav-btn"}
+                                    onClick={(e) => toggle_knowledgebase_menu(e)}>
+                                <img src="/images/icon_ci-database.svg" alt=""
+                                     className={show_kb_menu ? "d-none" : ""}/>
+                                <img src="/images/icon_ci-database_active.svg" alt=""
+                                     className={!show_kb_menu ? "d-none" : ""}/>
+                            </button>
+                        </div>
+                        <KnowledgebaseDropdown
+                            close_menu={(e) => close_knowledgebase_menu(e)}
+                            show_menu={show_kb_menu}
+                        />
                     </div>
                 }
 

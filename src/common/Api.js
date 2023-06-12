@@ -35,7 +35,7 @@ function has_local_storage() {
         localStorage.setItem(test, test);
         localStorage.removeItem(test);
         return true;
-    } catch(e) {
+    } catch (e) {
         return false;
     }
 }
@@ -90,7 +90,7 @@ function pad2(item) {
 
 
 // convert unix timestamp to string if it's for a reasonable time in the future
-export function unix_time_convert_to_date(timestamp){
+export function unix_time_convert_to_date(timestamp) {
     if (timestamp > 1000) {
         const a = new Date(timestamp);
         const year = a.getUTCFullYear();
@@ -102,7 +102,7 @@ export function unix_time_convert_to_date(timestamp){
 }
 
 // convert unix timestamp to string if it's for a reasonable time in the future
-export function unix_time_convert(timestamp){
+export function unix_time_convert(timestamp) {
     if (timestamp > 1000) {
         const a = new Date(timestamp);
         const year = a.getUTCFullYear();
@@ -208,6 +208,9 @@ function to_pretty_error(error_str) {
 
 // convert js response to its error output equivalent
 export function get_error(error) {
+    if (error && error.response && error.response.data && error.response.data.error) {
+        return error.response.data.error;
+    }
     if (error && error.message) {
         return to_pretty_error(error["message"]);
     } else if (error && error.response && error.response.data && error.response.data.error) {
@@ -238,7 +241,7 @@ export function do_fetch(url, session_id, fn_success, fn_fail) {
     if (!session_id || session_id.length === 0)
         session_id = "";
 
-    fetch(url, {headers:{"session-id": session_id}} )
+    fetch(url, {headers: {"session-id": session_id}})
         .then((response) => response.blob())
         .then((blob) => { // RETRIEVE THE BLOB AND CREATE LOCAL URL
             if (fn_success)
@@ -246,14 +249,14 @@ export function do_fetch(url, session_id, fn_success, fn_fail) {
             const _url = window.URL.createObjectURL(blob);
             window.open(_url, "_blank").focus(); // window.open + focus
         }).catch((error) => {
-            if (fn_fail) {
-                if (error.response === undefined) {
-                    fn_fail('Servers not responding or cannot contact Servers');
-                } else {
-                    fn_fail(get_error(error));
-                }
+        if (fn_fail) {
+            if (error.response === undefined) {
+                fn_fail('Servers not responding or cannot contact Servers');
+            } else {
+                fn_fail(get_error(error));
             }
-        });
+        }
+    });
 }
 
 // get a logo for the current user to display in the UX
@@ -512,7 +515,7 @@ export function is_viewable(url) {
 // download local
 export function download_document(dl_url, session_id) {
     const url = window.ENV.api_base + '/dms/binary/latest/' + encodeURIComponent(window.ENV.organisation_id) + '/' +
-        encodeURIComponent(window.ENV.kb_id) + '/' + btoa(decodeURI(encodeURIComponent(dl_url)));
+        encodeURIComponent(getKbId()) + '/' + btoa(decodeURI(encodeURIComponent(dl_url)));
     do_fetch(url, session_id);
 }
 
@@ -539,6 +542,37 @@ export function get_url_search_parameters_as_map(search_string) {
         }
     }
     return result;
+}
+
+// adds or replaces an url parameter in the history with the passed in value
+export function add_url_search_parameter(key, value) {
+    const parameterMap = get_url_search_parameters_as_map(window.location.search)
+    if (value){
+        parameterMap[key] = encodeURIComponent(value);
+    } else {
+        delete parameterMap[key]
+    }
+    let url = ""
+    Object.getOwnPropertyNames(parameterMap).forEach((param, idx) => {
+        url = url + (idx === 0 ? "?" : "&") + param + "=" + parameterMap[param]
+    })
+    if (url.length>0){
+        window.history.replaceState(null, null, url)
+    }else{
+        // Can't set URL to "", need to set whole path if no query string
+        window.history.replaceState({}, '', window.location.pathname);
+    }
+}
+
+// returns the currently selected Knowledgebase id
+// this will either be the one in the url or the default one if none set
+export function getKbId(){
+    const params = get_url_search_parameters_as_map(window.location.search)
+    if (params.hasOwnProperty("kbId")){
+        return params["kbId"]
+    }else {
+        return window.ENV.kb_id
+    }
 }
 
 /**
@@ -570,7 +604,7 @@ export function tokenize(str) {
 // skip a set of tokens after an entity - spaces
 function skip_tokens(i, token_list) {
     while (i < token_list.length && (token_list[i] === " " || token_list[i] === ")" ||
-                token_list[i] === "or" || token_list[i] === "and")) {
+        token_list[i] === "or" || token_list[i] === "and")) {
         i += 1;
     }
     return i;

@@ -56,6 +56,10 @@
     font-size: 11px;
     color: #00071170;
     user-select: all;
+    max-width: 80%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .tag {
     color: #1c9bd2;
