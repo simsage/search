@@ -70,9 +70,9 @@ export function SourceSelector(props) {
         if (select_items.length > 0) {
             const icon_name = source_type_to_icon(select_items[0].sourceType);
             if (icon_name.indexOf('.') === -1)
-                return "/images/icon_ci-" + icon_name + ".svg";
+                return "images/icon_ci-" + icon_name + ".svg";
             else
-                return "/images/" + icon_name;
+                return "images/" + icon_name;
         }
     }
 

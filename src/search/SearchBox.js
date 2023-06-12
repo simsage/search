@@ -36,7 +36,7 @@ export function SearchBox(props) {
             <div className="nav-search-container">
                 <div className="inner d-flex align-items-center position-relative add-another-float">
                     <span className="nav-search-icon ms-2 d-flex align-items-center">
-                        <img src="/images/icon_n-search.svg" alt="search" title="search" onClick={() => search() } />
+                        <img src="images/icon_n-search.svg" alt="search" title="search" onClick={() => search() } />
                     </span>
                     <span className="search-bar">
                         <input type="text" className="nav-search-input ps-1 pe-3" id="simsage-search-text"

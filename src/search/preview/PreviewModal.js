@@ -101,7 +101,7 @@ export function PreviewModal() {
                             {is_online_view ? "Visit" : "Download"}
                         </button>
                         <button className="btn pre-btn ms-2">
-                            <img src="/images/icon_im-close-white.svg" alt="close" title="close" className="image-close" onClick={() => on_close()} />
+                            <img src="images/icon_im-close-white.svg" alt="close" title="close" className="image-close" onClick={() => on_close()} />
                         </button>
                     </div>
                 </div>

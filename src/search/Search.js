@@ -162,9 +162,9 @@ function Search(props) {
                         <div className="account" title="Select Data Source">
                             <button className={(show_kb_menu ? "active" : "") + " btn nav-btn"}
                                     onClick={(e) => toggle_knowledgebase_menu(e)}>
-                                <img src="/images/icon_ci-database.svg" alt=""
+                                <img src="images/icon_ci-database.svg" alt=""
                                      className={show_kb_menu ? "d-none" : ""}/>
-                                <img src="/images/icon_ci-database_active.svg" alt=""
+                                <img src="images/icon_ci-database_active.svg" alt=""
                                      className={!show_kb_menu ? "d-none" : ""}/>
                             </button>
                         </div>
@@ -184,9 +184,9 @@ function Search(props) {
                         <div className="account" title="menu">
                             <button className={(show_menu ? "active" : "") + " btn nav-btn"}
                                     onClick={(e) => toggle_accounts_menu(e)}>
-                                <img src="/images/icon_n-account.svg" alt=""
+                                <img src="images/icon_n-account.svg" alt=""
                                      className={show_menu ? "d-none" : ""}/>
-                                <img src="/images/icon_n-account-active.svg" alt=""
+                                <img src="images/icon_n-account-active.svg" alt=""
                                      className={!show_menu ? "d-none" : ""}/>
                             </button>
                         </div>

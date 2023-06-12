@@ -39,7 +39,7 @@ export function ResetPasswordRequest() {
                     <div>
                         <div className="d-flex justify-content-between align-items-end mb-4 pb-3 border-bottom">
                             <div className="d-flex align-items-end">
-                                <img src="/images/brand/simsage-logo-no-strapline.svg" alt="" className="auth-logo" />
+                                <img src="images/brand/simsage-logo-no-strapline.svg" alt="" className="auth-logo" />
                                 {/* {window.ENV.app_title} */}
                                 <p className="mb-1 fw-bold auth-text-primary fst-italic">SEARCH</p>
                             </div>

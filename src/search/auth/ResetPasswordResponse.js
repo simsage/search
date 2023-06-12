@@ -55,7 +55,7 @@ export function ResetPasswordResponse(props) {
 
                 <div className="d-flex justify-content-between align-items-end mb-4 pb-3 border-bottom">
                     <div className="d-flex align-items-end">
-                        <img alt="SimSage" title="Search Reimagined" src="/images/brand/simsage-logo-no-strapline.svg"
+                        <img alt="SimSage" title="Search Reimagined" src="images/brand/simsage-logo-no-strapline.svg"
                              className="auth-logo" onClick={() => { window.location = window.ENV.api_base.replace('/api', '/'); }} />
                         <p className="mb-1 fw-bold auth-text-primary fst-italic">SEARCH</p>
                     </div>
