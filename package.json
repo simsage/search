@@ -24,7 +24,7 @@
   },
   "scripts": {
     "start": "export PORT=4220 && react-scripts start",
-    "build": "react-scripts build",
+    "build": "PUBLIC_URL=/search react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
