@@ -263,9 +263,9 @@ export function do_fetch(url, session_id, fn_success, fn_fail) {
 export function get_enterprise_logo() {
     const customer = window.ENV.customer;
     if (customer === 'arista') {
-        return "../images/brand/arista.png";
+        return "images/brand/arista.png";
     }
-    return "../images/brand/brand_enterprise-search.png";
+    return "images/brand/brand_enterprise-search.png";
 }
 
 // return a set of headers with or without a session-id for SimSage communications
