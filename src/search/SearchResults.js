@@ -22,19 +22,19 @@ export function SearchResults(props) {
     const dispatch = useDispatch();
     // get state
     const {group_similar, newest_first, last_modified_slider, created_slider,
-        syn_set_list, syn_set_values, source_list, spelling_correction, busy,
+        syn_set_list, syn_set_values, source_list, spelling_correction, busy, ai_response,
         metadata_list, total_document_count, qna_url_list, qna_text, has_more, result_list,
     } = useSelector((state) => state.searchReducer);
     const {session} = useSelector((state) => state.authReducer);
 
     const has_spelling_suggestion = spelling_correction.length > 0;
     const has_search_result = result_list.length > 0;
-    const has_qna_result = qna_text.length > 0;
+    const has_qna_result = qna_text.length > 0 || ai_response.length > 0;
 
     const [sentryRef] = useInfiniteScroll({
         loading: busy,
         hasNextPage: has_more,
-        onLoadMore: () => search({load_more: true}),
+        onLoadMore: () => search({next_page: true}),
         // When there is an error, we stop infinite loading.
         // It can be reactivated by setting "error" state as undefined.
         disabled: busy,
@@ -52,17 +52,17 @@ export function SearchResults(props) {
 
     function on_set_search_text(text) {
         dispatch(update_search_text(text));
-        search({search_text: text, load_more: false});
+        search({search_text: text, next_page: false});
     }
 
     function on_set_group_similar(group_similar) {
         dispatch(set_group_similar(group_similar));
-        search({group_similar: group_similar, load_more: false});
+        search({group_similar: group_similar, next_page: false, reset_pagination: true});
     }
 
     function on_set_newest_first(newest_first) {
         dispatch(set_newest_first(newest_first));
-        search({newest_first: newest_first, load_more: false});
+        search({newest_first: newest_first, next_page: false, reset_pagination: true});
     }
 
     let document_count_text = (total_document_count === 1) ? "one result" :
@@ -71,7 +71,7 @@ export function SearchResults(props) {
     return (
         <div className={busy ? "h-100 wait-cursor" : "h-100"}>
             <div className="row mx-0 px-2 results-container overflow-auto h-100 justify-content-center" id="search-results-id">
-                <div className="col-xxl-7 col-xl-8 pe-4">
+                <div className="col-xxl-8 col-xl-8 pe-4">
                     { has_spelling_suggestion &&
                         <div className="small text-muted ms-2 fw-light px-3 pb-3">
                             <span>No results.  Did you mean </span>
@@ -91,7 +91,7 @@ export function SearchResults(props) {
                             { qna_url_list && qna_url_list.length > 0 &&
                                 <br/>
                             }
-                            { qna_url_list && qna_url_list.length > 0 &&
+                            { !ai_response?.length && qna_url_list && qna_url_list.length > 0 &&
                                 qna_url_list.map((url, i) => {
                                     return (<div className="pt-2" key={i}>
                                         <a href={url} target="_blank" rel="noreferrer" key={i}
@@ -99,16 +99,28 @@ export function SearchResults(props) {
                                     </div>);
                                 })
                             }
+                            { ai_response?.length &&
+                                ai_response.split("\n").map((text, i) => {
+                                return (<div className="pt-2" key={i}>
+                                        { text.startsWith("http") &&
+                                            <a href={text} target="_blank" className="py-1" title={text}>{text}</a>
+                                        }
+                                        { !text.startsWith("http") &&
+                                            <div className="py-1" title={text}>{text}</div>
+                                        }
+                                    </div>
+                                )})
+                            }
                         </div>
                     }
 
                     {
                         result_list.map( (result, i) => {
                             return (<SearchResultFragment
-                                        set_focus_for_preview={(result) => dispatch(set_focus_for_preview(result))}
-                                        session={session}
-                                        result={result}
-                                        key={i} />)
+                                set_focus_for_preview={(result) => dispatch(set_focus_for_preview(result))}
+                                session={session}
+                                result={result}
+                                key={i} />)
                         })
                     }
 
@@ -121,8 +133,8 @@ export function SearchResults(props) {
 
 
                 </div>
-                <div className="col-xxl-3 col-xl-4 ps-3 pe-4 pe-xxl-3 order-first order-xl-last mb-5">
-                    <div className="sticky-top">
+                <div className="col-xxl-4 col-xl-4 ps-3 pe-4 pe-xxl-3 order-first order-xl-last mb-5">
+                    <div className="sticky-top bg-white dialog-padding">
 
                         <div className="row">
 
@@ -134,7 +146,7 @@ export function SearchResults(props) {
                                             <label htmlFor="customRange3" className="form-label mb-0">Last modified:</label>
                                             <RangeSlider data={last_modified_slider}
                                                          busy={busy}
-                                                         on_search={(value) => search({...value, load_more: false})} />
+                                                         on_search={(value) => search({...value, next_page: false, reset_pagination: true})} />
                                         </div>
                                     }
                                     { created_slider &&
@@ -142,7 +154,7 @@ export function SearchResults(props) {
                                             <label htmlFor="customRange3" className="form-label mb-0">Created:</label>
                                             <RangeSlider data={created_slider}
                                                          busy={busy}
-                                                         on_search={(value) => search({...value, load_more: false})} />
+                                                         on_search={(value) => search({...value, next_page: false, reset_pagination: true})} />
                                         </div>
                                     }
                                     <div className="form-check form-switch my-4 ps-0 d-flex align-items-center">
@@ -179,7 +191,7 @@ export function SearchResults(props) {
                                                 <SynSetSelector
                                                     name={syn_set.name}
                                                     syn_set_values={syn_set_values}
-                                                    on_search={(value) => search({...value, load_more: false})}
+                                                    on_search={(value) => search({...value, next_page: false})}
                                                     busy={busy}
                                                     description_list={syn_set.description_list}/>
                                             </div>
@@ -193,7 +205,7 @@ export function SearchResults(props) {
                                 <div className="w-100 result-document-filter pb-3">
                                     { source_list &&
                                         <div>
-                                            <SourceSelector on_search={(value) => search({...value, load_more: false})}/>
+                                            <SourceSelector on_search={(value) => search({...value, next_page: false})}/>
                                             <br/>
                                         </div>
                                     }
@@ -204,7 +216,7 @@ export function SearchResults(props) {
                                                               busy={busy}
                                                               metadata={item.metadata}
                                                               has_results={has_search_result}
-                                                              on_search={(value) => search({...value, load_more: false})}
+                                                              on_search={(value) => search({...value, next_page: false})}
                                                               list={item.items}/>
                                         )})
                                     }

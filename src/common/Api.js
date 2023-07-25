@@ -5,6 +5,7 @@
 
 // at least one day's difference between min- and max-value to display
 const min_date_difference = 24 * 3600;
+const archive_marker = ":::";
 
 // is value defined and not null?
 export function defined(value) {
@@ -206,18 +207,40 @@ function to_pretty_error(error_str) {
     return error_str;
 }
 
+// convert known error messages to friendly error messages if possible
+function to_friendly_message(str) {
+    const lwr_str = str.toLowerCase();
+    if (lwr_str.indexOf("network error") >= 0) {
+        return "cannot connect to SimSage."
+    }
+    return str;
+}
+
 // convert js response to its error output equivalent
-export function get_error(error) {
-    if (error && error.response && error.response.data && error.response.data.error) {
-        return error.response.data.error;
+export function get_error(action) {
+    const str1 = action?.error?.message?.toString() ?? '';
+    const str2 = action?.payload?.message?.toString() ?? '';
+    const str3 = action?.type?.toString() ?? '';
+    let final_str = "";
+    if (str1 !== '') {
+        final_str += str1;
     }
-    if (error && error.message) {
-        return to_pretty_error(error["message"]);
-    } else if (error && error.response && error.response.data && error.response.data.error) {
-        return to_pretty_error(error.response.data.error);
-    } else {
-        return null;
+    if (str2 !== '') {
+        if (final_str !== '')
+            final_str += ", " + str2;
+        else
+            final_str = str2;
     }
+    if (str3 !== '') {
+        if (final_str !== '')
+            final_str += " (" + str3 + ")";
+        else
+            final_str = str3;
+    }
+    if (window.ENV.friendly_error_messages) {
+        return to_friendly_message(final_str);
+    }
+    return final_str;
 }
 
 // rudimentary email verification
@@ -488,9 +511,18 @@ export function get_time_range_metadata(category_list, data, metadata_name) {
     return null;
 }
 
+// is this URL an item inside an archive file-type? (like a zip or a pst file)
+export function is_archive_file(url) {
+    return (url && url.indexOf(archive_marker) > 0 && url.split(archive_marker).length === 2);
+}
+
 // convert a URL to a bread-crumb / item
 export function url_to_bread_crumb(url) {
     if (url.length > 0) {
+        // remove any archive marker content
+        if (is_archive_file(url)) {
+            url = get_archive_child(url);
+        }
         const list = path_from_url(url)
         let str = "";
         for (const item of list) {
@@ -509,7 +541,33 @@ export function url_to_bread_crumb(url) {
 // return true if url is viewable (ie. is an HTTP / HTTPS reference)
 export function is_viewable(url) {
     return url && url.startsWith && (url.trim().toLowerCase().startsWith(("https://")) ||
-        url.trim().toLowerCase().startsWith(("http://")));
+        url.trim().toLowerCase().startsWith(("http://"))) && !is_archive_file(url);
+}
+
+export function get_archive_parent(url) {
+    if (is_archive_file(url)) {
+        return url.split(archive_marker)[0];
+    }
+    return url;
+}
+
+export function get_archive_child(url) {
+    if (is_archive_file(url)) {
+        return url.split(archive_marker)[1];
+    }
+    return url;
+}
+
+export function get_archive_child_last(url) {
+    if (is_archive_file(url)) {
+        const child = url.split(archive_marker)[1];
+        const last_index = child.lastIndexOf('/');
+        if (last_index && last_index + 1 < child.length) {
+            return child.substring(last_index + 1);
+        }
+        return child;
+    }
+    return url;
 }
 
 // download local

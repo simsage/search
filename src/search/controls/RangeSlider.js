@@ -33,13 +33,6 @@ export function RangeSlider(props) {
         let c_data = copy(data);
         c_data.currentMinValue = values[0];
         c_data.currentMaxValue = values[1];
-        if (props.on_search) {
-            if (c_data.metadata === "last-modified") {
-                props.on_search({last_modified_slider: c_data})
-            } else {
-                props.on_search({created_slider: c_data})
-            }
-        }
     }
 
     return (

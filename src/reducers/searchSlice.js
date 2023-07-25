@@ -25,14 +25,16 @@ const initialState = {
 
     search_page: 0,             // the current page
     pages_loaded: 0,            // how many pages loaded currently
+    num_pages: 0,
+    has_more: false,
 
     total_document_count: 0,
-    has_more: false,
     show_search_results: false,
     group_similar: false,
     newest_first: false,
     busy: false,
     qna_text: '',
+    ai_response: '',
     qna_url_list: [],
     search_text: '',
     prev_search_text: '',
@@ -43,6 +45,8 @@ const initialState = {
 
     // use openAi or equivalent query processors
     use_query_ai: false,
+    use_summarization_ai: false,
+    use_question_answering_ai: false,
 
     // preview data
     search_focus: null,             // for previewing items
@@ -69,21 +73,22 @@ const initialState = {
 const extraReducers = (builder) => {
     builder
         .addCase(do_search.pending, (state) => {
-            console.log("do_search pending: page " + state.search_page);
             state.busy = true;
-            if (state.search_page === 0 && state.pages_loaded <= state.search_page)
+            if (state.search_page === 0 && state.pages_loaded <= state.search_page) {
                 state.result_list = [];
+                state.pages_loaded = 0;
+                state.ai_response = '';
+            }
             state.search_error_text = "";
         })
 
         // search result comes in - success
         .addCase(do_search.fulfilled, (state, action) => {
-            console.log("do_search.fulfilled");
             if (action.payload && defined(action.payload.data) && defined(action.payload.data.page)) {
 
                 const data = action.payload.data;
                 const parameters = action.payload.parameters;
-                const pages_loaded = data.pages_loaded;
+                const next_page = action.payload.next_page;
                 state.show_search_results = true;
 
                 // this is now the previous search
@@ -91,9 +96,9 @@ const extraReducers = (builder) => {
 
                 // add it to the rest (if page > 0) or replace the list?
                 let search_result_list;
-                if (data.page > 0) {
-                    search_result_list = parameters.result_list ? copy(parameters.result_list) : [];
-                    const new_list = (data.resultList) ? data.resultList : [];
+                if (data.page > 0 || next_page) {
+                    search_result_list = state.result_list ? copy(state.result_list) : [];
+                    const new_list = data.resultList ? data.resultList : [];
                     const start = parseInt("" + data.page) * parseInt("" + window.ENV.page_size);
                     for (let i in new_list) {
                         const index = parseInt("" + start) + parseInt("" + i);
@@ -110,6 +115,7 @@ const extraReducers = (builder) => {
                 state.spelling_correction = data.spellingCorrection ? data.spellingCorrection : '';
                 state.hash_tag_list = [];
                 state.entity_values = {};
+                state.ai_response = data.querySummarization ? data.querySummarization : '';
 
                 // only set the total document count on the first page
                 if (data.page === 0) {
@@ -145,6 +151,7 @@ const extraReducers = (builder) => {
 
                 let has_more = false;
                 let divided = (data.totalDocumentCount ? data.totalDocumentCount : 0) / window.ENV.page_size;
+                state.search_page = action.payload.data.page;
                 let num_pages = 1;
                 if (divided > 0) {
                     num_pages = parseInt("" + divided);
@@ -156,115 +163,93 @@ const extraReducers = (builder) => {
                     has_more = (state.search_page + 1 < num_pages);
                 }
                 state.has_more = has_more;
+                state.num_pages = num_pages;
 
                 if (filter_text.length > 0)
                     qs_text = qs_text + " " + filter_text;
                 add_url_search_parameter("query",qs_text)
 
-                // should we move to the next page?
-                if (state.search_page + 1 < num_pages) {
-                    state.search_page += 1;
-                }
+                // // should we move to the next page?
+                // if (next_page && state.search_page + 1 < num_pages) {
+                //     state.search_page += 1;
+                // }
 
                 state.pages_loaded = parseInt("" + (state.result_list.length / window.ENV.page_size));
-                console.log("do_search fulfilled, page " + data.page + ", pages_loaded " + pages_loaded);
-
-            } else {
-                const error_str = get_error(action.payload);
-                if (error_str && error_str.length > 0) {
-                    state.search_error_text = error_str;
-                }
             }
             state.busy = false;
         })
 
         .addCase(do_search.rejected, (state, action) => {
-            console.log("addCase do_search rejected")
             state.busy = false;
-            const error_str = get_error(action.payload);
-            if (error_str && error_str.length > 0) {
-                state.search_error_text = error_str;
-            }
+            state.search_error_text = get_error(action);
+            console.error("rejected: do_search:" + state.search_error_text);
         })
 
+        //////////////////////////////////////////////////////////////////////////////////////////
+
         .addCase(get_info.pending, (state) => {
-            console.log("get_info pending");
             state.has_info = false;
             state.busy = true;
+            state.search_error_text = "";
         })
 
         .addCase(get_info.fulfilled, (state, action) => {
-            console.log("get_info fulfilled");
-            console.log("action.payload", action.payload);
-            const error_str = get_error(action.payload);
-            if (error_str && error_str.length > 0) {
-                state.has_info = false;
-                state.search_error_text = error_str;
+            let kb_list = action.payload.kbList ? action.payload.kbList : [];
+            state.all_kbs = [...kb_list]
+            kb_list = kb_list.filter((kb) => kb.id === getKbId());
+            if (kb_list.length === 1) {
+                state.source_list = kb_list[0].sourceList ? kb_list[0].sourceList : [];
 
-            } else {
-                let kb_list = action.payload.kbList ? action.payload.kbList : [];
-                state.all_kbs = [...kb_list]
-                kb_list = kb_list.filter((kb) => kb.id === getKbId());
-                if (kb_list.length === 1) {
-                    state.source_list = kb_list[0].sourceList ? kb_list[0].sourceList : [];
+                // set up range slider(s) and metadata categories
+                if (kb_list[0].categoryList) {
+                    state.last_modified_slider = get_time_range_metadata(kb_list[0].categoryList, null, "last-modified");
+                    state.created_slider = get_time_range_metadata(kb_list[0].categoryList, null, "created");
 
-                    // set up range slider(s) and metadata categories
+                    // collect all other metadata from the collection for display
+                    state.metadata_list = [];
+                    const seen = {};
                     if (kb_list[0].categoryList) {
-                        state.last_modified_slider = get_time_range_metadata(kb_list[0].categoryList, null, "last-modified");
-                        state.created_slider = get_time_range_metadata(kb_list[0].categoryList, null, "created");
-
-                        // collect all other metadata from the collection for display
-                        state.metadata_list = [];
-                        const seen = {};
-                        if (kb_list[0].categoryList) {
-                            for (const item of kb_list[0].categoryList) {
-                                const metadata = item.metadata ? item.metadata : '';
-                                if ((item.categoryType === "categorical list" || item.categoryType === "document type") && !seen[metadata]) {
-                                    seen[metadata] = true;
-                                    state.metadata_list.push(item);
-                                }
+                        for (const item of kb_list[0].categoryList) {
+                            const metadata = item.metadata ? item.metadata : '';
+                            if ((item.categoryType === "categorical list" || item.categoryType === "document type") && !seen[metadata]) {
+                                seen[metadata] = true;
+                                state.metadata_list.push(item);
                             }
                         }
                     }
                 }
-                state.has_info = true;
             }
+            state.has_info = true;
             state.busy = false;
         })
 
         .addCase(get_info.rejected, (state, action) => {
-            console.log("get_info rejected")
             state.busy = false;
-            const error_str = get_error(action.payload);
-            if (error_str && error_str.length > 0) {
-                state.search_error_text = error_str;
-            }
+            state.search_error_text = get_error(action);
+            console.error("rejected: get_info:" + state.search_error_text);
         })
 
+        ////////////////////////////////////////////////////////////////////////////////////
+
+        .addCase(get_preview_html.pending, (state) => {
+            state.busy = true;
+            state.search_error_text = "";
+        })
 
         // get_preview_html
         .addCase(get_preview_html.fulfilled, (state, action) => {
             state.busy = false;
-            const error_string = get_error(action.payload);
-            if (error_string && error_string.length > 0) {
-                state.search_error_text = error_string;
-            } else {
-                global_preview_page += 1;
-                const has_more = action.payload.urlId && action.payload.urlId > 0;
-                console.log("get_preview_html fulfilled, has more: ", has_more);
-                state.has_more_preview_page = has_more;
-                if (has_more)
-                    state.html_preview_list.push(action.payload);
-            }
+            global_preview_page += 1;
+            const has_more = action.payload.urlId && action.payload.urlId > 0;
+            state.has_more_preview_page = has_more;
+            if (has_more)
+                state.html_preview_list.push(action.payload);
         })
 
         .addCase(get_preview_html.rejected, (state, action) => {
-            console.log("get_preview_html rejected")
             state.busy = false;
-            const error_str = get_error(action.payload);
-            if (error_str && error_str.length > 0) {
-                state.search_error_text = error_str;
-            }
+            state.search_error_text = get_error(action);
+            console.error("rejected: get_preview_html:" + state.search_error_text);
         })
 
 }
@@ -276,99 +261,116 @@ const searchSlice = createSlice({
     // not async function : sync functions
     reducers: {
         go_home: (state) => {
-            state.show_search_results = false;
             window.history.replaceState(null, null, window.location.pathname);
+            return {...state, show_search_results: false}
         },
 
         update_search_text: (state, action) => {
-            state.search_text = action.payload;
+            return {...state, search_text: action.payload}
         },
 
         set_focus_for_preview: (state, action) => {
-            state.search_focus = action.payload;
             global_preview_page = 1;
-            state.html_preview_list = [];
-            state.has_more_preview_pages = true;
+            return {...state, search_focus: action.payload, html_preview_list: [], has_more_preview_pages: true}
         },
 
-        close_preview: (state, action) => {
-            state.search_focus = null;
+        close_preview: (state) => {
             global_preview_page = 1;
-            state.html_preview_list = [];
-            state.has_more_preview_pages = true;
+            return {...state, search_focus: null, html_preview_list: [], has_more_preview_pages: true}
         },
 
-        toggle_query_ai: (state, action) => {
-           state.use_query_ai = !state.use_query_ai;
+        toggle_query_ai: (state) => {
+            return {...state, use_query_ai: !state.use_query_ai}
+        },
+
+        toggle_summarization_ai: (state) => {
+            return {...state, use_summarization_ai: !state.use_summarization_ai, use_question_answering_ai: false}
+        },
+
+        toggle_question_answering_ai: (state) => {
+            return {...state, use_question_answering_ai: !state.use_question_answering_ai, use_summarization_ai: false}
         },
 
         set_busy: (state, action) => {
-            state.busy = action.payload;
+            return {...state, busy: action.payload}
         },
 
         set_group_similar: (state, action) => {
-            state.group_similar = action.payload;
+            return {...state, group_similar: action.payload}
         },
 
         set_newest_first: (state, action) => {
-            state.newest_first = action.payload;
+            return {...state, newest_first: action.payload}
         },
 
         set_source_filter: (state, action) => {
-            state.source_filter = action.payload;
+            return {...state, source_filter: action.payload}
         },
 
         set_source_value: (state, action) => {
-            state.source_values[action.payload.name] = action.payload.checked;
+            let sv = copy(state.source_values);
+            sv[action.payload.name] = action.payload.checked;
+            return {...state, source_values: sv}
         },
 
         set_source_values: (state, action) => {
-            state.source_values = {...state.source_values, ...action.payload};
+            let sv = copy(state.source_values);
+            sv = {...sv, ...action.payload};
+            return {...state, source_values: sv}
         },
 
         set_range_slider: (state, action) => {
             const metadata = action.payload.metadata;
-            const values = action.payload.values;
+            const values = copy(action.payload.values);
             if (metadata === "last-modified") {
-                state.last_modified_slider = {...state.last_modified_slider, currentMinValue: values[0], currentMaxValue: values[1]};
+                return {...state, last_modified_slider: {...state.last_modified_slider, currentMinValue: values[0], currentMaxValue: values[1]}}
             } else {
-                state.creat_slider = {...state.creat_slider, currentMinValue: values[0], currentMaxValue: values[1]};
+                return {...state, created_slider: {...state.created_slider, currentMinValue: values[0], currentMaxValue: values[1]}}
             }
         },
 
         select_syn_set: (state, action) => {
-            state.syn_set_values[action.payload.name] = action.payload.checked ? action.payload.index : -1;
+            let syn = copy(state.syn_set_values);
+            syn[action.payload.name] = action.payload.checked ? action.payload.index : -1;
+            return {...state, syn_set_values: syn}
         },
 
         set_metadata_value: (state, action) => {
             const metadata = action.payload.metadata;
             const name = action.payload.name;
             const checked = action.payload.checked;
-            const existing_values = state.metadata_values[metadata] ? state.metadata_values[metadata] : {};
+            const existing_values = copy(state.metadata_values[metadata] ? state.metadata_values[metadata] : {});
             existing_values[name] = checked;
-            state.metadata_values[metadata] = existing_values;
+            let mdv = copy(state.metadata_values);
+            mdv[metadata] = existing_values;
+            return {...state, metadata_values: mdv}
         },
 
         set_metadata_values: (state, action) => {
-            state.metadata_values = {...state.metadata_values, ...action.payload};
+            let metadata_values = {...state.metadata_values, ...action.payload};
             // sliders are handled separately
             if (action.payload["created"]) {
                 const data = action.payload["created"];
+                const cs = copy(state.created_slider);
                 if (defined(data["minValue"]) && defined(data["maxValue"])) {
-                    state.created_slider.currentMinValue = data["minValue"];
-                    state.created_slider.currentMaxValue = data["maxValue"];
+                    cs.currentMinValue = data["minValue"];
+                    cs.currentMaxValue = data["maxValue"];
                 }
+                return {...state, metadata_values: metadata_values, created_slider: cs}
+
             } else if (action.payload["last-modified"]) {
                 const data = action.payload["last-modified"];
+                const ms = copy(state.last_modified_slider);
                 if (data["minValue"] && data["maxValue"]) {
-                    state.last_modified_slider.currentMinValue = data["minValue"];
-                    state.last_modified_slider.currentMaxValue = data["maxValue"];
+                    ms.currentMinValue = data["minValue"];
+                    ms.currentMaxValue = data["maxValue"];
                 }
+                return {...state, metadata_values: metadata_values, last_modified_slider: ms}
             }
         },
 
         dismiss_search_error: (state) => {
-            state.search_error_text = '';
+            return {...state, search_error_text: ''}
         },
 
     },
@@ -379,23 +381,20 @@ const searchSlice = createSlice({
 // get required SimSage information
 export const get_info = createAsyncThunk(
     'get_info',
-    async({session, user}) => {
+    async({session, user}, {rejectWithValue}) => {
 
         const user_id = user && user.id ? user.id : get_client_id();
         const api_base = window.ENV.api_base;
         const session_id = (session && session.id) ? session.id : null;
         const url = api_base + '/knowledgebase/search/info/' + encodeURIComponent(window.ENV.organisation_id) + '/' +
                     encodeURIComponent(user_id);
-        console.log('get ' + url);
         return axios.get(url, get_headers(session_id))
             .then((response) => {
                 console.log('SimSage UX version ' + window.ENV.version);
                 return response.data;
-            }).catch(
-                (error) => {
-                    return error
-                }
-            )
+            }).catch((err) => {
+                return rejectWithValue(err)
+            })
     }
 )
 
@@ -413,19 +412,33 @@ export const do_search = createAsyncThunk(
                shard_list,
                group_similar,
                newest_first,
-               metadata_list, metadata_values,
-               entity_values, source_list,
-               source_values, hash_tag_list,
+               metadata_list,
+               metadata_values,
+               entity_values,
+               source_list,
+               source_values,
+               hash_tag_list,
                syn_set_values,
-               last_modified_slider, created_slider,
+               last_modified_slider,
+               created_slider,
                result_list,
                pages_loaded,
-               use_query_ai
-           }) => {
+               use_query_ai,
+               use_summarization_ai,
+               use_question_answering_ai,
+               next_page,
+               reset_pagination
+           }, {rejectWithValue}) => {
 
         const api_base = window.ENV.api_base;
         const session_id = (session && session.id) ? session.id : null;
         const url = session_id ? (api_base + '/dms/query') : (api_base + '/semantic/query');
+
+
+
+        console.log("DATA");
+        console.log({next_page, reset_pagination, pages_loaded});
+
 
         search_text = search_text.trim();
         let filter_text = "";
@@ -467,9 +480,11 @@ export const do_search = createAsyncThunk(
         // reset pagination?  if this is a different search or the previous search had no results
         let new_search_page = search_page;
         let new_pages_loaded = pages_loaded;
-        if (combined_text !== prev_search_text || (result_list && result_list.length === 0)) {
+        let new_shard_list = shard_list;
+        if (combined_text !== prev_search_text || (result_list && result_list.length === 0) || reset_pagination) {
             new_search_page = 0;
             new_pages_loaded = 0;
+            new_shard_list = [];
             // scroll to the top
             window.setTimeout(() => {
                 const ctrl = document.getElementById("search-results-id");
@@ -488,7 +503,7 @@ export const do_search = createAsyncThunk(
             numResults: 1,
             page: new_search_page,
             pageSize: window.ENV.page_size,
-            shardSizeList: shard_list,
+            shardSizeList: new_shard_list,
             fragmentCount: window.ENV.fragment_count,
             maxWordDistance: window.ENV.max_word_distance,
             spellingSuggest: window.ENV.use_spell_checker,
@@ -497,11 +512,12 @@ export const do_search = createAsyncThunk(
             groupSimilarDocuments: group_similar,
             sortByAge: newest_first,
             sourceId: '',
-            useQueryAi: use_query_ai === true
+            useQueryAi: use_query_ai === true,
+            useSummarizationAi: use_summarization_ai === true,
+            useQuestionAnsweringAi: use_question_answering_ai === true,
         };
 
         if (search_text.trim().length > 0) {
-            console.log('put ' + url + ', filter: "' + filter_text + '", page ' + new_search_page);
             return axios.post(url, data, get_headers(session_id))
                 .then((response) => {
                     if (response && response.data && response.data.messageType === 'message') {
@@ -509,15 +525,14 @@ export const do_search = createAsyncThunk(
                         response.data.original_text = search_text;
                         response.data.page = new_search_page;
                         response.data.pages_loaded = new_pages_loaded
-                        return {data: response.data, parameters: in_parameters};
+                        return {data: response.data, parameters: in_parameters,
+                            next_page: next_page, reset_pagination: reset_pagination};
                     } else {
                         return 'invalid message type:' + response.data.messageType;
                     }
-                }).catch(
-                    (error) => {
-                        return error
-                    }
-                )
+                }).catch((err) => {
+                    return rejectWithValue(err)
+                })
         }
     }
 );
@@ -529,7 +544,7 @@ export const do_search = createAsyncThunk(
  */
 export const get_preview_html = createAsyncThunk(
         'get_preview_html',
-        async ({session, url_id}) => {
+async ({session, url_id}, {rejectWithValue}) => {
 
             const api_base = window.ENV.api_base;
             const session_id = (session && session.id) ? session.id : get_client_id();
@@ -545,19 +560,18 @@ export const get_preview_html = createAsyncThunk(
             return axios.post(url, data, get_headers(session_id))
                 .then((response) => {
                     return response.data;
-                }).catch(
-                    (error) => {
-                        return error
-                    }
-                )
+                }).catch((err) => {
+                    return rejectWithValue(err)
+                })
         }
-);
+)
 
 
 export const {
         go_home, update_search_text, set_focus_for_preview, set_source_value, set_metadata_value,
         dismiss_search_error, set_group_similar, set_newest_first, set_source_filter, select_syn_set,
-        set_range_slider, set_metadata_values, set_source_values, close_preview, toggle_query_ai
+        set_range_slider, set_metadata_values, set_source_values, close_preview,
+        toggle_query_ai, toggle_summarization_ai, toggle_question_answering_ai
     } = searchSlice.actions;
 
 export default searchSlice.reducer;

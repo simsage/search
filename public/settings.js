@@ -1,6 +1,6 @@
 window.ENV = {
     // SimSage platform version (used for display only in UI)
-    version: '7.7.6',
+    version: '7.9.0',
     // api version of api_base
     api_version: 1,
     // is this a production build or not?
@@ -10,7 +10,7 @@ window.ENV = {
     // use 'password' sign-in or 'single-sign-on'?
     authentication: "single-sign-on", // "password, single-sign-on",
     // allow anonymous use of the UX or must sign in immediately?
-    allow_anon: true,
+    allow_anon: false,
     // at present values are: arista, simsage
     customer: 'simsage',
     // a link (can be empty string for go back to SimSage) for the customer clicking on their logo in the UX
@@ -59,5 +59,6 @@ window.ENV = {
     // e.g. [{"name": 'Legal Group', "sources": ["glp","legal docs",]}, {...]
     override_source_list: [],
     allow_knowledgbase_selector: true,
-    query_ai_enabled: false
+    query_ai_enabled: true,
+    friendly_error_messages: true,
 };

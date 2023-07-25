@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useEffect} from "react";
 import {useDispatch, useSelector} from 'react-redux';
 import {useMsal} from "@azure/msal-react";
 import {close_menu, simSageMSALSignIn} from "./reducers/authSlice";
@@ -43,18 +43,20 @@ export const PageLayout = () => {
         }
     }
 
-    // do we have a session object locally? if not - sign-in
-    if ((!session || !session.id) && accounts && accounts.length > 0) {
-        const request = {
-            account: accounts[0]
-        };
-        // if we have an account but no session, ask SimSage to provide the session
-        // and user's ID from SimSage itself using the JWT
-        instance.acquireTokenSilent(request).then((response) => {
-            dispatch(close_menu());
-            dispatch(simSageMSALSignIn({jwt: response.idToken}));
-        })
-    }
+    useEffect(() => {
+        // do we have a session object locally? if not - sign-in
+        if (accounts && accounts.length > 0) {
+            const request = {
+                account: accounts[0]
+            };
+            // if we have an account but no session, ask SimSage to provide the session
+            // and user's ID from SimSage itself using the JWT
+            instance.acquireTokenSilent(request).then((response) => {
+                // dispatch(close_menu());
+                dispatch(simSageMSALSignIn({jwt: response.idToken}));
+            })
+        }
+    }, [session?.id, accounts])
 
     const is_authenticated = session && session.id && session.id.length > 0;
     const show_search = is_authenticated || window.ENV.allow_anon;

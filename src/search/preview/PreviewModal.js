@@ -1,7 +1,7 @@
 import React, {useEffect} from 'react';
 
 import './PreviewModal.css';
-import {download, get_metadata_list, is_viewable} from "../../common/Api";
+import {download, get_archive_child, get_archive_parent, get_metadata_list, is_viewable} from "../../common/Api";
 import {useDispatch, useSelector} from "react-redux";
 import {close_preview, get_preview_html} from "../../reducers/searchSlice";
 import useInfiniteScroll from "react-infinite-scroll-hook";
@@ -97,7 +97,7 @@ export function PreviewModal() {
                         <h6 className="mb-0" style={{"textShadow" : "0 0 50px #202731"}} title={filename}>{filename}</h6>
                     </div>
                     <div className="d-flex" style={{color: "#fff"}}>
-                        <button className="btn dl-btn ms-2" onClick={() => download(url)} title={is_online_view ? ("visit " + url + " online") : ("download " + url + " from SimSage")}>
+                        <button className="btn dl-btn ms-2" onClick={() => download(url)} title={is_online_view ? ("visit " + url + " online") : ("download " + get_archive_child(url) + " from SimSage")}>
                             {is_online_view ? "Visit" : "Download"}
                         </button>
                         <button className="btn pre-btn ms-2">

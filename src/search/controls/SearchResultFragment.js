@@ -1,7 +1,16 @@
 import './SearchResultFragment.css';
 import {
-    download, get_client_id, get_metadata_list, getKbId, highlight, is_viewable,
-    unix_time_convert, url_to_bread_crumb
+    download,
+    get_archive_child, get_archive_child_last,
+    get_archive_parent,
+    get_client_id,
+    get_metadata_list,
+    getKbId,
+    highlight,
+    is_archive_file,
+    is_viewable,
+    unix_time_convert,
+    url_to_bread_crumb
 } from "../../common/Api";
 import React from "react";
 
@@ -53,7 +62,7 @@ export function SearchResultFragment(props) {
 
     function handle_title_click(result, url) {
         if (!window.ENV.show_previews) {
-            download(url, session_id);
+            download(get_archive_parent(url), session_id);
         } else if (props.set_focus_for_preview) {
             props.set_focus_for_preview(result);
         }
@@ -61,13 +70,14 @@ export function SearchResultFragment(props) {
 
 
     function get_title_for_links(url) {
+        const actual_url = get_archive_child(url)
         if (window.ENV.show_previews) {
-            return "preview \"" + url + "\"";
+            return "preview \"" + actual_url + "\"";
         } else {
             if (is_viewable(url)) {
-                return "open \"" + url + "\" in the browser";
+                return "open \"" + actual_url + "\" in the browser";
             } else {
-                return "download \"" + url + "\" to your computer";
+                return "download \"" + actual_url + "\" to your computer";
             }
         }
     }
@@ -85,7 +95,7 @@ export function SearchResultFragment(props) {
     }
 
     return (
-        <div className="result-content d-flex pb-4 mb-3 px-3">
+        <div className="d-flex pb-4 mb-3 px-3">
             <img onClick={(event) => click_preview_image(event, result, url)}
                  title={get_title_for_links(url)}
                  src={preview_image_url(result)} alt="" className="result-preview d-none d-lg-block pointer-cursor"/>
@@ -93,7 +103,7 @@ export function SearchResultFragment(props) {
                 <div dangerouslySetInnerHTML={{__html: custom_render_html}}/>
             }
             { !custom_render_type &&
-            <div className="ms-3 w-100">
+            <div className="ms-3" style={{width: "80%"}}>
                 <div className="d-flex align-items-center text-align-end mb-1">
                     <p className="mb-0 result-breadcrumb me-2">{url_breadcrumb}</p>
                 </div>
@@ -102,7 +112,16 @@ export function SearchResultFragment(props) {
                           handle_title_click(result, url)
                       }} title={get_title_for_links(url)}>{title ? title : url}</span>
                 <div className="d-flex align-items-center mb-1">
-                    <span className="mb-0 result-details-title">{url}</span>
+                    { is_archive_file(url) &&
+                        <span>
+                        <span className="mb-0 result-details-title">{get_archive_child_last(url)}</span>&nbsp;
+                        <span className="mb-0 text-black result-details-title">inside</span>&nbsp;
+                        <span className="mb-0 text-black result-details-title">{get_archive_parent(url)}</span>
+                        </span>
+                    }
+                    { !is_archive_file(url) &&
+                        <span className="mb-0 result-details-title">{url}</span>
+                    }
                 </div>
                 <div className="d-flex align-items-center mb-1">
                     <span className="mb-0 result-details">Last modified {last_modified}</span>

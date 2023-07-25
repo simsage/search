@@ -3,6 +3,7 @@ import React from 'react';
 import './SignInPage.css';
 import {useMsal} from "@azure/msal-react";
 import {loginRequest} from "../../AuthConfig";
+import {ErrorDialog} from "../../common/ErrorDialog";
 
 
 // sign-in screen
@@ -46,6 +47,8 @@ export function SignInPage() {
 
                 </div>
             </div>
+
+            <ErrorDialog />
 
         </div>
     );
