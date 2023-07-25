@@ -1,6 +1,6 @@
 {
   "name": "simsage-search",
-  "version": "2.0.0",
+  "version": "7.9.0",
   "private": true,
   "dependencies": {
     "@azure/msal-browser": "^2.32.2",
