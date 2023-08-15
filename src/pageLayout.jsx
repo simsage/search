@@ -3,7 +3,6 @@ import {useDispatch, useSelector} from 'react-redux';
 import {useMsal} from "@azure/msal-react";
 import {close_menu, simSageMSALSignIn} from "./reducers/authSlice";
 import Search from "./search/Search";
-import {SignInPage} from "./search/auth/SignInPage";
 import {loginRequest} from "./AuthConfig";
 
 
@@ -49,29 +48,32 @@ export const PageLayout = () => {
             const request = {
                 account: accounts[0]
             };
-            // if we have an account but no session, ask SimSage to provide the session
-            // and user's ID from SimSage itself using the JWT
-            instance.acquireTokenSilent(request).then((response) => {
-                // dispatch(close_menu());
-                dispatch(simSageMSALSignIn({jwt: response.idToken}));
-            })
+            if (!session?.id) {
+                // if we have an account but no session, ask SimSage to provide the session
+                // and user's ID from SimSage itself using the JWT
+                    instance.acquireTokenSilent(request).then((response) => {
+                        // dispatch(close_menu());
+                        dispatch(simSageMSALSignIn({jwt: response.idToken}));
+                    }).catch((error) => {
+                        console.error(error);
+                        // sign out the user
+                        instance.logoutRedirect().catch(e => {
+                            console.error("logoutRequest error", e);
+                        });
+                    })
+            }
         }
-    }, [session?.id, accounts])
+    }, [session?.id, accounts, dispatch, instance])
 
-    const is_authenticated = session && session.id && session.id.length > 0;
-    const show_search = is_authenticated || window.ENV.allow_anon;
+    // const is_authenticated = session && session.id && session.id.length > 0;
+    // const show_search = is_authenticated || window.ENV.allow_anon;
 
     return (
         <div>
-            { show_search &&
-                <Search
-                    on_sign_in={(e) => on_sign_in(e)}
-                    on_sign_out={(e) => on_sign_out(e)}
-                />
-            }
-            { !show_search &&
-                <SignInPage />
-            }
+            <Search
+                on_sign_in={(e) => on_sign_in(e)}
+                on_sign_out={(e) => on_sign_out(e)}
+            />
         </div>
     )
 }

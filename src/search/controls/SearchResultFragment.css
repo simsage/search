@@ -2,3 +2,8 @@
 .line-width-limited {
     width: 70%;
 }
+
+.link {
+    color:#25ade8;
+    cursor: pointer;
+}

@@ -2,7 +2,7 @@ import React from 'react';
 
 import './AccountDropdown.css';
 import {close_menu, sign_out} from "../reducers/authSlice";
-import {toggle_query_ai, toggle_question_answering_ai, toggle_summarization_ai} from "../reducers/searchSlice";
+import {toggle_question_answering_ai} from "../reducers/searchSlice";
 import {useDispatch, useSelector} from "react-redux";
 
 
@@ -13,7 +13,7 @@ import {useDispatch, useSelector} from "react-redux";
 export function AccountDropdown(props) {
     const dispatch = useDispatch();
     const {show_menu} = useSelector((state) => state.authReducer);
-    const {use_query_ai, use_summarization_ai, use_question_answering_ai} = useSelector((state) => state.searchReducer);
+    const {use_question_answering_ai} = useSelector((state) => state.searchReducer);
 
     function sign_in() {
         dispatch(close_menu());
@@ -29,14 +29,6 @@ export function AccountDropdown(props) {
     function view_advanced_query_syntax() {
         dispatch(close_menu());
         window.open("/resources/super-search-syntax.pdf", "blank");
-    }
-    function set_use_query_ai() {
-        dispatch(close_menu());
-        dispatch(toggle_query_ai());
-    }
-    function set_use_summarization_ai() {
-        dispatch(close_menu());
-        dispatch(toggle_summarization_ai());
     }
     function set_use_question_answering_ai() {
         dispatch(close_menu());
@@ -54,18 +46,6 @@ export function AccountDropdown(props) {
                     onClick={() => view_advanced_query_syntax()}>
                     <label>Advanced query syntax</label>
                 </li>
-                }
-                { window.ENV.query_ai_enabled &&
-                <li className="acc-item px-4 py-3"
-                    onClick={() => set_use_query_ai()}>
-                    <label>{ use_query_ai ? "\u2713 " : ""}use AI queries</label>
-                </li>
-                }
-                { window.ENV.query_ai_enabled &&
-                    <li className="acc-item px-4 py-3"
-                        onClick={() => set_use_summarization_ai()}>
-                        <label>{ use_summarization_ai ? "\u2713 " : ""}use AI summarization</label>
-                    </li>
                 }
                 { window.ENV.query_ai_enabled &&
                     <li className="acc-item px-4 py-3"

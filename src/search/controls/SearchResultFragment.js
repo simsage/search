@@ -13,8 +13,13 @@ import {
     url_to_bread_crumb
 } from "../../common/Api";
 import React from "react";
+import {create_short_summary} from "../../reducers/searchSlice";
+import {useDispatch} from "react-redux";
 
 export function SearchResultFragment(props) {
+
+    const dispatch = useDispatch();
+
     const result = props.result;
     const session = props.session;
     const session_id = (session && session.id) ? session.id : "null";
@@ -27,6 +32,7 @@ export function SearchResultFragment(props) {
     const last_modified = unix_time_convert(result.lastModified);
     const title = result.title ? result.title : "";
     const metadata_lists = get_metadata_list(result.metadata);
+    const summary = props.summaries[result.url] ? props.summaries[result.url] : "";
     const tag_list = metadata_lists["tag_list"];
     // Prefer the metadata url to the doc's url as the later might be the source id (Sharepoint)
     const url = result.metadata["{url}"] && result.metadata["{url}"].trim().length > 0 ? result.metadata["{url}"] : result.url
@@ -92,6 +98,22 @@ export function SearchResultFragment(props) {
             return
         const url = item_url(item);
         download(url, session_id);
+    }
+
+    // summarize a snippet of search-result
+    function createSnippetSummary(event) {
+        event.stopPropagation();
+        event.preventDefault();
+        dispatch(create_short_summary({session: session, target_url: result.url,
+                                       sentence_id: result.firstSentence, span: window.ENV.snippet_summary_span}))
+    }
+
+    // summarize an article from the start
+    function createArticleSummary(event) {
+        event.stopPropagation();
+        event.preventDefault();
+        dispatch(create_short_summary({session: session, target_url: result.url,
+            sentence_id: 0, span: window.ENV.article_summary_span}))
     }
 
     return (
@@ -193,6 +215,29 @@ export function SearchResultFragment(props) {
                             </div>
                         );
                     })
+                }
+                {
+                    summary && summary.length > 0 && window.ENV.query_ai_enabled &&
+                    <div className="border-top">
+                        {
+                            summary.split("\n").map((text, i) => {
+                                return (<div className="pt-2" key={i}>
+                                        <span className="py-1" title={text}>{text}</span>
+                                    </div>
+                                )})
+                        }
+                    </div>
+                }
+                {
+                    (!summary || summary.length === 0) && window.ENV.query_ai_enabled && session_id !== "null" &&
+                    <div>
+                        { !window.ENV.use_article_summary &&
+                            <span className="link" onClick={(event) => createSnippetSummary(event)} title="create a short summary of this search-result">create summary</span>
+                        }
+                        { window.ENV.use_article_summary &&
+                            <span className="link" onClick={(event) => createArticleSummary(event)} title="create a short summary of the document">create summary</span>
+                        }
+                    </div>
                 }
                 <div className="d-flex align-items-center flex-wrap">
                     {tag_list.map((tag, i) => {

@@ -2,7 +2,7 @@ import {useState} from "react";
 import {useDispatch} from "react-redux";
 import {password_sign_in, requestResetPassword, set_auth_error} from "../../reducers/authSlice";
 import {ErrorDialog} from "../../common/ErrorDialog";
-import {is_valid_email} from "../../common/Api";
+import {is_valid_email, pretty_version} from "../../common/Api";
 import {MessageDialog} from "../../common/MessageDialog";
 
 
@@ -43,7 +43,7 @@ export function ResetPasswordRequest() {
                                 {/* {window.ENV.app_title} */}
                                 <p className="mb-1 fw-bold auth-text-primary fst-italic">SEARCH</p>
                             </div>
-                            <div className="version">Version {window.ENV.version}</div>
+                            <div className="version">Version {pretty_version()}</div>
                         </div>
                         <h6 className="mb-2">Reset Password</h6>
                         <div className="no-select help-text fw-light">Please enter your email address and we'll email you a link to reset your password.</div>

@@ -67,7 +67,7 @@ const authSlice = createSlice({
 
         sign_out: (state) => {
             return {...state, session: {}, user: {}, organisation: {}, result_list: [], page: 0,
-                    reset_password_request: false}
+                    reset_password_request: false, error_message: '', search_error_text: '', error_text: ''}
         },
 
     },
@@ -252,7 +252,9 @@ export const resetPassword = createAsyncThunk(
 
 
 export const {
-    close_menu, close_kb_menu, toggle_menu, toggle_kb_menu, dismiss_auth_error, sign_out, password_sign_in, password_reset_start,
+    close_menu, close_kb_menu, toggle_menu,
+    toggle_kb_menu, dismiss_auth_error, sign_out,
+    password_sign_in, password_reset_start,
     set_auth_error, dismiss_auth_message
 } = authSlice.actions
 export default authSlice.reducer;

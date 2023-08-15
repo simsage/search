@@ -4,6 +4,7 @@ import './SignInPage.css';
 import {password_reset_start, simSagePasswordSignIn} from "../../reducers/authSlice";
 import {useDispatch} from "react-redux";
 import {ErrorDialog} from "../../common/ErrorDialog";
+import {pretty_version} from "../../common/Api";
 
 
 // sign-in screen
@@ -65,7 +66,7 @@ export function PasswordSignIn() {
                                  className="auth-logo" onClick={() => { window.location = window.ENV.api_base.replace('/api', '/'); }} />
                             <p className="mb-1 fw-bold auth-text-primary fst-italic">SEARCH</p>
                         </div>
-                        <div className="version">Version {window.ENV.version}</div>
+                        <div className="version">Version {pretty_version()}</div>
                     </div>
 
                     <div className="form-group form-label">

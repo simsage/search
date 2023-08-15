@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import {is_valid_email} from "../../common/Api";
+import {is_valid_email, pretty_version} from "../../common/Api";
 import {ErrorDialog} from "../../common/ErrorDialog";
 import {MessageDialog} from "../../common/MessageDialog";
 
@@ -59,7 +59,7 @@ export function ResetPasswordResponse(props) {
                              className="auth-logo" onClick={() => { window.location = window.ENV.api_base.replace('/api', '/'); }} />
                         <p className="mb-1 fw-bold auth-text-primary fst-italic">SEARCH</p>
                     </div>
-                    <div className="version">Version {window.ENV.version}</div>
+                    <div className="version">Version {pretty_version()}</div>
                 </div>
 
                 <h3>Reset password</h3>

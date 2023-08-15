@@ -4,11 +4,17 @@ import './SignInPage.css';
 import {useMsal} from "@azure/msal-react";
 import {loginRequest} from "../../AuthConfig";
 import {ErrorDialog} from "../../common/ErrorDialog";
+import {pretty_version} from "../../common/Api";
 
 
 // sign-in screen
 export function SignInPage() {
-    const { instance } = useMsal();
+    const { instance, accounts } = useMsal();
+
+    // if we have an account from msal, don't show the sign-in - because it is in progress
+    if (accounts && accounts.length > 0)
+        return "<div />";
+
     return (
         <div>
             <div className="no-select auth-wrapper d-flex justify-content-center align-items-center overflow-auto">
@@ -17,20 +23,24 @@ export function SignInPage() {
 
                     <div className="d-flex justify-content-between align-items-end mb-4 pb-3 border-bottom">
                         <div className="d-flex align-items-end">
-                            <img alt="SimSage" title="Search Reimagined" src="images/brand/simsage-logo-no-strapline.svg"
-                                 className="auth-logo" onClick={() => { window.location = window.ENV.api_base.replace('/api', '/'); }} />
+                            <img alt="SimSage" title="Search Reimagined"
+                                 src="images/brand/simsage-logo-no-strapline.svg"
+                                 className="auth-logo" onClick={() => {
+                                window.location = window.ENV.api_base.replace('/api', '/');
+                            }}/>
                             <p className="mb-1 fw-bold auth-text-primary fst-italic">SEARCH</p>
                         </div>
-                        <div className="version">Version {window.ENV.version}</div>
+                        <div className="version">Version {pretty_version()}</div>
                     </div>
 
                     <div className="form-group">
                         <button type="submit" className="btn btn-primary btn-block" onClick={() => {
                             // sign in and re-direct
                             instance.loginRedirect(loginRequest).catch(e => {
-                                console.error(e);
+                                alert(e.toString());
                             });
-                        }}>Sign in</button>
+                        }}>Sign in
+                        </button>
                     </div>
 
                     {
@@ -48,7 +58,7 @@ export function SignInPage() {
                 </div>
             </div>
 
-            <ErrorDialog />
+            <ErrorDialog/>
 
         </div>
     );

@@ -29,7 +29,7 @@ import {KnowledgebaseDropdown} from "../common/KnowledgebaseDropdown";
 function Search(props) {
     const dispatch = useDispatch();
     const {show_menu, show_kb_menu} = useSelector((state) => state.authReducer);
-    const {show_search_results, search_focus, busy, all_kbs} = useSelector((state) => state.searchReducer);
+    const {show_search_results, search_focus, busy, all_kbs, has_info} = useSelector((state) => state.searchReducer);
     const {shard_list, search_text, group_similar, newest_first, metadata_list, metadata_values} = useSelector((state) => state.searchReducer);
     const {entity_values, hash_tag_list, syn_sets, last_modified_slider, created_slider} = useSelector((state) => state.searchReducer);
     const {source_list, source_values, result_list, prev_search_text, use_question_answering_ai,
@@ -39,8 +39,9 @@ function Search(props) {
     const showKbMenu = window.ENV.allow_knowledgbase_selector && all_kbs && all_kbs.length>1
 
     useEffect(() => {
-        dispatch(get_info({session: session, user: user}));
-    }, [session, user, dispatch])
+        if (!has_info)
+            dispatch(get_info({session: session, user: user}));
+    }, [session, user, dispatch, has_info])
 
     useEffect(() => {
         // update control state from the query string where possible
@@ -55,10 +56,10 @@ function Search(props) {
 
             // and perform a search using this data if we need to
             data = {...data, source_list: source_list};
-            if (source_list.length > 0)
+            if (source_list.length > 0 && (session?.id || window.ENV.allow_anon))
                 search({data, next_page: false});
         }
-    }, [source_list]) // the dependency on source_list is a convenient one as it relates to get_info finishing
+    }, [source_list, session?.id]) // the dependency on source_list is a convenient one as it relates to get_info finishing
 
     const is_authenticated = session && session.id && session.id.length > 0;
 
@@ -149,7 +150,7 @@ function Search(props) {
         <div className="Search" onClick={() => on_close_menu()}>
             <ErrorDialog />
 
-            <div className={busy ? "wait-cursor outer" : "outer"}>
+            <div className={(busy && !show_preview) ? "wait-cursor outer" : "outer"}>
 
                 { (show_search_results || !window.ENV.allow_anon) &&
                     <TitleBar on_search={() => search({next_page: false})} />

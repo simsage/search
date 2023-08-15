@@ -1,7 +1,7 @@
 import React, {useEffect} from 'react';
 
 import './PreviewModal.css';
-import {download, get_archive_child, get_archive_parent, get_metadata_list, is_viewable} from "../../common/Api";
+import {download, get_archive_child, get_metadata_list, is_viewable} from "../../common/Api";
 import {useDispatch, useSelector} from "react-redux";
 import {close_preview, get_preview_html} from "../../reducers/searchSlice";
 import useInfiniteScroll from "react-infinite-scroll-hook";
@@ -13,6 +13,7 @@ export function PreviewModal() {
     const dispatch = useDispatch();
     const {search_focus, busy, html_preview_list, has_more_preview_pages} = useSelector((state) => state.searchReducer);
     const {session} = useSelector((state) => state.authReducer);
+
 
     // set up a global document-listener just for keydown ESC here
     useEffect(() => {
@@ -34,7 +35,7 @@ export function PreviewModal() {
     // get an html page for the given url_id
     function get_html_page() {
         if (url_id > 0)
-            dispatch(get_preview_html({session: session, url_id: url_id}));
+            dispatch(get_preview_html({session: session, url_id: url_id, html_preview_list: html_preview_list}));
     }
 
     const [sentryRef] = useInfiniteScroll({
@@ -64,11 +65,6 @@ export function PreviewModal() {
     let w = preview_data && preview_data.width ? (preview_data.width) : 0;
     let h = preview_data && preview_data.height ? (preview_data.height) : 0;
 
-    // the size of the possible i-frame is 60% of the screen-size with a minimum size of 1024x768 (defined in settings.js)
-    const scaling = 0.6;
-    const max_width = Math.max(Math.round(window.innerWidth * scaling), window.ENV.preview_min_width);
-    const max_height = Math.max(Math.round(window.innerHeight * scaling), window.ENV.preview_min_height);
-
     // get the metadata
     const metadata_return = get_metadata_list(search_focus && search_focus.metadata ? search_focus.metadata : {});
     let metadata_list = metadata_return["metadata_list"];
@@ -77,27 +73,22 @@ export function PreviewModal() {
         metadata_list.push({"key": "urlId", "value": "" + search_focus.urlId});
     }
 
-    // get a scale factor for the width and height
-    let scale = 1.0;
-    if (w > 0 && w > h) {
-        // wider than taller
-        scale = max_width / w;
-    } else if (h > 0 && h > w) {
-        scale = max_height / h;
-    }
+    const scale = 1.0;
+    if (w < window.ENV.preview_min_width) w = window.ENV.preview_min_width;
     w = Math.round(w) + "px";
     const parent_height = (Math.round(h * scale) + 10) + "px";
+    if (h < window.ENV.preview_min_height) h = window.ENV.preview_min_height;
     h = Math.round(h) + "px";
 
     return (
-        <div id="preview" className="d-flex justify-content-center align-items-top overflow-auto h-100 w-100">
+        <div id="preview" className={"d-flex justify-content-center align-items-top overflow-auto h-100 w-100 " + (busy ? "wait-cursor" : "")}>
             <div className="fixed-top text-white px-4 py-3" style={{"backgroundImage" : "linear-gradient(#202731ff, #20273100)"}}>
                 <div className="d-flex justify-content-between align-items-center">
                     <div>
                         <h6 className="mb-0" style={{"textShadow" : "0 0 50px #202731"}} title={filename}>{filename}</h6>
                     </div>
                     <div className="d-flex" style={{color: "#fff"}}>
-                        <button className="btn dl-btn ms-2" onClick={() => download(url)} title={is_online_view ? ("visit " + url + " online") : ("download " + get_archive_child(url) + " from SimSage")}>
+                        <button className="btn dl-btn ms-2" disabled={busy} onClick={() => download(url)} title={is_online_view ? ("visit " + url + " online") : ("download " + get_archive_child(url) + " from SimSage")}>
                             {is_online_view ? "Visit" : "Download"}
                         </button>
                         <button className="btn pre-btn ms-2">
@@ -112,13 +103,23 @@ export function PreviewModal() {
                     <div className="col-9 justify-content-center h-100 overflow-auto preview-cont">
                         <div className="w-100 h-100" style={{"marginTop" : "6rem", "marginBottom" : "6rem"}}>
                             {html_preview_list && html_preview_list.map((preview_data, i) => {
-                                // add keydown listener to body to message us. We add tabindex as body won't recive keydown otherwise
-                                const html = preview_data.html.replace("<body", "<body tabindex='0' onkeydown='parent.window.postMessage(event.key);' ")
+                                // add keydown listener to body to message us. We add tabindex as body won't receive keydown otherwise
+                                const html = preview_data.html.replace("<body", "<body tabindex='0' style='height: 100vh;' onkeydown='parent.window.postMessage(event.key);' ")
                                 return (
                                         <div className="d-flex justify-content-center" key={i} style={{height: parent_height}}>
-                                            <iframe title="preview" className="rounded-3" srcDoc={html} width={w} height={h}
-                                                    style={{"transform": "scale(" + scale + ")", "transformOrigin": "center top"}}
-                                                    frameBorder="0" scrolling="no" />
+                                            <div style={{"width": w, "height": h}}>
+                                                <iframe title="preview" className="rounded-3 scaled-iframe" srcDoc={html}
+                                                        allowTransparency="false"
+                                                        style={{"backgroundColor": "Snow", "transform": "scale(" + scale + ")", "transformOrigin": "center top"}}
+                                                        onLoad={(obj) => {
+                                                            const data = obj?.target;
+                                                            if (data && data.style) {
+                                                                data.style.height = data.contentWindow.document.documentElement.scrollHeight + 'px';
+                                                                data.style.width = Math.max(window.ENV.preview_min_width, data.contentWindow.document.documentElement.scrollWidth) + 'px';
+                                                            }
+                                                        }}
+                                                       frameBorder="0" scrolling="no" />
+                                            </div>
                                         </div>
                                         )
                             })}

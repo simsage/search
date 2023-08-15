@@ -8,13 +8,14 @@ import 'bootstrap/dist/css/bootstrap.css';
 import 'typeface-roboto';
 import {store} from "./store";
 
-import { MsalProvider } from "@azure/msal-react";
+import {AuthenticatedTemplate, MsalProvider, UnauthenticatedTemplate} from "@azure/msal-react";
 import {PublicClientApplication} from "@azure/msal-browser";
 import { msalConfig } from "./AuthConfig";
 
 import reportWebVitals from './reportWebVitals';
 import {PageLayout} from "./pageLayout";
 import {PasswordPageLayout} from "./passwordPageLayout";
+import {SignInPage} from "./search/auth/SignInPage";
 
 /**
  * Initialize a PublicClientApplication instance which is provided to the MsalProvider component
@@ -30,7 +31,15 @@ root.render(
         }
         { window.ENV.authentication !== "password" &&
             <MsalProvider instance={msalInstance}>
-                <PageLayout />
+
+                <AuthenticatedTemplate>
+                    <PageLayout />
+                </AuthenticatedTemplate>
+
+                <UnauthenticatedTemplate>
+                    <SignInPage />
+                </UnauthenticatedTemplate>
+
             </MsalProvider>
         }
     </Provider>

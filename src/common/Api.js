@@ -24,6 +24,15 @@ function s4() {
     return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
 }
 
+// display a pretty version number
+export function pretty_version() {
+    const parts = window.ENV.version.split(".");
+    if (parts.length === 3 || parts.length === 4) {
+        return parts[0] + "." + parts[1] + " (build " + parts[2] + ")";
+    }
+    return window.ENV.version;
+}
+
 // create a guid
 function guid() {
     return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
@@ -197,30 +206,11 @@ export function path_from_url(url) {
 }
 
 // convert js response to its error output equivalent
-function to_pretty_error(error_str) {
-    if (error_str && typeof error_str === "string") {
-        const error_str_lwr = error_str.toLowerCase();
-        if (error_str_lwr === "network error") {
-            return "Could not connect to SimSage (Network Error)"
-        }
-    }
-    return error_str;
-}
-
-// convert known error messages to friendly error messages if possible
-function to_friendly_message(str) {
-    const lwr_str = str.toLowerCase();
-    if (lwr_str.indexOf("network error") >= 0) {
-        return "cannot connect to SimSage."
-    }
-    return str;
-}
-
-// convert js response to its error output equivalent
 export function get_error(action) {
     const str1 = action?.error?.message?.toString() ?? '';
     const str2 = action?.payload?.message?.toString() ?? '';
     const str3 = action?.type?.toString() ?? '';
+    const str4 = action?.payload?.response?.data?.error ?? '';
     let final_str = "";
     if (str1 !== '') {
         final_str += str1;
@@ -237,10 +227,41 @@ export function get_error(action) {
         else
             final_str = str3;
     }
+    if (str4 !== '') {
+        if (final_str !== '')
+            final_str += "\n\n" + str4;
+        else
+            final_str = str4;
+    }
     if (window.ENV.friendly_error_messages) {
         return to_friendly_message(final_str);
     }
     return final_str;
+}
+
+// convert known error messages to friendly error messages if possible
+function to_friendly_message(str) {
+    console.log("STR", str);
+    const lwr_str = str.toLowerCase();
+    if (lwr_str.indexOf("network error") >= 0) {
+        return "cannot connect to SimSage (network error)"
+    } else if (lwr_str.indexOf("session timed out") >= 0 || lwr_str.indexOf("session expired") >= 0) {
+        return "SimSage session timed out."
+    } else if (lwr_str.indexOf("ip-address changed") >= 0) {
+        return "Security: invalid session (ip-address changed)."
+    } else if (lwr_str.indexOf("command timed out") >= 0) {
+        if (lwr_str.indexOf("parsequerytextcmd") >= 0) {
+            return "SimSage's language system timed-out. (parser)";
+        } else if (lwr_str.indexOf("querysummarizationopenaicmd") ||
+                   lwr_str.indexOf("queryanswerquestionopenaicmd")) {
+            return "SimSage's AI system timed-out.";
+        } else if (lwr_str.indexOf("semanticsearchcmd")) {
+            return "SimSage's search system timed-out.";
+        } else if (lwr_str.indexOf("spellingsuggestcmd")) {
+            return "SimSage's language system timed-out (spell-checker)";
+        }
+    }
+    return str;
 }
 
 // rudimentary email verification

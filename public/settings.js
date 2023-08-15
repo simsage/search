@@ -60,5 +60,8 @@ window.ENV = {
     override_source_list: [],
     allow_knowledgbase_selector: true,
     query_ai_enabled: true,
+    use_article_summary: true,
+    snippet_summary_span: 3,
+    article_summary_span: 5,
     friendly_error_messages: true,
 };

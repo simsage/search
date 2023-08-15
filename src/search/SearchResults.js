@@ -23,7 +23,8 @@ export function SearchResults(props) {
     // get state
     const {group_similar, newest_first, last_modified_slider, created_slider,
         syn_set_list, syn_set_values, source_list, spelling_correction, busy, ai_response,
-        metadata_list, total_document_count, qna_url_list, qna_text, has_more, result_list,
+        metadata_list, total_document_count, qna_text, has_more, result_list,
+        summaries, search_focus, busy_with_summary
     } = useSelector((state) => state.searchReducer);
     const {session} = useSelector((state) => state.authReducer);
 
@@ -33,8 +34,8 @@ export function SearchResults(props) {
 
     const [sentryRef] = useInfiniteScroll({
         loading: busy,
-        hasNextPage: has_more,
-        onLoadMore: () => search({next_page: true}),
+        hasNextPage: has_more === true,
+        onLoadMore: () => { if (has_more === true) search({next_page: true}) },
         // When there is an error, we stop infinite loading.
         // It can be reactivated by setting "error" state as undefined.
         disabled: busy,
@@ -68,8 +69,10 @@ export function SearchResults(props) {
     let document_count_text = (total_document_count === 1) ? "one result" :
         ((total_document_count > 0) ? ("" + total_document_count + " results") : "No results...");
 
+    const show_preview = (search_focus !== null && window.ENV.show_previews);
+
     return (
-        <div className={busy ? "h-100 wait-cursor" : "h-100"}>
+        <div className={(busy && !show_preview) ? "h-100 wait-cursor" : "h-100"}>
             <div className="row mx-0 px-2 results-container overflow-auto h-100 justify-content-center" id="search-results-id">
                 <div className="col-xxl-8 col-xl-8 pe-4">
                     { has_spelling_suggestion &&
@@ -80,36 +83,32 @@ export function SearchResults(props) {
                             <span>?</span>
                         </div>
                     }
-                    { ((!has_qna_result && !has_search_result) || has_search_result) && !has_spelling_suggestion && !busy &&
+                    { ((!has_qna_result && !has_search_result) || has_search_result) && !has_spelling_suggestion &&
                         <div className="small text-muted ms-2 fw-light px-3 pb-3">
                             { document_count_text }
                         </div>
                     }
                     { has_qna_result &&
-                        <div className="result-mind p-4 mb-5 mx-3">
-                            {qna_text}
-                            { qna_url_list && qna_url_list.length > 0 &&
-                                <br/>
-                            }
-                            { !ai_response?.length && qna_url_list && qna_url_list.length > 0 &&
-                                qna_url_list.map((url, i) => {
-                                    return (<div className="pt-2" key={i}>
-                                        <a href={url} target="_blank" rel="noreferrer" key={i}
-                                           className="pointer-cursor py-1 fw-bold" title={url}>{url}</a>
-                                    </div>);
-                                })
-                            }
+                        <div className="p-4 mb-3 mx-2">
                             { ai_response?.length &&
-                                ai_response.split("\n").map((text, i) => {
-                                return (<div className="pt-2" key={i}>
-                                        { text.startsWith("http") &&
-                                            <a href={text} target="_blank" className="py-1" title={text}>{text}</a>
+                                <section className="message">
+                                    <header></header>
+                                    <i></i>
+                                    <h2>
+                                        {
+                                            ai_response.split("\n").map((text, i) => {
+                                                return (<div className="dialog-text" key={i}>
+                                                        { text.startsWith("http") &&
+                                                            <a href={text} target="_blank" rel="noreferrer" className="py-1" title={text}>{text}</a>
+                                                        }
+                                                        { !text.startsWith("http") &&
+                                                            <div className="dialog-text" title={text}>{text}</div>
+                                                        }
+                                                    </div>
+                                                )})
                                         }
-                                        { !text.startsWith("http") &&
-                                            <div className="py-1" title={text}>{text}</div>
-                                        }
-                                    </div>
-                                )})
+                                    </h2>
+                                </section>
                             }
                         </div>
                     }
@@ -119,6 +118,7 @@ export function SearchResults(props) {
                             return (<SearchResultFragment
                                 set_focus_for_preview={(result) => dispatch(set_focus_for_preview(result))}
                                 session={session}
+                                summaries={summaries}
                                 result={result}
                                 key={i} />)
                         })
@@ -127,7 +127,7 @@ export function SearchResults(props) {
                     { /* infinite scrolling */ }
                     {(busy || has_more) &&
                         <div ref={sentryRef}>
-                            Loading...
+                            {busy_with_summary ? "creating summary..." : "Loading..."}
                         </div>
                     }
 

@@ -7,11 +7,9 @@ import {
     setup_syn_sets,
     get_time_range_metadata,
     defined,
+    pretty_version,
     copy, get_error, add_url_search_parameter, getKbId
 } from "../common/Api";
-
-// for paginator
-export let global_preview_page = 1;     // starts at page 1
 
 const initialState = {
     shard_list: [],
@@ -33,6 +31,7 @@ const initialState = {
     group_similar: false,
     newest_first: false,
     busy: false,
+    busy_with_summary: false,
     qna_text: '',
     ai_response: '',
     qna_url_list: [],
@@ -51,7 +50,7 @@ const initialState = {
     // preview data
     search_focus: null,             // for previewing items
     html_preview_list: [],          // list of preview pages
-    has_more_preview_pages: true,   // true if has more preview-pages
+    has_more_preview_pages: true,    // do we have more pages?
 
     // date-time sliders
     last_modified_slider: {currentMinValue: 0, currentMaxValue: 0},
@@ -60,6 +59,9 @@ const initialState = {
     // metadata categories down the side
     metadata_list: [],
     metadata_values: {},
+
+    // summarization data
+    summaries: {},
 
     // error handling
     search_error_text: '',
@@ -96,14 +98,14 @@ const extraReducers = (builder) => {
 
                 // add it to the rest (if page > 0) or replace the list?
                 let search_result_list;
+                let new_result_set = (data && data.resultList && data.resultList.length > 0) ? data.resultList : [];
                 if (data.page > 0 || next_page) {
                     search_result_list = state.result_list ? copy(state.result_list) : [];
-                    const new_list = data.resultList ? data.resultList : [];
                     const start = parseInt("" + data.page) * parseInt("" + window.ENV.page_size);
-                    for (let i in new_list) {
+                    for (let i in new_result_set) {
                         const index = parseInt("" + start) + parseInt("" + i);
                         if (index >= parameters.result_list.length) {
-                            search_result_list.push(new_list[i]);
+                            search_result_list.push(new_result_set[i]);
                         }
                     }
                 } else {
@@ -149,6 +151,8 @@ const extraReducers = (builder) => {
                         parameters.last_modified_slider, parameters.created_slider);
                 }
 
+                console.log("new_result_set", new_result_set.length);
+
                 let has_more = false;
                 let divided = (data.totalDocumentCount ? data.totalDocumentCount : 0) / window.ENV.page_size;
                 state.search_page = action.payload.data.page;
@@ -160,7 +164,8 @@ const extraReducers = (builder) => {
                     }
                     if (num_pages === 0)
                         num_pages = 1;
-                    has_more = (state.search_page + 1 < num_pages);
+                    // we have more results to go if there are more pages AND we got a full set of results for this page
+                    has_more = (state.search_page + 1 < num_pages) && (new_result_set.length >= window.ENV.page_size);
                 }
                 state.has_more = has_more;
                 state.num_pages = num_pages;
@@ -168,11 +173,6 @@ const extraReducers = (builder) => {
                 if (filter_text.length > 0)
                     qs_text = qs_text + " " + filter_text;
                 add_url_search_parameter("query",qs_text)
-
-                // // should we move to the next page?
-                // if (next_page && state.search_page + 1 < num_pages) {
-                //     state.search_page += 1;
-                // }
 
                 state.pages_loaded = parseInt("" + (state.result_list.length / window.ENV.page_size));
             }
@@ -229,6 +229,30 @@ const extraReducers = (builder) => {
             console.error("rejected: get_info:" + state.search_error_text);
         })
 
+        //////////////////////////////////////////////////////////////////////////////////////////
+
+        .addCase(create_short_summary.pending, (state) => {
+            state.busy = true;
+            state.busy_with_summary = true;
+            state.search_error_text = "";
+        })
+
+        .addCase(create_short_summary.fulfilled, (state, action) => {
+            const summary_result = action.payload ? action.payload : {};
+            if (summary_result && summary_result.url && summary_result.summary) {
+                state.summaries[summary_result.url] = summary_result.summary;
+            }
+            state.busy_with_summary = false;
+            state.busy = false;
+        })
+
+        .addCase(create_short_summary.rejected, (state, action) => {
+            state.busy = false;
+            state.busy_with_summary = false;
+            state.search_error_text = get_error(action);
+            console.error("rejected: create_short_summary:" + state.search_error_text);
+        })
+
         ////////////////////////////////////////////////////////////////////////////////////
 
         .addCase(get_preview_html.pending, (state) => {
@@ -239,11 +263,10 @@ const extraReducers = (builder) => {
         // get_preview_html
         .addCase(get_preview_html.fulfilled, (state, action) => {
             state.busy = false;
-            global_preview_page += 1;
-            const has_more = action.payload.urlId && action.payload.urlId > 0;
-            state.has_more_preview_page = has_more;
-            if (has_more)
-                state.html_preview_list.push(action.payload);
+            const data = action.payload;
+            const num_total_pages = data.numPages ? data.numPages : 1;
+            state.has_more_preview_pages = state.html_preview_list.length + 1 < num_total_pages;
+            state.html_preview_list.push(action.payload);
         })
 
         .addCase(get_preview_html.rejected, (state, action) => {
@@ -270,13 +293,11 @@ const searchSlice = createSlice({
         },
 
         set_focus_for_preview: (state, action) => {
-            global_preview_page = 1;
             return {...state, search_focus: action.payload, html_preview_list: [], has_more_preview_pages: true}
         },
 
         close_preview: (state) => {
-            global_preview_page = 1;
-            return {...state, search_focus: null, html_preview_list: [], has_more_preview_pages: true}
+            return {...state, search_focus: null, html_preview_list: [], has_more_preview_pages: false}
         },
 
         toggle_query_ai: (state) => {
@@ -390,7 +411,7 @@ export const get_info = createAsyncThunk(
                     encodeURIComponent(user_id);
         return axios.get(url, get_headers(session_id))
             .then((response) => {
-                console.log('SimSage UX version ' + window.ENV.version);
+                console.log('SimSage UX version ' + pretty_version());
                 return response.data;
             }).catch((err) => {
                 return rejectWithValue(err)
@@ -434,13 +455,7 @@ export const do_search = createAsyncThunk(
         const session_id = (session && session.id) ? session.id : null;
         const url = session_id ? (api_base + '/dms/query') : (api_base + '/semantic/query');
 
-
-
-        console.log("DATA");
-        console.log({next_page, reset_pagination, pages_loaded});
-
-
-        search_text = search_text.trim();
+        search_text = search_text.trim().replace('/', ' '); // remove syn-set markers - not used anymore
         let filter_text = "";
 
         // update metadata_values for last-modified or created?
@@ -467,8 +482,7 @@ export const do_search = createAsyncThunk(
 
         if (!(search_text.startsWith("(") && search_text.endsWith(")"))) {
             filter_text = get_filters(metadata_list, metadata_values, entity_values, source_list, source_values,
-                                      hash_tag_list, setup_syn_sets(search_text, syn_set_values),
-                                      c_last_modified_slider, c_created_slider);
+                                      hash_tag_list, [], c_last_modified_slider, c_created_slider);
         }
 
         const combined_text = (search_text + ' ' + filter_text).trim();
@@ -538,13 +552,39 @@ export const do_search = createAsyncThunk(
 );
 
 
+// get required SimSage information
+export const create_short_summary = createAsyncThunk(
+    'create_short_summary', async({session, target_url, sentence_id, span}, {rejectWithValue}) => {
+
+        const api_base = window.ENV.api_base;
+        const session_id = (session && session.id) ? session.id : null;
+        const url = api_base + '/semantic/short-summary';
+        const data = {
+            organisationId: window.ENV.organisation_id,
+            kbId: window.ENV.kb_id,
+            clientId: session_id,
+            url: target_url,
+            sentenceId: sentence_id,
+            span: span,
+        };
+        return axios.post(url, data, get_headers(session_id))
+            .then((response) => {
+                return response.data;
+            }).catch((err) => {
+                return rejectWithValue(err)
+            })
+    }
+)
+
+
 /**
  * get an html preview for a given url / page
  *
  */
 export const get_preview_html = createAsyncThunk(
         'get_preview_html',
-async ({session, url_id}, {rejectWithValue}) => {
+    async ({session, url_id, html_preview_list},
+           {rejectWithValue}) => {
 
             const api_base = window.ENV.api_base;
             const session_id = (session && session.id) ? session.id : get_client_id();
@@ -554,7 +594,7 @@ async ({session, url_id}, {rejectWithValue}) => {
                 "organisationId": window.ENV.organisation_id,
                 "kbId": getKbId(),
                 "urlId": url_id,
-                "page": global_preview_page,
+                "page": (html_preview_list && html_preview_list.length) ? html_preview_list.length + 1 : 1,
             }
 
             return axios.post(url, data, get_headers(session_id))
