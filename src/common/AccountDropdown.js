@@ -2,7 +2,7 @@ import React from 'react';
 
 import './AccountDropdown.css';
 import {close_menu, sign_out} from "../reducers/authSlice";
-import {toggle_question_answering_ai} from "../reducers/searchSlice";
+import {toggle_ai} from "../reducers/searchSlice";
 import {useDispatch, useSelector} from "react-redux";
 
 
@@ -13,7 +13,7 @@ import {useDispatch, useSelector} from "react-redux";
 export function AccountDropdown(props) {
     const dispatch = useDispatch();
     const {show_menu} = useSelector((state) => state.authReducer);
-    const {use_question_answering_ai} = useSelector((state) => state.searchReducer);
+    const {use_ai} = useSelector((state) => state.searchReducer);
 
     function sign_in() {
         dispatch(close_menu());
@@ -28,11 +28,11 @@ export function AccountDropdown(props) {
     }
     function view_advanced_query_syntax() {
         dispatch(close_menu());
-        window.open("/resources/super-search-syntax.pdf", "blank");
+        window.open("/resources/search-syntax.pdf", "blank");
     }
-    function set_use_question_answering_ai() {
+    function set_ai() {
         dispatch(close_menu());
-        dispatch(toggle_question_answering_ai());
+        dispatch(toggle_ai());
     }
     const is_authenticated = (props.isAuthenticated === true);
     return (
@@ -49,8 +49,8 @@ export function AccountDropdown(props) {
                 }
                 { window.ENV.query_ai_enabled &&
                     <li className="acc-item px-4 py-3"
-                        onClick={() => set_use_question_answering_ai()}>
-                        <label>{ use_question_answering_ai ? "\u2713 " : ""}use AI question answering</label>
+                        onClick={() => set_ai()}>
+                        <label>{ use_ai ? "\u2713 " : ""}use AI</label>
                     </li>
                 }
                 { !is_authenticated &&

@@ -7,3 +7,20 @@
     color:#25ade8;
     cursor: pointer;
 }
+
+.circle-margin-left {
+    margin-left: 10px;
+}
+
+.in-circle {
+    display: inline-block;
+    cursor: pointer;
+    background: #f2f2f2;
+    color: #777;
+    border-radius: 50%;
+    width: 25px;
+    height: 25px;
+    line-height: 25px;
+    text-align: center;
+    font-size: 13px;
+}

@@ -6,8 +6,11 @@ import {ErrorDialog} from "../common/ErrorDialog";
 import {TitleBar} from "./TitleBar";
 import {SearchResults} from "./SearchResults";
 import {StartSearchPage} from "./StartSearchPage";
+import {AIDialog} from "./controls/AIDialog";
 import {close_kb_menu, close_menu, toggle_kb_menu, toggle_menu} from "../reducers/authSlice";
 import {
+    close_preview,
+    close_query_ai,
     do_search,
     get_info,
     set_metadata_values, set_source_values,
@@ -32,11 +35,28 @@ function Search(props) {
     const {show_search_results, search_focus, busy, all_kbs, has_info} = useSelector((state) => state.searchReducer);
     const {shard_list, search_text, group_similar, newest_first, metadata_list, metadata_values} = useSelector((state) => state.searchReducer);
     const {entity_values, hash_tag_list, syn_sets, last_modified_slider, created_slider} = useSelector((state) => state.searchReducer);
-    const {source_list, source_values, result_list, prev_search_text, use_question_answering_ai,
-           pages_loaded, category_list, category_values, source_id_list, use_query_ai, use_summarization_ai} = useSelector((state) => state.searchReducer);
+    const {source_list, source_values, result_list, prev_search_text, prev_filter,
+           pages_loaded, category_list, category_values, source_id_list, use_ai,
+           query_ai_focus_url} = useSelector((state) => state.searchReducer);
     const {session, organisation, user} = useSelector((state) => state.authReducer);
 
     const showKbMenu = window.ENV.allow_knowledgbase_selector && all_kbs && all_kbs.length>1
+
+    // set up a global document-listener just for keydown ESC here
+    useEffect(() => {
+        // close the preview if we caught the keydown event for the escape key
+        function check_for_escape_key_to_close_modal(event) {
+            if (event && event.key === "Escape") {
+                dispatch(close_query_ai());
+                dispatch(close_preview());
+            }
+        }
+        const listener = (e) => check_for_escape_key_to_close_modal(e);
+        document.addEventListener("keydown", listener);
+        return function() {
+            document.removeEventListener("keydown", listener);
+        }
+    }, [dispatch])
 
     useEffect(() => {
         if (!has_info)
@@ -59,7 +79,8 @@ function Search(props) {
             if (source_list.length > 0 && (session?.id || window.ENV.allow_anon))
                 search({data, next_page: false});
         }
-    }, [source_list, session?.id]) // the dependency on source_list is a convenient one as it relates to get_info finishing
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [source_list, session?.id, dispatch]) // the dependency on source_list is a convenient one as it relates to get_info finishing
 
     const is_authenticated = session && session.id && session.id.length > 0;
 
@@ -115,6 +136,7 @@ function Search(props) {
             syn_sets: syn_sets,
             result_list: result_list,
             prev_search_text: prev_search_text,
+            prev_filter: prev_filter,
             metadata_list: metadata_list,
             metadata_values: metadata_values,
             source_list: source_list,
@@ -123,9 +145,7 @@ function Search(props) {
             created_slider: created_slider,
             next_page: false,
             reset_pagination: false,
-            use_query_ai: (use_query_ai && window.ENV.query_ai_enabled),
-            use_summarization_ai: (use_summarization_ai && window.ENV.query_ai_enabled),
-            use_question_answering_ai: (use_question_answering_ai && window.ENV.query_ai_enabled)
+            use_ai: (use_ai && window.ENV.query_ai_enabled)
         };
         if (values) {
             dispatch(do_search({...data, ...values}));
@@ -145,6 +165,7 @@ function Search(props) {
     }
 
     const show_preview = (search_focus !== null && window.ENV.show_previews);
+    const show_ai = window.ENV.query_ai_enabled && query_ai_focus_url && query_ai_focus_url.length > 0;
 
     return (
         <div className="Search" onClick={() => on_close_menu()}>
@@ -161,6 +182,12 @@ function Search(props) {
                         <StartSearchPage on_search={() => search({next_page: false})} />
                     </div>
                 }
+
+                <div className="ai-float">
+                    {show_ai &&
+                        <AIDialog />
+                    }
+                </div>
 
                 {!show_preview && showKbMenu &&
                     <div className="kb-menu">

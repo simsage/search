@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 
 import './PreviewModal.css';
 import {download, get_archive_child, get_metadata_list, is_viewable} from "../../common/Api";
@@ -13,22 +13,6 @@ export function PreviewModal() {
     const dispatch = useDispatch();
     const {search_focus, busy, html_preview_list, has_more_preview_pages} = useSelector((state) => state.searchReducer);
     const {session} = useSelector((state) => state.authReducer);
-
-
-    // set up a global document-listener just for keydown ESC here
-    useEffect(() => {
-        // close the preview if we caught the keydown event for the escape key
-        function check_for_escape_key_to_close_modal(event) {
-            if (event && event.key === "Escape") {
-                dispatch(close_preview());
-            }
-        }
-        const listener = (e) => check_for_escape_key_to_close_modal(e);
-        document.addEventListener("keydown", listener);
-        return function() {
-            document.removeEventListener("keydown", listener);
-        }
-    }, [dispatch])
 
     const url_id = search_focus && search_focus.urlId ? search_focus.urlId : 0;
 
@@ -80,6 +64,8 @@ export function PreviewModal() {
     if (h < window.ENV.preview_min_height) h = window.ENV.preview_min_height;
     h = Math.round(h) + "px";
 
+    const session_id = (session && session.id) ? session.id : "";
+
     return (
         <div id="preview" className={"d-flex justify-content-center align-items-top overflow-auto h-100 w-100 " + (busy ? "wait-cursor" : "")}>
             <div className="fixed-top text-white px-4 py-3" style={{"backgroundImage" : "linear-gradient(#202731ff, #20273100)"}}>
@@ -88,7 +74,7 @@ export function PreviewModal() {
                         <h6 className="mb-0" style={{"textShadow" : "0 0 50px #202731"}} title={filename}>{filename}</h6>
                     </div>
                     <div className="d-flex" style={{color: "#fff"}}>
-                        <button className="btn dl-btn ms-2" disabled={busy} onClick={() => download(url)} title={is_online_view ? ("visit " + url + " online") : ("download " + get_archive_child(url) + " from SimSage")}>
+                        <button className="btn dl-btn ms-2" disabled={busy} onClick={() => download(url, session_id)} title={is_online_view ? ("visit " + url + " online") : ("download " + get_archive_child(url) + " from SimSage")}>
                             {is_online_view ? "Visit" : "Download"}
                         </button>
                         <button className="btn pre-btn ms-2">

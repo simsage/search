@@ -1,6 +1,6 @@
 window.ENV = {
     // SimSage platform version (used for display only in UI)
-    version: '7.9.0',
+    version: '7.11.2.perf',
     // api version of api_base
     api_version: 1,
     // is this a production build or not?
@@ -60,6 +60,7 @@ window.ENV = {
     override_source_list: [],
     allow_knowledgbase_selector: true,
     query_ai_enabled: true,
+    query_ai_enabled_by_default: false,
     use_article_summary: true,
     snippet_summary_span: 3,
     article_summary_span: 5,

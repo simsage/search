@@ -24,7 +24,7 @@ export function SearchResults(props) {
     const {group_similar, newest_first, last_modified_slider, created_slider,
         syn_set_list, syn_set_values, source_list, spelling_correction, busy, ai_response,
         metadata_list, total_document_count, qna_text, has_more, result_list,
-        summaries, search_focus, busy_with_summary
+        summaries, search_focus, busy_with_summary, use_ai, busy_with_ai,
     } = useSelector((state) => state.searchReducer);
     const {session} = useSelector((state) => state.authReducer);
 
@@ -119,13 +119,15 @@ export function SearchResults(props) {
                                 set_focus_for_preview={(result) => dispatch(set_focus_for_preview(result))}
                                 session={session}
                                 summaries={summaries}
+                                source_list={source_list}
                                 result={result}
+                                use_ai={use_ai}
                                 key={i} />)
                         })
                     }
 
                     { /* infinite scrolling */ }
-                    {(busy || has_more) &&
+                    { (busy || has_more) && !busy_with_ai &&
                         <div ref={sentryRef}>
                             {busy_with_summary ? "creating summary..." : "Loading..."}
                         </div>

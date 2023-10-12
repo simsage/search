@@ -461,7 +461,7 @@ export function get_filters(metadata_list, metadata_values, entity_values, sourc
         needs_and = true;
     }
 
-    if (syn_set_filter.length > 0) {
+    if (syn_set_filter && syn_set_filter.length > 0) {
         if (needs_and) filter_str += " and (";
         filter_str += syn_set_filter;
         if (needs_and) filter_str += ")";

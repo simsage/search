@@ -4,7 +4,6 @@ import {
     get_client_id,
     get_headers,
     get_filters,
-    setup_syn_sets,
     get_time_range_metadata,
     defined,
     pretty_version,
@@ -32,20 +31,25 @@ const initialState = {
     newest_first: false,
     busy: false,
     busy_with_summary: false,
+    busy_with_ai: false,
     qna_text: '',
     ai_response: '',
     qna_url_list: [],
     search_text: '',
     prev_search_text: '',
+    prev_filter: '',
     sr_text: '',                // text return from the search result
     spelling_correction: '',
     entity_values: {},
     hash_tag_list: [],
 
     // use openAi or equivalent query processors
-    use_query_ai: false,
-    use_summarization_ai: false,
-    use_question_answering_ai: false,
+    use_ai: window.ENV.query_ai_enabled_by_default,
+    // the url to focus on for q&A document
+    query_ai_focus_url: '',
+    query_ai_focus_url_id: 0,
+    query_ai_focus_title: '',
+    query_ai_dialog_list: [],
 
     // preview data
     search_focus: null,             // for previewing items
@@ -82,6 +86,9 @@ const extraReducers = (builder) => {
                 state.ai_response = '';
             }
             state.search_error_text = "";
+            state.query_ai_focus_url = "";
+            state.query_ai_focus_title = "";
+            state.query_ai_dialog_list = [];
         })
 
         // search result comes in - success
@@ -94,7 +101,8 @@ const extraReducers = (builder) => {
                 state.show_search_results = true;
 
                 // this is now the previous search
-                state.prev_search_text = parameters.prev_search_text;
+                state.prev_search_text = data.prev_search_text;
+                state.prev_filter = parameters.prev_filter;
 
                 // add it to the rest (if page > 0) or replace the list?
                 let search_result_list;
@@ -141,18 +149,6 @@ const extraReducers = (builder) => {
                     }
                 }
 
-                // set the query string based on the results of the returned search
-                let qs_text = parameters.search_text;
-                let filter_text = "";
-                if (!(qs_text.startsWith("(") && qs_text.endsWith(")"))) {
-                    filter_text = get_filters(parameters.metadata_list, parameters.metadata_values, parameters.entity_values,
-                        parameters.source_list, parameters.source_values,
-                        parameters.hash_tag_list, setup_syn_sets(parameters.search_text, parameters.syn_set_values),
-                        parameters.last_modified_slider, parameters.created_slider);
-                }
-
-                console.log("new_result_set", new_result_set.length);
-
                 let has_more = false;
                 let divided = (data.totalDocumentCount ? data.totalDocumentCount : 0) / window.ENV.page_size;
                 state.search_page = action.payload.data.page;
@@ -170,9 +166,8 @@ const extraReducers = (builder) => {
                 state.has_more = has_more;
                 state.num_pages = num_pages;
 
-                if (filter_text.length > 0)
-                    qs_text = qs_text + " " + filter_text;
-                add_url_search_parameter("query",qs_text)
+                // set the query string based on the results of the returned search
+                add_url_search_parameter("query", parameters.search_text)
 
                 state.pages_loaded = parseInt("" + (state.result_list.length / window.ENV.page_size));
             }
@@ -264,9 +259,11 @@ const extraReducers = (builder) => {
         .addCase(get_preview_html.fulfilled, (state, action) => {
             state.busy = false;
             const data = action.payload;
-            const num_total_pages = data.numPages ? data.numPages : 1;
-            state.has_more_preview_pages = state.html_preview_list.length + 1 < num_total_pages;
-            state.html_preview_list.push(action.payload);
+            if (data) {
+                const num_total_pages = data.numPages ? data.numPages : 1;
+                state.has_more_preview_pages = state.html_preview_list.length + 1 < num_total_pages;
+                state.html_preview_list.push(action.payload);
+            }
         })
 
         .addCase(get_preview_html.rejected, (state, action) => {
@@ -274,6 +271,35 @@ const extraReducers = (builder) => {
             state.search_error_text = get_error(action);
             console.error("rejected: get_preview_html:" + state.search_error_text);
         })
+
+        ////////////////////////////////////////////////////////////////////////////////////
+
+        .addCase(ask_document_question.pending, (state) => {
+            state.busy = true;
+            state.busy_with_ai = true;
+            state.search_error_text = "";
+        })
+
+        // ask_document_question
+        .addCase(ask_document_question.fulfilled, (state, action) => {
+            state.busy = false;
+            state.busy_with_ai = false;
+            const data = action.payload;
+            if (data && data.answer && data.conversationList.length > 0) {
+                let list = copy(state.query_ai_dialog_list);
+                list.push({"role": "user", "content": data.conversationList[data.conversationList.length - 1].content});
+                list.push({"role": "assistant", "content": data.answer});
+                state.query_ai_dialog_list = list;
+            }
+        })
+
+        .addCase(ask_document_question.rejected, (state, action) => {
+            state.busy = false;
+            state.busy_with_ai = false;
+            state.search_error_text = get_error(action);
+            console.error("rejected: ask_document_question:" + state.search_error_text);
+        })
+
 
 }
 
@@ -293,23 +319,22 @@ const searchSlice = createSlice({
         },
 
         set_focus_for_preview: (state, action) => {
-            return {...state, search_focus: action.payload, html_preview_list: [], has_more_preview_pages: true}
+            return {...state,
+                query_ai_focus_url: '',
+                query_ai_focus_url_id: 0,
+                query_ai_focus_title: '',
+                search_focus: action.payload,
+                html_preview_list: [],
+                has_more_preview_pages: true
+            }
         },
 
         close_preview: (state) => {
             return {...state, search_focus: null, html_preview_list: [], has_more_preview_pages: false}
         },
 
-        toggle_query_ai: (state) => {
-            return {...state, use_query_ai: !state.use_query_ai}
-        },
-
-        toggle_summarization_ai: (state) => {
-            return {...state, use_summarization_ai: !state.use_summarization_ai, use_question_answering_ai: false}
-        },
-
-        toggle_question_answering_ai: (state) => {
-            return {...state, use_question_answering_ai: !state.use_question_answering_ai, use_summarization_ai: false}
+        toggle_ai: (state) => {
+            return {...state, use_ai: !state.use_ai}
         },
 
         set_busy: (state, action) => {
@@ -394,6 +419,25 @@ const searchSlice = createSlice({
             return {...state, search_error_text: ''}
         },
 
+        select_document_for_ai_query: (state, action) => {
+            return {...state,
+                search_focus: null, // close
+                query_ai_focus_url: action.payload.url,
+                query_ai_focus_url_id: action.payload.url_id,
+                query_ai_focus_title: action.payload.title,
+                query_ai_dialog_list: [{"role": "assistant", "content": "Please ask me any question about %doc%"}]
+            }
+        },
+
+        close_query_ai: (state) => {
+            return {...state,
+                query_ai_focus_url: '',
+                query_ai_focus_url_id: 0,
+                query_ai_focus_title: '',
+                query_ai_dialog_list: []
+            }
+        },
+
     },
     extraReducers
 })
@@ -430,6 +474,7 @@ export const do_search = createAsyncThunk(
                user,
                search_text,
                prev_search_text,
+               prev_filter,
                shard_list,
                group_similar,
                newest_first,
@@ -444,9 +489,7 @@ export const do_search = createAsyncThunk(
                created_slider,
                result_list,
                pages_loaded,
-               use_query_ai,
-               use_summarization_ai,
-               use_question_answering_ai,
+               use_ai,
                next_page,
                reset_pagination
            }, {rejectWithValue}) => {
@@ -454,9 +497,6 @@ export const do_search = createAsyncThunk(
         const api_base = window.ENV.api_base;
         const session_id = (session && session.id) ? session.id : null;
         const url = session_id ? (api_base + '/dms/query') : (api_base + '/semantic/query');
-
-        search_text = search_text.trim().replace('/', ' '); // remove syn-set markers - not used anymore
-        let filter_text = "";
 
         // update metadata_values for last-modified or created?
         let c_last_modified_slider = {};
@@ -480,22 +520,21 @@ export const do_search = createAsyncThunk(
             }
         }
 
-        if (!(search_text.startsWith("(") && search_text.endsWith(")"))) {
-            filter_text = get_filters(metadata_list, metadata_values, entity_values, source_list, source_values,
-                                      hash_tag_list, [], c_last_modified_slider, c_created_slider);
-        }
+        const filter_text = get_filters(metadata_list, metadata_values, entity_values, source_list, source_values,
+                                        hash_tag_list, [], c_last_modified_slider, c_created_slider);
 
-        const combined_text = (search_text + ' ' + filter_text).trim();
         const in_parameters = {session, client_id, user, search_text, shard_list,
             group_similar, newest_first, metadata_list, metadata_values, entity_values, source_list,
             source_values, hash_tag_list, syn_set_values, last_modified_slider: c_last_modified_slider,
-            created_slider: c_created_slider, result_list: result_list, prev_search_text: combined_text};
+            created_slider: c_created_slider, result_list: result_list, prev_search_text: prev_search_text,
+            prev_filter: prev_filter};
 
         // reset pagination?  if this is a different search or the previous search had no results
         let new_search_page = search_page;
         let new_pages_loaded = pages_loaded;
         let new_shard_list = shard_list;
-        if (combined_text !== prev_search_text || (result_list && result_list.length === 0) || reset_pagination) {
+        if (search_text !== prev_search_text || prev_filter !== filter_text ||
+            (result_list && result_list.length === 0) || reset_pagination) {
             new_search_page = 0;
             new_pages_loaded = 0;
             new_shard_list = [];
@@ -526,9 +565,7 @@ export const do_search = createAsyncThunk(
             groupSimilarDocuments: group_similar,
             sortByAge: newest_first,
             sourceId: '',
-            useQueryAi: use_query_ai === true,
-            useSummarizationAi: use_summarization_ai === true,
-            useQuestionAnsweringAi: use_question_answering_ai === true,
+            useQuestionAnsweringAi: use_ai === true,
         };
 
         if (search_text.trim().length > 0) {
@@ -539,6 +576,7 @@ export const do_search = createAsyncThunk(
                         response.data.original_text = search_text;
                         response.data.page = new_search_page;
                         response.data.pages_loaded = new_pages_loaded
+                        response.data.prev_search_text = search_text;
                         return {data: response.data, parameters: in_parameters,
                             next_page: next_page, reset_pagination: reset_pagination};
                     } else {
@@ -607,11 +645,47 @@ export const get_preview_html = createAsyncThunk(
 )
 
 
+/**
+ * get an html preview for a given url / page
+ *
+ */
+export const ask_document_question = createAsyncThunk(
+    'ask_document_question',
+    async ({session, prev_conversation_list, question, document_url, document_url_id},
+           {rejectWithValue}) => {
+
+        const api_base = window.ENV.api_base;
+        const session_id = (session && session.id) ? session.id : get_client_id();
+        const url = api_base + '/semantic/document-qa';
+        let conversationList = [];
+        if (prev_conversation_list.length > 1) {
+            conversationList = prev_conversation_list.slice(1, prev_conversation_list.length);
+        }
+        conversationList.push({"role": "user", "content": question})
+        const data = {
+            "organisationId": window.ENV.organisation_id,
+            "kbId": getKbId(),
+            "url": document_url,
+            "urlId": document_url_id,
+            "conversationList": conversationList,
+            "answer": "",
+        }
+
+        return axios.post(url, data, get_headers(session_id))
+            .then((response) => {
+                return response.data;
+            }).catch((err) => {
+                return rejectWithValue(err)
+            })
+    }
+)
+
+
 export const {
         go_home, update_search_text, set_focus_for_preview, set_source_value, set_metadata_value,
         dismiss_search_error, set_group_similar, set_newest_first, set_source_filter, select_syn_set,
         set_range_slider, set_metadata_values, set_source_values, close_preview,
-        toggle_query_ai, toggle_summarization_ai, toggle_question_answering_ai
+        toggle_ai, select_document_for_ai_query, close_query_ai
     } = searchSlice.actions;
 
 export default searchSlice.reducer;

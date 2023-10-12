@@ -28,8 +28,18 @@ export function ErrorDialog() {
     }, [dispatch, instance])
 
     function on_close_errors() {
-        dispatch(dismiss_auth_error());
-        dispatch(dismiss_search_error());
+        if (error_message && (
+            error_message.indexOf('user does not exist') >= 0 ||
+            error_message.indexOf('invalid session id') >= 0
+            )
+        ) {
+            instance.logoutRedirect().catch(e => {
+                console.error("ErrorDialog: logoutRequest error", e);
+            });
+        } else {
+            dispatch(dismiss_auth_error());
+            dispatch(dismiss_search_error());
+        }
     }
 
     let combined_error = '';

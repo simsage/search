@@ -13,7 +13,7 @@ import {
     url_to_bread_crumb
 } from "../../common/Api";
 import React from "react";
-import {create_short_summary} from "../../reducers/searchSlice";
+import {create_short_summary, select_document_for_ai_query} from "../../reducers/searchSlice";
 import {useDispatch} from "react-redux";
 
 export function SearchResultFragment(props) {
@@ -31,6 +31,7 @@ export function SearchResultFragment(props) {
     const child_list = related_document_list.filter(rel => rel.isChild);
     const last_modified = unix_time_convert(result.lastModified);
     const title = result.title ? result.title : "";
+    const use_ai = props.use_ai;
     const metadata_lists = get_metadata_list(result.metadata);
     const summary = props.summaries[result.url] ? props.summaries[result.url] : "";
     const tag_list = metadata_lists["tag_list"];
@@ -116,6 +117,25 @@ export function SearchResultFragment(props) {
             sentence_id: 0, span: window.ENV.article_summary_span}))
     }
 
+    // select url as a document for AI focus
+    function selectDocumentForAIQuery(url) {
+        dispatch(select_document_for_ai_query(
+            {url: result.url, title: title, url_id: result.urlId}
+        ))
+    }
+
+    const source_set = {};
+    if (props.source_list && props.source_list.length > 0) {
+        for (const source of props.source_list) {
+            source_set[source.sourceId] = source;
+        }
+    }
+    const result_source = source_set[result.sourceId];
+    let source_type = "";
+    if (result_source && result_source.sourceType) {
+        source_type = result_source.sourceType;
+    }
+
     return (
         <div className="d-flex pb-4 mb-3 px-3">
             <img onClick={(event) => click_preview_image(event, result, url)}
@@ -132,7 +152,14 @@ export function SearchResultFragment(props) {
                 <span className="mb-2 results-filename text-break pointer-cursor"
                       onClick={() => {
                           handle_title_click(result, url)
-                      }} title={get_title_for_links(url)}>{title ? title : url}</span>
+                      }} title={get_title_for_links(url)}>{title ? title : url}
+                </span>
+                { window.ENV.query_ai_enabled && use_ai &&
+                <span className="qna-image" title="question this document using AI"
+                      onClick={() => selectDocumentForAIQuery(url)}>
+                    <span className="circle-margin-left in-circle">Q</span>
+                </span>
+                }
                 <div className="d-flex align-items-center mb-1">
                     { is_archive_file(url) &&
                         <span>
@@ -145,15 +172,18 @@ export function SearchResultFragment(props) {
                         <span className="mb-0 result-details-title">{url}</span>
                     }
                 </div>
-                <div className="d-flex align-items-center mb-1">
-                    <span className="mb-0 result-details">Last modified {last_modified}</span>
-                    {result.author &&
-                        <span className="d-flex align-items-center">
-                            <span className="mb-0 result-details mx-2">|</span>
-                            <span className="mb-0 result-details">{result.author}</span>
-                        </span>
-                    }
-                </div>
+                {/* web sources don't have a valid last modified display */}
+                { source_type !== "web" &&
+                    <div className="d-flex align-items-center mb-1">
+                        <span className="mb-0 result-details">Last modified {last_modified}</span>
+                        {result.author &&
+                            <span className="d-flex align-items-center">
+                                <span className="mb-0 result-details mx-2">|</span>
+                                <span className="mb-0 result-details">{result.author}</span>
+                            </span>
+                        }
+                    </div>
+                }
                 {
                     text_list.map((text, i) => {
                         const _text = highlight(text);
@@ -217,7 +247,7 @@ export function SearchResultFragment(props) {
                     })
                 }
                 {
-                    summary && summary.length > 0 && window.ENV.query_ai_enabled &&
+                    summary && summary.length > 0 && window.ENV.query_ai_enabled && use_ai &&
                     <div className="border-top">
                         {
                             summary.split("\n").map((text, i) => {
@@ -231,10 +261,10 @@ export function SearchResultFragment(props) {
                 {
                     (!summary || summary.length === 0) && window.ENV.query_ai_enabled && session_id !== "null" &&
                     <div>
-                        { !window.ENV.use_article_summary &&
+                        { !window.ENV.use_article_summary && window.ENV.query_ai_enabled && use_ai &&
                             <span className="link" onClick={(event) => createSnippetSummary(event)} title="create a short summary of this search-result">create summary</span>
                         }
-                        { window.ENV.use_article_summary &&
+                        { window.ENV.use_article_summary && window.ENV.query_ai_enabled && use_ai &&
                             <span className="link" onClick={(event) => createArticleSummary(event)} title="create a short summary of the document">create summary</span>
                         }
                     </div>

@@ -32,7 +32,7 @@ export function StartSearchPage() {
         source_values,
         last_modified_slider,
         created_slider,
-        use_query_ai
+        use_ai
     } = useSelector((state) => state.searchReducer);
     const {session, user} = useSelector((state) => state.authReducer);
 
@@ -71,7 +71,7 @@ export function StartSearchPage() {
             source_values: source_values,
             last_modified_slider: last_modified_slider,
             created_slider: created_slider,
-            use_query_ai: use_query_ai,
+            use_ai: use_ai,
         }));
     }
 
