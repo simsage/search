@@ -241,7 +241,6 @@ export function get_error(action) {
 
 // convert known error messages to friendly error messages if possible
 function to_friendly_message(str) {
-    console.log("STR", str);
     const lwr_str = str.toLowerCase();
     if (lwr_str.indexOf("network error") >= 0) {
         return "cannot connect to SimSage (network error)"
@@ -412,7 +411,11 @@ export function get_filters(metadata_list, metadata_values, entity_values, sourc
                         if (temp_filter.length > 0) {
                             temp_filter += " or ";
                         }
-                        temp_filter += "meta(" + md.metadata + "," + k + ")";
+                        if (md.metadata === 'document-type') {
+                            temp_filter += "word(" + k + "," + md.metadata + ")";
+                        } else {
+                            temp_filter += "meta(" + md.metadata + "," + k + ")";
+                        }
                     }
                 }
                 if (temp_filter.length > 0) {

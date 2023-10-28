@@ -211,7 +211,7 @@ export function SearchResults(props) {
                                             <br/>
                                         </div>
                                     }
-                                    { has_search_result && metadata_list && metadata_list.length > 0 && metadata_list.map((item, index) => {
+                                    { metadata_list && metadata_list.length > 0 && metadata_list.map((item, index) => {
                                         return (
                                             <MetadataSelector key={index}
                                                               title={item.displayName}

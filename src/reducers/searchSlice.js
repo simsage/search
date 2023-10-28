@@ -102,7 +102,7 @@ const extraReducers = (builder) => {
 
                 // this is now the previous search
                 state.prev_search_text = data.prev_search_text;
-                state.prev_filter = parameters.prev_filter;
+                state.prev_filter = data.prev_filter;
 
                 // add it to the rest (if page > 0) or replace the list?
                 let search_result_list;
@@ -577,6 +577,7 @@ export const do_search = createAsyncThunk(
                         response.data.page = new_search_page;
                         response.data.pages_loaded = new_pages_loaded
                         response.data.prev_search_text = search_text;
+                        response.data.prev_filter = filter_text;
                         return {data: response.data, parameters: in_parameters,
                             next_page: next_page, reset_pagination: reset_pagination};
                     } else {
@@ -651,7 +652,7 @@ export const get_preview_html = createAsyncThunk(
  */
 export const ask_document_question = createAsyncThunk(
     'ask_document_question',
-    async ({session, prev_conversation_list, question, document_url, document_url_id},
+    async ({session, prev_conversation_list, question, document_url, document_url_id, on_success},
            {rejectWithValue}) => {
 
         const api_base = window.ENV.api_base;
@@ -673,6 +674,9 @@ export const ask_document_question = createAsyncThunk(
 
         return axios.post(url, data, get_headers(session_id))
             .then((response) => {
+                if (on_success) {
+                    on_success();
+                }
                 return response.data;
             }).catch((err) => {
                 return rejectWithValue(err)

@@ -40,7 +40,9 @@ export function AIDialog() {
                 prev_conversation_list: query_ai_dialog_list,
                 question: query,
                 document_url: query_ai_focus_url,
-                document_url_id: query_ai_focus_url_id}
+                document_url_id: query_ai_focus_url_id,
+                on_success: () => { set_query(''); }
+                }
             ))
         }
     }

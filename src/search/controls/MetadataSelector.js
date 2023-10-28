@@ -2,7 +2,7 @@ import './MetadataSelector.css';
 import {useDispatch, useSelector} from "react-redux";
 import {useState} from "react";
 import {set_metadata_value} from "../../reducers/searchSlice";
-import {copy, defined} from "../../common/Api";
+import {copy} from "../../common/Api";
 
 export function MetadataSelector(props) {
     const dispatch = useDispatch();
@@ -50,8 +50,7 @@ export function MetadataSelector(props) {
         }
         // apply the text filter if applicable - and filter items that have no count if there is a count
         sorted_list = sorted_list.filter((item) => { return (trim_filter.length === 0 ||
-                                       item.name.toLowerCase().indexOf(trim_filter) >= 0) &&
-                                       (!defined(item.count) || item.count > 0)
+                                       item.name.toLowerCase().indexOf(trim_filter) >= 0)
                                });
         const max_size = window.ENV.max_filter_size ? window.ENV.max_filter_size : 0;
         const has_reached_limit = max_size > 0 && sorted_list.length > max_size && !expand;
