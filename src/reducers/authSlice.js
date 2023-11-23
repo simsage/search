@@ -16,11 +16,14 @@ const initialState = {
     reset_password_request: false,
     // message from the system to display
     system_message: '',
-
     // error dialog
     error_message: '',
 }
 
+// get the location of the current page without any query parameters - e.g. http://localhost/test/
+const location = function() {
+    return window.location.protocol + '//' + window.location.host + window.location.pathname;
+}
 
 const authSlice = createSlice({
     name: 'auth',
@@ -67,7 +70,7 @@ const authSlice = createSlice({
 
         sign_out: (state) => {
             return {...state, session: {}, user: {}, organisation: {}, result_list: [], page: 0,
-                    reset_password_request: false, error_message: '', search_error_text: '', error_text: ''}
+                    reset_password_request: false, error_message: ''}
         },
 
     },
@@ -150,7 +153,7 @@ const authSlice = createSlice({
             .addCase(requestResetPassword.fulfilled, (state, action) => {
                 const error_str = get_error(action.payload);
                 if (error_str && error_str.length > 0) {
-                    state.search_error_text = error_str;
+                    state.error_message = error_str;
                 } else {
                     state.system_message = "we've emailed you a link for resetting your password.";
                 }
@@ -168,11 +171,11 @@ const authSlice = createSlice({
             })
 
             .addCase(resetPassword.fulfilled, (state, action) => {
-                const error_str = get_error(action);
+                const error_str = action.payload?.error;
                 if (error_str && error_str.length > 0) {
-                    state.search_error_text = error_str;
+                    state.error_message = error_str;
                 } else {
-                    state.system_message = "Password reset.  Click 'sign in' to sign-in.";
+                    state.system_message = "Password reset.  Click 'Back to sign in' to sign-in.";
                 }
             })
 
@@ -225,7 +228,7 @@ export const requestResetPassword = createAsyncThunk(
     async ({email}, {rejectWithValue}) => {
         const api_base = window.ENV.api_base;
         const url = api_base + '/auth/reset-password-request';
-        return axios.post(url, {"email": email}, get_headers(null))
+        return axios.post(url, {"email": email, "resetUrl": location()}, get_headers(null))
             .then((response) => {
                 return response.data;
             }).catch((err) => {
