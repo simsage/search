@@ -191,11 +191,11 @@ export function SearchResults(props) {
                                         return (
                                             <div className="category-selector list-group pt-1" key={i}>
                                                 <SynSetSelector
-                                                    name={syn_set.name}
+                                                    name={syn_set.word}
                                                     syn_set_values={syn_set_values}
                                                     on_search={(value) => search({...value, next_page: false})}
                                                     busy={busy}
-                                                    description_list={syn_set.description_list}/>
+                                                    description_list={syn_set.wordCloudCsvList}/>
                                             </div>
                                         )
                                     })

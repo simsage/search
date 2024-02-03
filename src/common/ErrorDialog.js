@@ -3,10 +3,9 @@ import React, {useEffect, useCallback} from 'react';
 import './ErrorDialog.css';
 
 import {useDispatch, useSelector} from "react-redux";
-import {close_menu, dismiss_auth_error, sign_out} from "../reducers/authSlice";
+import {close_menu, dismiss_auth_error, simsageLogOut} from "../reducers/authSlice";
 import {dismiss_search_error} from "../reducers/searchSlice";
-import {loginRequest} from "../AuthConfig";
-import {useMsal} from "@azure/msal-react";
+import {useKeycloak} from "@react-keycloak/web";
 
 let alert_shown = false;
 
@@ -16,26 +15,27 @@ export function ErrorDialog() {
 
     const {error_message} = useSelector((state) => state.authReducer);
     const {search_error_text} = useSelector((state) => state.searchReducer);
-    const { instance } = useMsal();
+    const { keycloak, initialized } = useKeycloak();
+    const {session} = useSelector((state) => state.authReducer);
 
     const on_sign_out = useCallback(() => {
         dispatch(close_menu());
-        if (instance && loginRequest) {
-            instance.logoutRedirect().catch(e => {
-                console.error("logoutRequest error", e);
-            });
+        if (initialized && keycloak && keycloak.authenticated) {
+            dispatch(simsageLogOut({session_id: session?.id, keycloak}))
         }
-    }, [dispatch, instance])
+    }, [dispatch, keycloak, initialized, session?.id])
 
     function on_close_errors() {
         if (error_message && (
             error_message.indexOf('user does not exist') >= 0 ||
+            error_message.indexOf('cannot connect to SimSage') >= 0 ||
             error_message.indexOf('invalid session id') >= 0
             )
         ) {
-            instance.logoutRedirect().catch(e => {
-                console.error("ErrorDialog: logoutRequest error", e);
-            });
+            keycloak.logout({redirectUri: window.location.protocol + "//" + window.location.host})
+                .then(() => {
+                    console.log("signed out");
+                })
         } else {
             dispatch(dismiss_auth_error());
             dispatch(dismiss_search_error());
@@ -62,14 +62,12 @@ export function ErrorDialog() {
                     alert("Your session has timed-out.  Please sign-in again.");
                     alert_shown = true;
                 }
-                dispatch(sign_out());
                 on_sign_out();
             } else if (search_error_text.indexOf("ip-address changed") >= 0) {
                 if (!alert_shown) {
                     alert("Your session is invalid (ip-address changed).  Please sign-in again.")
                     alert_shown = true;
                 }
-                dispatch(sign_out());
                 on_sign_out();
             }
         }

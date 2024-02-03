@@ -5,7 +5,6 @@ import './Search.css';
 import {ErrorDialog} from "../common/ErrorDialog";
 import {TitleBar} from "./TitleBar";
 import {SearchResults} from "./SearchResults";
-import {StartSearchPage} from "./StartSearchPage";
 import {AIDialog} from "./controls/AIDialog";
 import {close_kb_menu, close_menu, toggle_kb_menu, toggle_menu} from "../reducers/authSlice";
 import {
@@ -32,7 +31,7 @@ import {KnowledgebaseDropdown} from "../common/KnowledgebaseDropdown";
 function Search(props) {
     const dispatch = useDispatch();
     const {show_menu, show_kb_menu} = useSelector((state) => state.authReducer);
-    const {show_search_results, search_focus, busy, all_kbs, has_info} = useSelector((state) => state.searchReducer);
+    const {search_focus, busy, all_kbs, has_info} = useSelector((state) => state.searchReducer);
     const {shard_list, search_text, group_similar, newest_first, metadata_list, metadata_values} = useSelector((state) => state.searchReducer);
     const {entity_values, hash_tag_list, syn_sets, last_modified_slider, created_slider} = useSelector((state) => state.searchReducer);
     const {source_list, source_values, result_list, prev_search_text, prev_filter,
@@ -76,7 +75,7 @@ function Search(props) {
 
             // and perform a search using this data if we need to
             data = {...data, source_list: source_list};
-            if (source_list.length > 0 && (session?.id || window.ENV.allow_anon))
+            if (source_list.length > 0 && session?.id)
                 search({data, next_page: false});
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -173,15 +172,7 @@ function Search(props) {
 
             <div className={(busy && !show_preview) ? "wait-cursor outer" : "outer"}>
 
-                { (show_search_results || !window.ENV.allow_anon) &&
-                    <TitleBar on_search={() => search({next_page: false})} />
-                }
-
-                { !show_search_results && window.ENV.allow_anon &&
-                    <div className="inner">
-                        <StartSearchPage on_search={() => search({next_page: false})} />
-                    </div>
-                }
+                <TitleBar on_search={() => search({next_page: false})} />
 
                 <div className="ai-float">
                     {show_ai &&
@@ -233,11 +224,9 @@ function Search(props) {
                     </div>
                 }
 
-                { show_search_results &&
-                    <div className="inner overflow-hidden">
-                        <SearchResults on_search={(values) => search(values)} />
-                    </div>
-                }
+                <div className="inner overflow-hidden">
+                    <SearchResults on_search={(values) => search(values)} />
+                </div>
 
             </div>
 

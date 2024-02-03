@@ -1,16 +1,12 @@
 window.ENV = {
     // SimSage platform version (used for display only in UI)
-    version: '7.12',
+    version: '7.13',
     // api version of api_base
     api_version: 1,
     // is this a production build or not?
     debug: true,
     // the title of the app, displayed everywhere
     app_title: "SimSage Search",
-    // use 'password' sign-in or 'single-sign-on'?
-    authentication: "single-sign-on", // "password, single-sign-on",
-    // allow anonymous use of the UX or must sign in immediately?
-    allow_anon: false,
     // at present values are: arista, simsage
     customer: 'simsage',
     // a link (can be empty string for go back to SimSage) for the customer clicking on their logo in the UX
@@ -40,10 +36,6 @@ window.ENV = {
     // preview window minimum sizes
     preview_min_width: 1024,
     preview_min_height: 1024,
-    // msal/jwt clientId and authority
-    client_id: "a7c09973-7853-48f6-a067-5a14a5e7b210",
-    full_authority: "https://simsageapi.b2clogin.com/simsageapi.onmicrosoft.com/B2C_1_simsage",
-    known_authority: "https://simsageapi.b2clogin.com",
     // show metadata item counts in the UX (e.g. number of documents for each file-type)
     show_metadata_counts: false,
     // how many items in a categorical display if > 0
@@ -65,4 +57,10 @@ window.ENV = {
     snippet_summary_span: 3,
     article_summary_span: 5,
     friendly_error_messages: true,
+    // cookie storage length
+    session_length_in_minutes: 60,
+    // keycloak real, client_id and server
+    kc_realm: "simsage-test",
+    kc_client_id: "simsage-test-client",
+    kc_endpoint: "https://security.simsage.ai",
 };

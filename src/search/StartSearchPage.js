@@ -1,14 +1,18 @@
 import {get_client_id, get_enterprise_logo} from "../common/Api";
 import {useSelector, useDispatch} from "react-redux";
 import {update_search_text, do_search} from "../reducers/searchSlice";
-import {close_menu} from "../reducers/authSlice";
+import {close_menu, showError, simsageSignIn} from "../reducers/authSlice";
+import {useEffect} from "react";
+import {useKeycloak} from "@react-keycloak/web";
 
+let signing_in = false;
 
 /**
  * the start page of the search system - the one with all the logos
  *
  */
 export function StartSearchPage() {
+    const { keycloak } = useKeycloak();
     const dispatch = useDispatch();
     const {
         search_text,
@@ -74,6 +78,35 @@ export function StartSearchPage() {
             use_ai: use_ai,
         }));
     }
+
+    useEffect(() => {
+        function sign_in(response) {
+            if ((!session || !session.id) && !signing_in && response && response.idToken) {
+                signing_in = true;
+                dispatch(simsageSignIn({
+                    id_token: response.idToken, on_success: (data) => {
+                    }, on_fail: (error_message) => {
+                        if (error_message.indexOf("code 500") > 0) {
+                            dispatch(showError({
+                                "message": "cannot sign-in: your account has insufficient privileges",
+                                "title": "sign-in error"
+                            }));
+                        } else {
+                            dispatch(showError({
+                                "message": "cannot sign-in: " + error_message,
+                                "title": "sign-in error"
+                            }));
+                        }
+                    }
+                }));
+            }
+        }
+
+        if (keycloak && keycloak.authenticated) {
+            sign_in(keycloak);
+        }
+
+    }, [session?.id, dispatch, keycloak, session])
 
     return (
         <div className={(busy ? "wait-cursor h-100 " : "h-100 ") + " d-flex justify-content-center align-items-center"}>

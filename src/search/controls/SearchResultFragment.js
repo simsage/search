@@ -89,18 +89,6 @@ export function SearchResultFragment(props) {
         }
     }
 
-    function item_url(item) {
-        return item.webUrl ? item.webUrl : item.relatedUrl;
-    }
-
-    // click a parent or attachment email item
-    function clickItem(item) {
-        if (!item)
-            return
-        const url = item_url(item);
-        download(url, session_id);
-    }
-
     // summarize a snippet of search-result
     function createSnippetSummary(event) {
         event.stopPropagation();
@@ -192,14 +180,14 @@ export function SearchResultFragment(props) {
                                 <p className="small fw-light mb-2" dangerouslySetInnerHTML={{__html: _text}}/>
                                 {parent_list && parent_list.length > 0 &&
                                     <div className="border-top line-width-limited">
-                                        <div className="similar-document-title">parent email</div>
+                                        <div className="similar-document-title">parent document</div>
                                         <ul>
                                             {
                                                 parent_list.map((item, j) => {
                                                     const title = item.title ? item.title : (item.webUrl ? item.webUrl :item.relatedUrl);
-                                                    const viewable = is_viewable(item_url(item));
-                                                    return (<li key={i * 100 + j} className="similar-document-link" onClick={() => clickItem(item)}
-                                                                title={viewable ? ("open email '" + title + "'") : ("download '" + title + "'")}>
+                                                    return (<li key={i * 100 + j} className="similar-document-link"
+                                                                onClick={(event) => click_preview_image(event, item, item.relatedUrl)}
+                                                                title={get_title_for_links(item)}>
                                                         {title}
                                                     </li>);
                                                 })
@@ -214,9 +202,9 @@ export function SearchResultFragment(props) {
                                             {
                                                 child_list.map((item, j) => {
                                                     const title = item.title ? item.title : (item.webUrl ? item.webUrl :item.relatedUrl);
-                                                    const viewable = is_viewable(item_url(item));
-                                                    return (<li key={i * 100 + j} className="similar-document-link" onClick={() => clickItem(item)}
-                                                                title={viewable ? ("view attachment '" + title + "'") : ("download '" + title + "'")}>
+                                                    return (<li key={i * 100 + j} className="similar-document-link"
+                                                                onClick={(event) => click_preview_image(event, item, item.relatedUrl)}
+                                                                title={get_title_for_links(item.relatedUrl)}>
                                                         {title}
                                                     </li>);
                                                 })

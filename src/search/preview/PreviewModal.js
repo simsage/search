@@ -14,7 +14,10 @@ export function PreviewModal() {
     const {search_focus, busy, html_preview_list, has_more_preview_pages} = useSelector((state) => state.searchReducer);
     const {session} = useSelector((state) => state.authReducer);
 
-    const url_id = search_focus && search_focus.urlId ? search_focus.urlId : 0;
+    let url_id = search_focus && search_focus.urlId ? search_focus.urlId : 0;
+    if (search_focus && search_focus.relatedUrlId) {
+        url_id = search_focus.relatedUrlId;
+    }
 
     // get an html page for the given url_id
     function get_html_page() {
@@ -41,7 +44,9 @@ export function PreviewModal() {
 
     const filename = search_focus && search_focus.filename ? search_focus.filename : "";
     // Prefer the metadata url to the doc's url as the later might be the source id (Sharepoint)
-    const url = search_focus.metadata["{url}"] && search_focus.metadata["{url}"].trim().length > 0 ? search_focus.metadata["{url}"] : search_focus.url
+    const url = search_focus && search_focus.metadata && search_focus.metadata["{url}"] &&
+                search_focus.metadata["{url}"].trim().length > 0 ? search_focus.metadata["{url}"] :
+                (search_focus.url ? search_focus.url : search_focus.relatedUrl);
     const is_online_view = is_viewable(url);
 
     const preview_data = html_preview_list && html_preview_list.length > 0 ? html_preview_list[0] : null;
@@ -53,8 +58,11 @@ export function PreviewModal() {
     const metadata_return = get_metadata_list(search_focus && search_focus.metadata ? search_focus.metadata : {});
     let metadata_list = metadata_return["metadata_list"];
     // const tag_list = metadata_return["tag_list"];
-    if (search_focus && search_focus.urlId) {
-        metadata_list.push({"key": "urlId", "value": "" + search_focus.urlId});
+    if (url_id) {
+        metadata_list.push({"key": "urlId", "value": "" + url_id});
+    }
+    if (url) {
+        metadata_list.push({"key": "url", "value": "" + url});
     }
 
     const scale = 1.0;
@@ -63,22 +71,27 @@ export function PreviewModal() {
     const parent_height = (Math.round(h * scale) + 10) + "px";
     if (h < window.ENV.preview_min_height) h = window.ENV.preview_min_height;
     h = Math.round(h) + "px";
+    console.log("height = ", h)
 
     const session_id = (session && session.id) ? session.id : "";
 
     return (
-        <div id="preview" className={"d-flex justify-content-center align-items-top overflow-auto h-100 w-100 " + (busy ? "wait-cursor" : "")}>
-            <div className="fixed-top text-white px-4 py-3" style={{"backgroundImage" : "linear-gradient(#202731ff, #20273100)"}}>
+        <div id="preview"
+             className={"d-flex justify-content-center align-items-top overflow-auto h-100 w-100 " + (busy ? "wait-cursor" : "")}>
+            <div className="fixed-top text-white px-4 py-3"
+                 style={{"backgroundImage": "linear-gradient(#202731ff, #20273100)"}}>
                 <div className="d-flex justify-content-between align-items-center">
                     <div>
-                        <h6 className="mb-0" style={{"textShadow" : "0 0 50px #202731"}} title={filename}>{filename}</h6>
+                        <h6 className="mb-0" style={{"textShadow": "0 0 50px #202731"}} title={filename}>{filename}</h6>
                     </div>
                     <div className="d-flex" style={{color: "#fff"}}>
-                        <button className="btn dl-btn ms-2" disabled={busy} onClick={() => download(url, session_id)} title={is_online_view ? ("visit " + url + " online") : ("download " + get_archive_child(url) + " from SimSage")}>
+                        <button className="btn dl-btn ms-2" disabled={busy} onClick={() => download(url, session_id)}
+                                title={is_online_view ? ("visit " + url + " online") : ("download " + get_archive_child(url) + " from SimSage")}>
                             {is_online_view ? "Visit" : "Download"}
                         </button>
                         <button className="btn pre-btn ms-2">
-                            <img src="images/icon_im-close-white.svg" alt="close" title="close" className="image-close" onClick={() => on_close()} />
+                            <img src="images/icon_im-close-white.svg" alt="close" title="close" className="image-close"
+                                 onClick={() => on_close()}/>
                         </button>
                     </div>
                 </div>
@@ -87,30 +100,32 @@ export function PreviewModal() {
             <div className="container-fluid px-0 mx-0 h-100 overflow-hidden">
                 <div className="row mx-0 h-100">
                     <div className="col-9 justify-content-center h-100 overflow-auto preview-cont">
-                        <div className="w-100 h-100" style={{"marginTop" : "6rem", "marginBottom" : "6rem"}}>
+                        <div className="w-100 h-100" style={{"marginTop": "6rem", "marginBottom": "6rem"}}>
                             {html_preview_list && html_preview_list.map((preview_data, i) => {
                                 // add keydown listener to body to message us. We add tabindex as body won't receive keydown otherwise
                                 const html = preview_data.html.replace("<body", "<body tabindex='0' style='height: 100vh;' onkeydown='parent.window.postMessage(event.key);' ")
                                 return (
-                                        <div className="d-flex justify-content-center" key={i} style={{height: parent_height}}>
-                                            <div style={{"width": w, "height": h}}>
-                                                <iframe title="preview" className="rounded-3 scaled-iframe" srcDoc={html}
-                                                        allowTransparency="false"
-                                                        style={{"backgroundColor": "Snow", "transform": "scale(" + scale + ")", "transformOrigin": "center top"}}
-                                                        onLoad={(obj) => {
-                                                            const data = obj?.target;
-                                                            if (data && data.style) {
-                                                                data.style.height = data.contentWindow.document.documentElement.scrollHeight + 'px';
-                                                                data.style.width = Math.max(window.ENV.preview_min_width, data.contentWindow.document.documentElement.scrollWidth) + 'px';
-                                                            }
-                                                        }}
-                                                       frameBorder="0" scrolling="no" />
-                                            </div>
+                                    <div className="d-flex justify-content-center" key={i}
+                                         style={{height: parent_height}}>
+                                        <div style={{"width": w, "height": h}}>
+                                            <iframe title="preview" className="rounded-3 scaled-iframe" srcDoc={html}
+                                                    allowTransparency="false"
+                                                    style={{
+                                                        "backgroundColor": "Snow",
+                                                        "transform": "scale(" + scale + ")",
+                                                        "transformOrigin": "center top",
+                                                    }}
+                                                    height={h + 'px'}
+                                                    width={w + 'px'}
+                                                    frameBorder="0"
+                                                    scrolling="no"
+                                            />
                                         </div>
-                                        )
+                                    </div>
+                                )
                             })}
 
-                            { /* infinite scrolling */ }
+                            { /* infinite scrolling */}
                             {(busy || has_more_preview_pages) &&
                                 <div ref={sentryRef}>
                                     Loading...
@@ -119,16 +134,26 @@ export function PreviewModal() {
 
                         </div>
                     </div>
-                    <div className="col-3 overflow-auto h-100 preview-cont" style={{"background": "#20273180", "borderTopLeftRadius": "0.3rem"}}>
-                        <div className="text-light fw-lighter ps-4 pe-3" style={{"marginTop" : "6rem", "marginBottom" : "6rem"}}>
+                    <div className="col-3 overflow-auto h-100 preview-cont"
+                         style={{"background": "#20273180", "borderTopLeftRadius": "0.3rem"}}>
+                        <div className="text-light fw-lighter ps-4 pe-3"
+                             style={{"marginTop": "6rem", "marginBottom": "6rem"}}>
                             Metadata
                             <br/><br/>
                             {
                                 metadata_list && metadata_list.map((item, i) => {
                                     return (<div key={i} className="metadata-item">
-                                                <div className="metadata-key">{item.key}</div>
-                                                <div className="metadata-value">{item.value}</div>
-                                            </div>)
+                                        <div className="metadata-key">{item.key}</div>
+                                        {item.key === "url" && is_viewable(item.value) &&
+                                            <div className="metadata-value">
+                                                <a href={item.value} rel="noreferrer" target="_blank">{item.value}</a>
+                                            </div>
+                                        }
+                                        {item.key === "url" && !is_viewable(item.value) &&
+                                            <div className="metadata-value">{item.value}</div>
+                                        }
+                                        {item.key !== "url" && <div className="metadata-value">{item.value}</div>}
+                                    </div>)
                                 })
                             }
                         </div>

@@ -19,6 +19,7 @@ export function copy(json_object) {
     return json_object;
 }
 
+
 // create a four digit random hex number
 function s4() {
     return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
@@ -252,31 +253,18 @@ function to_friendly_message(str) {
         if (lwr_str.indexOf("parsequerytextcmd") >= 0) {
             return "SimSage's language system timed-out. (parser)";
         } else if (lwr_str.indexOf("querysummarizationopenaicmd") ||
-                   lwr_str.indexOf("queryanswerquestionopenaicmd")) {
+            lwr_str.indexOf("queryanswerquestionopenaicmd")) {
             return "SimSage's AI system timed-out.";
         } else if (lwr_str.indexOf("semanticsearchcmd")) {
             return "SimSage's search system timed-out.";
         } else if (lwr_str.indexOf("spellingsuggestcmd")) {
             return "SimSage's language system timed-out (spell-checker)";
         }
+    } else if (lwr_str.indexOf("invalid query expression") >= 0) {
+        return "SimSage does not understand your question, change your question by removing " +
+            "any punctuation and/or brackets you might have used.";
     }
     return str;
-}
-
-// rudimentary email verification
-export function is_valid_email(email) {
-    if (email && typeof email === "string") {
-        const email_str = email.trim();
-        const len = email_str.length;
-        const at_pos = email_str.indexOf('@');
-        const last_dot = email_str.lastIndexOf('.');
-        if (at_pos === -1 || last_dot === -1)
-            return false;
-        if (last_dot < at_pos)
-            return false;
-        return (last_dot + 2 < len);
-    }
-    return false;
 }
 
 // fetch helper
@@ -537,7 +525,8 @@ export function get_time_range_metadata(category_list, data, metadata_name) {
 
 // is this URL an item inside an archive file-type? (like a zip or a pst file)
 export function is_archive_file(url) {
-    return (url && url.indexOf(archive_marker) > 0 && url.split(archive_marker).length === 2);
+    return (url && url.indexOf && url.indexOf(archive_marker) > 0 &&
+            url.split && url.split(archive_marker).length === 2);
 }
 
 // convert a URL to a bread-crumb / item
@@ -596,9 +585,13 @@ export function get_archive_child_last(url) {
 
 // download local
 export function download_document(dl_url, session_id) {
-    const url = window.ENV.api_base + '/dms/binary/latest/' + encodeURIComponent(window.ENV.organisation_id) + '/' +
-        encodeURIComponent(getKbId()) + '/' + btoa(decodeURI(encodeURIComponent(dl_url)));
-    do_fetch(url, session_id);
+    if (!session_id || session_id.trim().length === 0) {
+        alert("you must sign-in to download documents");
+    } else {
+        const url = window.ENV.api_base + '/dms/binary/latest/' + encodeURIComponent(window.ENV.organisation_id) + '/' +
+            encodeURIComponent(getKbId()) + '/' + window. btoa(unescape(encodeURIComponent(dl_url)));
+        do_fetch(url, session_id);
+    }
 }
 
 // download a url (open it or view it)
@@ -629,7 +622,7 @@ export function get_url_search_parameters_as_map(search_string) {
 // adds or replaces an url parameter in the history with the passed in value
 export function add_url_search_parameter(key, value) {
     const parameterMap = get_url_search_parameters_as_map(window.location.search)
-    if (value){
+    if (value) {
         parameterMap[key] = encodeURIComponent(value);
     } else {
         delete parameterMap[key]
@@ -638,9 +631,9 @@ export function add_url_search_parameter(key, value) {
     Object.getOwnPropertyNames(parameterMap).forEach((param, idx) => {
         url = url + (idx === 0 ? "?" : "&") + param + "=" + parameterMap[param]
     })
-    if (url.length>0){
+    if (url.length > 0) {
         window.history.replaceState(null, null, url)
-    }else{
+    } else {
         // Can't set URL to "", need to set whole path if no query string
         window.history.replaceState({}, '', window.location.pathname);
     }
@@ -648,11 +641,11 @@ export function add_url_search_parameter(key, value) {
 
 // returns the currently selected Knowledgebase id
 // this will either be the one in the url or the default one if none set
-export function getKbId(){
+export function getKbId() {
     const params = get_url_search_parameters_as_map(window.location.search)
-    if (params.hasOwnProperty("kbId")){
+    if (params.hasOwnProperty("kbId")) {
         return params["kbId"]
-    }else {
+    } else {
         return window.ENV.kb_id
     }
 }
@@ -842,46 +835,6 @@ export function get_source_set(query) {
         }
     }
     return get_source_set;
-}
-
-/**
- * get the metadata-range item (range(metadata,#1,#2))
- * @param query the string to check
- * @param metadata the metadata to look for
- * @returns the range string or empty string
- */
-export function get_metadata_range(query, metadata) {
-    const token_list = tokenize(query);
-    let range_numbers = [];
-    let i = 0;
-    while (i < token_list.length) {
-        const token = token_list[i];
-        let next_token = "";
-        if (i + 1 < token_list.length)
-            next_token = token_list[i + 1];
-        if (token !== " ") {
-            // skip any special metadata
-            if (token === "range" && next_token === "(") {
-                let is_correct_metadata = false;
-                while (i < token_list.length && token_list[i] !== ')') {
-                    if (token_list[i] === metadata) {
-                        is_correct_metadata = true;
-                    }
-                    if (is_correct_metadata && token_list[i] !== ',' && token_list[i] !== metadata) {
-                        range_numbers.push(token_list[i]);
-                    }
-                    i += 1
-                }
-                i += 1;
-            } else {
-                i += 1;
-            }
-
-        } else {
-            i += 1;
-        }
-    }
-    return range_numbers;
 }
 
 /**

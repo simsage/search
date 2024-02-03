@@ -22,6 +22,17 @@ export function SynSetSelector(props) {
     if (!description_list || description_list.length === 0)
         return (<div />);
 
+    function get_description(item) {
+        if (item && item.split) {
+            const parts = item.split(",");
+            if (parts.length > 1) {
+                return parts[0].trim() + ", " + parts[1].trim();
+            }
+            return parts[0].trim();
+        }
+        return "";
+    }
+
     return (
         <div>
             <span className="selector-title" title={"please select a specific meaning for \"" + name + "\" below to search for more specific results."}>
@@ -34,7 +45,7 @@ export function SynSetSelector(props) {
                                 <input className="form-check-input me-2 min-width" type="checkbox" checked={syn_set_values[name] === i}
                                        onChange={(event) => on_set_value(name, i, event.target.checked)} />
                                 <div className="d-flex justify-content-between flex-fill overflow-management">
-                                    <span className="small" title={"select a meaning of \"" + name + "\" related to " + item}>{item}</span>
+                                    <span className="small" title={"select a meaning of \"" + name + "\" related to " + item}>{get_description(item)}</span>
                                 </div>
                             </label>
                         )

@@ -10,19 +10,10 @@ const initialState = {
     // sign-in menu
     show_menu: false,
     show_kb_menu: false,
-    // user wants to sign-in using password auth
-    request_sign_on: false,
-    // password reset request?
-    reset_password_request: false,
     // message from the system to display
     system_message: '',
     // error dialog
     error_message: '',
-}
-
-// get the location of the current page without any query parameters - e.g. http://localhost/test/
-const location = function() {
-    return window.location.protocol + '//' + window.location.host + window.location.pathname;
 }
 
 const authSlice = createSlice({
@@ -33,18 +24,18 @@ const authSlice = createSlice({
     reducers: {
 
         close_menu: (state) => {
-            return {...state, show_menu: false}
+            return {...state, show_menu: false, show_kb_menu:false}
         },
 
         toggle_menu: (state) => {
-            return {...state, show_menu: !state.show_menu}
+            return {...state, show_menu: !state.show_menu, show_kb_menu:false}
         },
 
         close_kb_menu: (state) => {
-            return {...state, show_kb_menu: false}
+            return {...state, show_kb_menu: false, show_menu: false}
         },
         toggle_kb_menu: (state) => {
-            return {...state, show_kb_menu: !state.show_kb_menu}
+            return {...state, show_kb_menu: !state.show_kb_menu, show_menu:false}
         },
 
         dismiss_auth_error: (state) => {
@@ -59,18 +50,8 @@ const authSlice = createSlice({
             return {...state, error_message: action.payload.error_text}
         },
 
-        password_sign_in: (state) => {
-            window.history.replaceState(null, null, "?"); // remove any query parameters
-            return {...state, reset_password_request:false, request_sign_on: true}
-        },
-
-        password_reset_start: (state) => {
-            return {...state, reset_password_request: true}
-        },
-
-        sign_out: (state) => {
-            return {...state, session: {}, user: {}, organisation: {}, result_list: [], page: 0,
-                    reset_password_request: false, error_message: ''}
+        showError: (state, action) => {
+            return {...state, error_message: action.payload.error_text}
         },
 
     },
@@ -78,125 +59,113 @@ const authSlice = createSlice({
     extraReducers: (builder) => {
         builder
 
-            .addCase(simSageMSALSignIn.pending, (state, action) => {
-                state.error_message = '';
+            .addCase(simsageSignIn.pending, (state, action) => {
+                return {
+                    ...state,
+                    busy: true,
+                    error_message: ''
+                }
             })
 
-            .addCase(simSageMSALSignIn.fulfilled, (state, action) => {
-                state.reset_password_request = false;
+            .addCase(simsageSignIn.fulfilled, (state, action) => {
                 if (action.payload.data) {
                     console.log("signed-in");
-                    state.request_sign_on = false;
-                    state.error_message = '';
-                    state.user = action.payload.data.user;
-                    state.session = action.payload.data.session;
+                    let organisation = {};
                     if (action.payload.data.organisationList) {
                         for (const org of action.payload.data.organisationList) {
                             if (org && org.id === window.ENV.organisation_id) {
-                                state.organisation = org;
+                                organisation = org;
                                 break;
                             }
                         }
                     }
-                } else {
-                    state.error_message = get_error(action);
-                    console.error("msal-sign-in:" + state.error_message);
-                }
-            })
-
-            .addCase(simSageMSALSignIn.rejected, (state, action) => {
-                state.reset_password_request = false;
-                state.error_message = get_error(action);
-                console.error("rejected: msal-sign-in:" + state.error_message);
-            })
-
-            /////////////////////////////////////////////////////////////////////////////
-
-            .addCase(simSagePasswordSignIn.pending, (state, action) => {
-                state.error_message = '';
-            })
-
-            .addCase(simSagePasswordSignIn.fulfilled, (state, action) => {
-                state.reset_password_request = false;
-                if (action.payload.session && action.payload.session.id) {
-                    state.request_sign_on = false;
-                    state.error_message = '';
-                    console.log("signed-in");
-                    state.user = action.payload.user;
-                    state.session = action.payload.session;
-                    if (action.payload.organisationList) {
-                        for (const org of action.payload.organisationList) {
-                            if (org && org.id === window.ENV.organisation_id) {
-                                state.organisation = org;
-                                break;
-                            }
-                        }
+                    return {
+                        ...state,
+                        busy: false,
+                        error_message: '',
+                        user: action.payload.data.user,
+                        session: action.payload.data.session,
+                        organisation: organisation,
                     }
+
                 } else {
-                    state.error_message = get_error(action);
-                    console.error("password sign-in:" + state.error_message);
+                    const err_msg = get_error(action);
+                    console.error("sign-in:" + err_msg);
+                    return {
+                        ...state,
+                        busy: false,
+                        error_message: err_msg
+                    }
                 }
             })
 
-            .addCase(simSagePasswordSignIn.rejected, (state, action) => {
-                state.reset_password_request = false;
-                state.error_message = get_error(action);
-                console.error("rejected: password-sign-in:" + state.error_message);
+            .addCase(simsageSignIn.rejected, (state, action) => {
+                const err_msg = get_error(action);
+                console.error("rejected: sign-in:" + err_msg);
+                return {
+                    ...state,
+                    busy: false,
+                    error_message: err_msg
+                }
             })
 
             /////////////////////////////////////////////////////////////////////////////
 
-            .addCase(requestResetPassword.pending, (state, action) => {
-                state.error_message = '';
-            })
-
-            .addCase(requestResetPassword.fulfilled, (state, action) => {
-                const error_str = get_error(action.payload);
-                if (error_str && error_str.length > 0) {
-                    state.error_message = error_str;
-                } else {
-                    state.system_message = "we've emailed you a link for resetting your password.";
+            .addCase(simsageLogOut.pending, (state, action) => {
+                return {
+                    ...state,
+                    message: '',
+                    busy: true,
+                    status: 'logging_out',
                 }
             })
 
-            .addCase(requestResetPassword.rejected, (state, action) => {
-                state.error_message = get_error(action);
-                console.error("rejected: password-reset-request:" + state.error_message);
-            })
-
-            /////////////////////////////////////////////////////////////////////////////
-
-            .addCase(resetPassword.pending, (state, action) => {
-                state.error_message = '';
-            })
-
-            .addCase(resetPassword.fulfilled, (state, action) => {
-                const error_str = action.payload?.error;
-                if (error_str && error_str.length > 0) {
-                    state.error_message = error_str;
-                } else {
-                    state.system_message = "Password reset.  Click 'Back to sign in' to sign-in.";
+            .addCase(simsageLogOut.fulfilled, (state, action) => {
+                return {
+                    ...state,
+                    busy: false,
+                    message: '',
+                    error_message: '',
+                    session: {},
+                    user: {},
+                    organisation: {},
+                    result_list: [],
+                    page: 0,
+                    status: 'logged_out',
                 }
             })
 
-            .addCase(resetPassword.rejected, (state, action) => {
-                state.error_message = get_error(action);
-                console.error("rejected: password-reset:" + state.error_message);
+            .addCase(simsageLogOut.rejected, (state, action) => {
+                return {
+                    ...state,
+                    busy: false,
+                    message: '',
+                    error_message: '',
+                    session: {},
+                    user: {},
+                    organisation: {},
+                    result_list: [],
+                    page: 0,
+                    status: "rejected"
+                }
             })
+
+
+
     }
 });
 
 // MSAL/jwt based sign-in
-export const simSageMSALSignIn = createAsyncThunk(
-    'authSlice/simSageMSALSignIn',
-    async ({jwt}, {rejectWithValue}) => {
+export const simsageSignIn = createAsyncThunk(
+    'authSlice/simsageSignIn',
+    async ({id_token}, {rejectWithValue}) => {
         const api_base = window.ENV.api_base;
         const url = api_base + '/auth/search/authenticate/msal/' + encodeURIComponent(window.ENV.organisation_id);
         return axios.get(url, {
             headers: {
                 "API-Version": window.ENV.api_version,
                 "Content-Type": "application/json",
-                "jwt": "" + jwt,
+                "jwt": "" + id_token,
             }
         })
         .then((response) => {
@@ -207,57 +176,41 @@ export const simSageMSALSignIn = createAsyncThunk(
     }
 );
 
-// password based sign-in
-export const simSagePasswordSignIn = createAsyncThunk(
-    'authSlice/simSagePasswordSignIn',
-    async ({username, password}, {rejectWithValue}) => {
-        const api_base = window.ENV.api_base;
-        const url = api_base + '/auth/sign-in';
-        return axios.post(url, {"email": username, "password": password}, get_headers(null))
-            .then((response) => {
-                return response.data;
-            }).catch((err) => {
-                return rejectWithValue(err)
-            })
-    }
-);
-
-// password reset request
-export const requestResetPassword = createAsyncThunk(
-    'authSlice/requestResetPassword',
-    async ({email}, {rejectWithValue}) => {
-        const api_base = window.ENV.api_base;
-        const url = api_base + '/auth/reset-password-request';
-        return axios.post(url, {"email": email, "resetUrl": location()}, get_headers(null))
-            .then((response) => {
-                return response.data;
-            }).catch((err) => {
-                return rejectWithValue(err)
-            })
-    }
-);
+/**
+ * keycloak logout helper
+ * @param keycloak the keycloak object
+ */
+export const logout = (keycloak) => {
+    keycloak.logout({redirectUri: window.location.protocol + "//" + window.location.host}).then((success) => {
+        console.log("--> log: logout success ", success);
+    }).catch((error) => {
+        console.log("--> log: logout error ", error);
+    });
+}
 
 
-// password reset
-export const resetPassword = createAsyncThunk(
-    'authSlice/resetPassword',
-    async ({email, reset_id, password}, {rejectWithValue}) => {
+export const simsageLogOut = createAsyncThunk(
+    'auth/simsageLogOut',
+    async ({session_id, keycloak}) => {
         const api_base = window.ENV.api_base;
-        const url = api_base + '/auth/reset-password';
-        return axios.post(url, {"email": email, "password": password, "resetId": reset_id}, get_headers(null))
+        const url = api_base + '/auth/sign-out'
+        return axios.delete(url, get_headers(session_id))
             .then((response) => {
-                return response.data;
-            }).catch((err) => {
-                return rejectWithValue(err)
-            })
+                logout(keycloak);
+                return response
+            }).catch(
+                (error) => {
+                    logout(keycloak);
+                    return error
+                }
+            )
     }
-);
+)
 
 
 export const {
     close_menu, close_kb_menu, toggle_menu,
-    toggle_kb_menu, dismiss_auth_error, sign_out,
-    password_sign_in, password_reset_start,
-    set_auth_error, dismiss_auth_message
+    toggle_kb_menu, dismiss_auth_error,
+    dismiss_auth_message, showError
 } = authSlice.actions
 export default authSlice.reducer;

@@ -26,7 +26,6 @@ const initialState = {
     has_more: false,
 
     total_document_count: 0,
-    show_search_results: false,
     group_similar: false,
     newest_first: false,
     busy: false,
@@ -98,7 +97,6 @@ const extraReducers = (builder) => {
                 const data = action.payload.data;
                 const parameters = action.payload.parameters;
                 const next_page = action.payload.next_page;
-                state.show_search_results = true;
 
                 // this is now the previous search
                 state.prev_search_text = data.prev_search_text;
@@ -142,7 +140,7 @@ const extraReducers = (builder) => {
                 if (data.categoryList) {
                     for (const item of data.categoryList) {
                         const metadata = item.metadata ? item.metadata : '';
-                        if ((item.categoryType === "categorical list" || item.categoryType === "document type") && !seen[metadata]) {
+                        if (item.metadata === "document-type" && !seen[metadata]) {
                             seen[metadata] = true;
                             state.metadata_list.push(item);
                         }
@@ -311,7 +309,7 @@ const searchSlice = createSlice({
     reducers: {
         go_home: (state) => {
             window.history.replaceState(null, null, window.location.pathname);
-            return {...state, show_search_results: false}
+            return {...state}
         },
 
         update_search_text: (state, action) => {
@@ -566,6 +564,7 @@ export const do_search = createAsyncThunk(
             sortByAge: newest_first,
             sourceId: '',
             useQuestionAnsweringAi: use_ai === true,
+            wordSynSet: syn_set_values
         };
 
         if (search_text.trim().length > 0) {
