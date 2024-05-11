@@ -1,6 +1,6 @@
 {
   "name": "simsage-search",
-  "version": "7.13",
+  "version": "7.15",
   "private": true,
   "dependencies": {
     "@react-keycloak/web": "^3.4.0",
