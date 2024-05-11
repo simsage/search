@@ -81,14 +81,14 @@ export function ErrorDialog() {
                      title={combined_error}>
                     <div className="close close-alert px-2" data-dismiss="alert" aria-label="close" title="close">&times;</div>
                     {
-                        error_message && error_message.length > 0 && error_message.split("\n").map((text, i) => {
+                        error_message && error_message.length > 0 && error_message.split("\n").map((text, _) => {
                             return (
                                 <div>{text}<br /></div>
                             )
                         })
                     }
                     {
-                        search_error_text && search_error_text.length > 0 && search_error_text.split("\n").map((text, i) => {
+                        search_error_text && search_error_text.length > 0 && search_error_text.split("\n").map((text, _) => {
                             return (
                                 <div>{text}<br /></div>
                             )

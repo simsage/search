@@ -1,0 +1,10 @@
+.source-selector {
+    height: 25vh;
+    overflow: auto;
+    scrollbar-color: #aaa #e2e2e2;
+    scrollbar-width: thin;
+}
+
+.source-controls {
+    min-width: 515px;
+}

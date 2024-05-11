@@ -2,7 +2,7 @@ import './RangeSlider.css';
 import {copy, unix_time_convert_to_date} from "../../common/Api";
 import {Handles, Rail, Slider, Tracks} from "react-compound-slider";
 import {Handle, SliderRail, Track} from "./range-slider/RangeComponent";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {useDispatch} from "react-redux";
 import {set_range_slider} from "../../reducers/searchSlice";
 import {defined} from "../../common/Api";
@@ -15,7 +15,7 @@ export function RangeSlider(props) {
     const title = props.title ? props.title : '';
     const domain = defined(data.minValue) && defined(data.maxValue) ? [data.minValue, data.maxValue] : [0, 100];
     const values = defined(data.currentMinValue) && defined(data.currentMaxValue) ? [data.currentMinValue, data.currentMaxValue] : [0, 100];
-    const [update, set_update] = useState((defined(data.currentMinValue) && defined(data.currentMaxValue)) ? [data.currentMinValue, data.currentMaxValue] : [0, 100]);
+    const [update, set_update] = useState([0, 100]);
     const reversed = false;
     const metadata = data.metadata;
 
@@ -34,6 +34,13 @@ export function RangeSlider(props) {
         c_data.currentMinValue = values[0];
         c_data.currentMaxValue = values[1];
     }
+
+    // set the upate values
+    useEffect(() => {
+        if (defined(data.currentMinValue) && defined(data.currentMaxValue)) {
+            set_update([data.currentMinValue, data.currentMaxValue]);
+        }
+    }, [data.currentMinValue, data.currentMaxValue])
 
     return (
         <div className="range-slider mb-4 pb-2">

@@ -23,8 +23,8 @@ export function SearchResults(props) {
     // get state
     const {group_similar, newest_first, last_modified_slider, created_slider,
         syn_set_list, syn_set_values, source_list, spelling_correction, busy, ai_response,
-        metadata_list, total_document_count, qna_text, has_more, result_list,
-        summaries, search_focus, busy_with_summary, use_ai, busy_with_ai,
+        metadata_list, document_type_count, total_document_count, qna_text, has_more, result_list,
+        summaries, search_focus, busy_with_summary, use_ai, busy_with_ai, ai_enabled,
     } = useSelector((state) => state.searchReducer);
     const {session} = useSelector((state) => state.authReducer);
 
@@ -122,6 +122,7 @@ export function SearchResults(props) {
                                 source_list={source_list}
                                 result={result}
                                 use_ai={use_ai}
+                                ai_enabled={ai_enabled}
                                 key={i} />)
                         })
                     }
@@ -138,7 +139,7 @@ export function SearchResults(props) {
                 <div className="col-xxl-4 col-xl-4 ps-3 pe-4 pe-xxl-3 order-first order-xl-last mb-5">
                     <div className="sticky-top bg-white dialog-padding">
 
-                        <div className="row">
+                        <div className="row source-controls" >
 
                             <div className="col-6 pe-4">
                                 <div className="mx-0 result-time-filter">
@@ -204,6 +205,7 @@ export function SearchResults(props) {
                             </div>
 
                             <div className="col-6 ps-0">
+
                                 <div className="w-100 result-document-filter pb-3">
                                     { source_list &&
                                         <div>
@@ -211,22 +213,23 @@ export function SearchResults(props) {
                                             <br/>
                                         </div>
                                     }
-                                    { metadata_list && metadata_list.length > 0 && metadata_list.map((item, index) => {
-                                        return (
-                                            <MetadataSelector key={index}
-                                                              title={item.displayName}
-                                                              busy={busy}
-                                                              metadata={item.metadata}
-                                                              has_results={has_search_result}
-                                                              on_search={(value) => search({...value, next_page: false})}
-                                                              list={item.items}/>
-                                        )})
-                                    }
+                                </div>
+                                <div className="w-100 result-document-filter pb-3">
+                                { metadata_list && metadata_list.length > 0 && metadata_list.map((item, index) => {
+                                    return (
+                                        <MetadataSelector key={index}
+                                                          title={item.displayName}
+                                                          busy={busy}
+                                                          metadata={item.metadata}
+                                                          has_results={has_search_result}
+                                                          on_search={(value) => search({...value, next_page: false})}
+                                                          item_counts={document_type_count}
+                                                          list={item.items}/>
+                                    )})
+                                }
                                 </div>
                             </div>
-
                         </div>
-
                     </div>
                 </div>
             </div>

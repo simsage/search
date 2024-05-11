@@ -15,7 +15,7 @@ export function AccountDropdown(props) {
     const dispatch = useDispatch();
     const {show_menu} = useSelector((state) => state.authReducer);
     const {session} = useSelector((state) => state.authReducer);
-    const {use_ai} = useSelector((state) => state.searchReducer);
+    const {use_ai, ai_enabled} = useSelector((state) => state.searchReducer);
     const { keycloak, initialized } = useKeycloak();
 
     const on_sign_out = useCallback(() => {
@@ -45,7 +45,7 @@ export function AccountDropdown(props) {
                     <label>Advanced query syntax</label>
                 </li>
                 }
-                { window.ENV.query_ai_enabled &&
+                { ai_enabled &&
                     <li className="acc-item px-4 py-3"
                         onClick={() => set_ai()}>
                         <label>{ use_ai ? "\u2713 " : ""}use AI</label>

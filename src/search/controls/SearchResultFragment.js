@@ -8,13 +8,14 @@ import {
     getKbId,
     highlight,
     is_archive_file,
-    is_viewable,
+    is_viewable, language_lookup,
     unix_time_convert,
     url_to_bread_crumb
 } from "../../common/Api";
 import React from "react";
 import {create_short_summary, select_document_for_ai_query} from "../../reducers/searchSlice";
 import {useDispatch} from "react-redux";
+import * as Api from "../../common/Api";
 
 export function SearchResultFragment(props) {
 
@@ -32,6 +33,7 @@ export function SearchResultFragment(props) {
     const last_modified = unix_time_convert(result.lastModified);
     const title = result.title ? result.title : "";
     const use_ai = props.use_ai;
+    const ai_enabled = props.ai_enabled;
     const metadata_lists = get_metadata_list(result.metadata);
     const summary = props.summaries[result.url] ? props.summaries[result.url] : "";
     const tag_list = metadata_lists["tag_list"];
@@ -41,6 +43,11 @@ export function SearchResultFragment(props) {
     if (url_breadcrumb === "owa" && result.metadata["{folder}"] && result.metadata["{folder}"].trim().length > 0) {
         url_breadcrumb = url_to_bread_crumb(result.metadata["{folder}"]);
     }
+
+    // get the name of the foreign language of this document if applicable
+    const document_language = result.metadata["{language}"] ? result.metadata["{language}"] : null;
+    const language = language_lookup && document_language &&
+                                document_language !== "en" ? language_lookup[document_language] : null;
 
     // is this a custom render type (like a db record)?
     const custom_render_type = result && result.renderType === "rt custom";
@@ -83,8 +90,10 @@ export function SearchResultFragment(props) {
         } else {
             if (is_viewable(url)) {
                 return "open \"" + actual_url + "\" in the browser";
-            } else {
+            } else if (!Api.is_archive(url)) {
                 return "download \"" + actual_url + "\" to your computer";
+            } else {
+                return "cannot download archive file \"" + actual_url + "\"";
             }
         }
     }
@@ -94,15 +103,14 @@ export function SearchResultFragment(props) {
         event.stopPropagation();
         event.preventDefault();
         dispatch(create_short_summary({session: session, target_url: result.url,
-                                       sentence_id: result.firstSentence, span: window.ENV.snippet_summary_span}))
+                                       sentence_id: result.firstSentence}))
     }
 
     // summarize an article from the start
     function createArticleSummary(event) {
         event.stopPropagation();
         event.preventDefault();
-        dispatch(create_short_summary({session: session, target_url: result.url,
-            sentence_id: 0, span: window.ENV.article_summary_span}))
+        dispatch(create_short_summary({session: session, target_url: result.url, sentence_id: 0}))
     }
 
     // select url as a document for AI focus
@@ -136,16 +144,23 @@ export function SearchResultFragment(props) {
             <div className="ms-3" style={{width: "80%"}}>
                 <div className="d-flex align-items-center text-align-end mb-1">
                     <p className="mb-0 result-breadcrumb me-2">{url_breadcrumb}</p>
+                    { language &&
+                        <span className="mb-2" style={{cursor: "default"}} title={language}>
+                        &nbsp;{language}&nbsp;
+                    </span>
+                    }
                 </div>
                 <span className="mb-2 results-filename text-break pointer-cursor"
                       onClick={() => {
                           handle_title_click(result, url)
                       }} title={get_title_for_links(url)}>{title ? title : url}
                 </span>
-                { window.ENV.query_ai_enabled && use_ai &&
-                <span className="qna-image" title="question this document using AI"
+                { ai_enabled && use_ai &&
+                <span className="qna-image" title="converse with this document"
                       onClick={() => selectDocumentForAIQuery(url)}>
-                    <span className="circle-margin-left in-circle">Q</span>
+                    <span className="in-circle">
+                        <img className="circle-image-size" src="../resources/conversation-icon.svg" alt="conversation" />
+                    </span>
                 </span>
                 }
                 <div className="d-flex align-items-center mb-1">
@@ -187,7 +202,7 @@ export function SearchResultFragment(props) {
                                                     const title = item.title ? item.title : (item.webUrl ? item.webUrl :item.relatedUrl);
                                                     return (<li key={i * 100 + j} className="similar-document-link"
                                                                 onClick={(event) => click_preview_image(event, item, item.relatedUrl)}
-                                                                title={get_title_for_links(item)}>
+                                                                title={get_title_for_links(item.webUrl ? item.webUrl :item.relatedUrl)}>
                                                         {title}
                                                     </li>);
                                                 })
@@ -235,7 +250,7 @@ export function SearchResultFragment(props) {
                     })
                 }
                 {
-                    summary && summary.length > 0 && window.ENV.query_ai_enabled && use_ai &&
+                    summary && summary.length > 0 && ai_enabled && use_ai &&
                     <div className="border-top">
                         {
                             summary.split("\n").map((text, i) => {
@@ -247,12 +262,12 @@ export function SearchResultFragment(props) {
                     </div>
                 }
                 {
-                    (!summary || summary.length === 0) && window.ENV.query_ai_enabled && session_id !== "null" &&
+                    (!summary || summary.length === 0) && ai_enabled && session_id !== "null" &&
                     <div>
-                        { !window.ENV.use_article_summary && window.ENV.query_ai_enabled && use_ai &&
+                        { !window.ENV.use_article_summary && ai_enabled && use_ai &&
                             <span className="link" onClick={(event) => createSnippetSummary(event)} title="create a short summary of this search-result">create summary</span>
                         }
-                        { window.ENV.use_article_summary && window.ENV.query_ai_enabled && use_ai &&
+                        { window.ENV.use_article_summary && ai_enabled && use_ai &&
                             <span className="link" onClick={(event) => createArticleSummary(event)} title="create a short summary of the document">create summary</span>
                         }
                     </div>

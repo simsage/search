@@ -35,7 +35,7 @@ function Search(props) {
     const {shard_list, search_text, group_similar, newest_first, metadata_list, metadata_values} = useSelector((state) => state.searchReducer);
     const {entity_values, hash_tag_list, syn_sets, last_modified_slider, created_slider} = useSelector((state) => state.searchReducer);
     const {source_list, source_values, result_list, prev_search_text, prev_filter,
-           pages_loaded, category_list, category_values, source_id_list, use_ai,
+           pages_loaded, category_list, category_values, source_id_list, use_ai, ai_enabled,
            query_ai_focus_url} = useSelector((state) => state.searchReducer);
     const {session, organisation, user} = useSelector((state) => state.authReducer);
 
@@ -144,7 +144,7 @@ function Search(props) {
             created_slider: created_slider,
             next_page: false,
             reset_pagination: false,
-            use_ai: (use_ai && window.ENV.query_ai_enabled)
+            use_ai: (use_ai && ai_enabled)
         };
         if (values) {
             dispatch(do_search({...data, ...values}));
@@ -164,7 +164,7 @@ function Search(props) {
     }
 
     const show_preview = (search_focus !== null && window.ENV.show_previews);
-    const show_ai = window.ENV.query_ai_enabled && query_ai_focus_url && query_ai_focus_url.length > 0;
+    const show_ai = ai_enabled && query_ai_focus_url && query_ai_focus_url.length > 0;
 
     return (
         <div className="Search" onClick={() => on_close_menu()}>

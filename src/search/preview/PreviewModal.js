@@ -1,10 +1,11 @@
 import React from 'react';
 
 import './PreviewModal.css';
-import {download, get_archive_child, get_metadata_list, is_viewable} from "../../common/Api";
+import {download, get_archive_child, get_metadata_list, is_archive, is_viewable} from "../../common/Api";
 import {useDispatch, useSelector} from "react-redux";
 import {close_preview, get_preview_html} from "../../reducers/searchSlice";
 import useInfiniteScroll from "react-infinite-scroll-hook";
+import * as Api from "../../common/Api";
 
 /**
  * this is the PreviewModal
@@ -71,7 +72,6 @@ export function PreviewModal() {
     const parent_height = (Math.round(h * scale) + 10) + "px";
     if (h < window.ENV.preview_min_height) h = window.ENV.preview_min_height;
     h = Math.round(h) + "px";
-    console.log("height = ", h)
 
     const session_id = (session && session.id) ? session.id : "";
 
@@ -81,14 +81,15 @@ export function PreviewModal() {
             <div className="fixed-top text-white px-4 py-3"
                  style={{"backgroundImage": "linear-gradient(#202731ff, #20273100)"}}>
                 <div className="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 className="mb-0" style={{"textShadow": "0 0 50px #202731"}} title={filename}>{filename}</h6>
-                    </div>
+                        <h6 className="mb-0 w-50" style={{"textShadow": "0 0 50px #202731", "overflow" : "hidden" }} title={filename}>
+                            {filename}</h6>
                     <div className="d-flex" style={{color: "#fff"}}>
+                        { (is_online_view || !Api.is_archive(url)) &&
                         <button className="btn dl-btn ms-2" disabled={busy} onClick={() => download(url, session_id)}
                                 title={is_online_view ? ("visit " + url + " online") : ("download " + get_archive_child(url) + " from SimSage")}>
                             {is_online_view ? "Visit" : "Download"}
                         </button>
+                        }
                         <button className="btn pre-btn ms-2">
                             <img src="images/icon_im-close-white.svg" alt="close" title="close" className="image-close"
                                  onClick={() => on_close()}/>

@@ -32,7 +32,7 @@ export function SearchBox(props) {
     }
 
     return (
-        <div className="justify-content-between col-11 d-flex align-items-center px-4">
+        <div className="justify-content-between col-10 d-flex align-items-center px-4">
             <div className="nav-search-container">
                 <div className="inner d-flex align-items-center position-relative add-another-float">
                     <span className="nav-search-icon ms-2 d-flex align-items-center">

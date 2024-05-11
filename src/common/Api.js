@@ -249,6 +249,26 @@ function to_friendly_message(str) {
         return "SimSage session timed out."
     } else if (lwr_str.indexOf("ip-address changed") >= 0) {
         return "Security: invalid session (ip-address changed)."
+    } else if (lwr_str.indexOf("entity named") >= 0 && lwr_str.indexOf("invalid filter") >= 0) {
+        const i1 = lwr_str.indexOf("\"entity: ")
+        if (i1 > 0) {
+            const i2 = lwr_str.indexOf("\"", i1 + 2)
+            if (i2 > i1) {
+                return "unknown entity: \"" + lwr_str.substring(i1 + 9, i2) + "\".  Please check the \"Advanced query syntax\" documentation from the menu."
+            }
+        }
+        return "query: unknown entity, name not found"
+
+    } else if (lwr_str.indexOf("\"source: ") >= 0 && lwr_str.indexOf("invalid filter") >= 0) {
+        const i1 = lwr_str.indexOf("\"source: ")
+        if (i1 > 0) {
+            const i2 = lwr_str.indexOf("\"", i1 + 2)
+            if (i2 > i1) {
+                return "unknown source: \"" + lwr_str.substring(i1 + 9, i2) + "\".  Please check the \"Advanced query syntax\" documentation from the menu."
+            }
+        }
+        return "query: unknown source, name not found."
+
     } else if (lwr_str.indexOf("command timed out") >= 0) {
         if (lwr_str.indexOf("parsequerytextcmd") >= 0) {
             return "SimSage's language system timed-out. (parser)";
@@ -292,11 +312,18 @@ export function do_fetch(url, session_id, fn_success, fn_fail) {
 
 // get a logo for the current user to display in the UX
 export function get_enterprise_logo() {
+    return "images/brand/brand_enterprise-search.png";
+}
+
+export function get_client_logo() {
     const customer = window.ENV.customer;
     if (customer === 'arista') {
         return "images/brand/arista.png";
+    } else if(customer === 'sjic'){
+        return "images/brand/st_johns_logo.png";
+    }else{
+        return null
     }
-    return "images/brand/brand_enterprise-search.png";
 }
 
 // return a set of headers with or without a session-id for SimSage communications
@@ -529,6 +556,19 @@ export function is_archive_file(url) {
             url.split && url.split(archive_marker).length === 2);
 }
 
+// is this URL an archive file (zip, tar, gz, tgz) file
+export function is_archive(url) {
+    const url_l = (url && url.toLowerCase) ? url.toLowerCase().trim() : '';
+    const length4 = url_l.length - 4;
+    const length3 = url_l.length - 3;
+    return (
+        url_l.lastIndexOf('.zip') === length4 ||
+        url_l.lastIndexOf('.tgz') === length4 ||
+        url_l.lastIndexOf('.gz') === length3 ||
+        url_l.lastIndexOf('.tar') === length4
+    );
+}
+
 // convert a URL to a bread-crumb / item
 export function url_to_bread_crumb(url) {
     if (url.length > 0) {
@@ -585,11 +625,15 @@ export function get_archive_child_last(url) {
 
 // download local
 export function download_document(dl_url, session_id) {
-    if (!session_id || session_id.trim().length === 0) {
+    if (is_archive(dl_url)) {
+        alert("archive files cannot be downloaded");
+
+    } else if (!session_id || session_id.trim().length === 0) {
         alert("you must sign-in to download documents");
+
     } else {
         const url = window.ENV.api_base + '/dms/binary/latest/' + encodeURIComponent(window.ENV.organisation_id) + '/' +
-            encodeURIComponent(getKbId()) + '/' + window. btoa(unescape(encodeURIComponent(dl_url)));
+            encodeURIComponent(getKbId()) + '/' + window.btoa(unescape(encodeURIComponent(dl_url)));
         do_fetch(url, session_id);
     }
 }
@@ -597,12 +641,17 @@ export function download_document(dl_url, session_id) {
 // download a url (open it or view it)
 export function download(url, session_id) {
     if (url.length > 0 && is_viewable(url)) {
+        const url_lwr = url.toLowerCase();
+        // fix Google drive bug where we added an extra / to the end of /edit or /view
+        if (url_lwr.indexOf("google.com") > 0 && (url_lwr.endsWith("/edit/") || url_lwr.endsWith("/view/"))) {
+            url = url.substring(0, url.length - 1);
+        }
         window.open(url, "_blank");
+
     } else if (url.length > 0) {
         download_document(url, session_id);
     }
 }
-
 
 // takes a query string (window.location.search / props.location.search) and parses it into a named map
 export function get_url_search_parameters_as_map(search_string) {
@@ -919,3 +968,28 @@ export function get_full_username(user) {
     return "";
 }
 
+// language code to name of that language in English
+// see https://apps.timwhitlock.info/emoji/tables/iso3166
+export const language_lookup = {
+    "en": "🇬🇧 English",
+    "dk": "🇩🇰 Danish",
+    "no": "🇳🇴 Norwegian",
+    "se": "🇸🇪 Swedish",
+    "fi": "🇫🇮 Finnish",
+    "nl": "🇳🇱 Dutch",
+    "de": "🇩🇪 German",
+    "pl": "🇵🇱 Polish",
+    "fr": "🇫🇷 French",
+    "es": "🇪🇸 Spanish",
+    "it": "🇮🇹 Italian",
+    "tr": "🇹🇷 Turkish",
+    "el": "🇬🇷 Greek",
+    "pt": "🇵🇹 Portuguese",
+    "ar": "🇸🇦 Arabic",
+    "ko": "🇰🇵 Korean",
+    "ja": "🇯🇵 Japanese",
+    "ru": "🇷🇺 Russian",
+    "hi": "🇮🇳 Hindi",
+    "af": "🇿🇦 Afrikaans",
+    "zh": "🇨🇳 Chinese group",
+}

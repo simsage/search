@@ -1,13 +1,13 @@
 window.ENV = {
     // SimSage platform version (used for display only in UI)
-    version: '7.13',
+    version: '7.15',
     // api version of api_base
     api_version: 1,
     // is this a production build or not?
     debug: true,
     // the title of the app, displayed everywhere
     app_title: "SimSage Search",
-    // at present values are: arista, simsage
+    // at present values are: arista, simsage, sjic
     customer: 'simsage',
     // a link (can be empty string for go back to SimSage) for the customer clicking on their logo in the UX
     customer_website: '',
@@ -20,8 +20,8 @@ window.ENV = {
     // date picker display format
     date_format: 'yyyy/MM',
     // the details of who we are
-    organisation_id: 'c276f883-e0c8-43ae-9119-df8b7df9c574',
-    kb_id: '46ff0c75-7938-492c-ab50-442496f5de51',
+    organisation_id: "c276f883-e0c8-43ae-9119-df8b7df9c574",
+    kb_id: "46ff0c75-7938-492c-ab50-442496f5de51",
     // search parameters
     score_threshold: 0.8125,
     fragment_count: 10,
@@ -37,9 +37,7 @@ window.ENV = {
     preview_min_width: 1024,
     preview_min_height: 1024,
     // show metadata item counts in the UX (e.g. number of documents for each file-type)
-    show_metadata_counts: false,
-    // how many items in a categorical display if > 0
-    max_filter_size: 5,
+    show_metadata_counts: true,
     // entities for entity viewer / selector
     entity_list: [{"value": "city", "name": "cities"}, {"value": "credit-card", "name": "credit cards"},
         {"value": "country", "name": "countries"}, {"value": "date", "name": "dates"},
@@ -51,11 +49,11 @@ window.ENV = {
     // e.g. [{"name": 'Legal Group', "sources": ["glp","legal docs",]}, {...]
     override_source_list: [],
     allow_knowledgbase_selector: true,
-    query_ai_enabled: true,
+    // AI is enabled is set by the search info
+    // this is the "AI menu item" selector being ticked by default or not
     query_ai_enabled_by_default: false,
+    // display the summary button if AI is enabled
     use_article_summary: true,
-    snippet_summary_span: 3,
-    article_summary_span: 5,
     friendly_error_messages: true,
     // cookie storage length
     session_length_in_minutes: 60,

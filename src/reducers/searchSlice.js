@@ -41,9 +41,11 @@ const initialState = {
     spelling_correction: '',
     entity_values: {},
     hash_tag_list: [],
-
-    // use openAi or equivalent query processors
+    // enabled? (determined by search info)
+    ai_enabled: false,
+    // use ai (i.e. menu switch)
     use_ai: window.ENV.query_ai_enabled_by_default,
+
     // the url to focus on for q&A document
     query_ai_focus_url: '',
     query_ai_focus_url_id: 0,
@@ -61,6 +63,8 @@ const initialState = {
 
     // metadata categories down the side
     metadata_list: [],
+    document_type_count: {},        // "docx" -> 25
+    source_id_count: {},            // 1 -> 25
     metadata_values: {},
 
     // summarization data
@@ -146,6 +150,8 @@ const extraReducers = (builder) => {
                         }
                     }
                 }
+                state.document_type_count = data.documentTypeToCounts ? data.documentTypeToCounts : {};
+                state.source_id_count = data.sourceIdToCounts ? data.sourceIdToCounts : {};
 
                 let has_more = false;
                 let divided = (data.totalDocumentCount ? data.totalDocumentCount : 0) / window.ENV.page_size;
@@ -189,9 +195,11 @@ const extraReducers = (builder) => {
         .addCase(get_info.fulfilled, (state, action) => {
             let kb_list = action.payload.kbList ? action.payload.kbList : [];
             state.all_kbs = [...kb_list]
-            kb_list = kb_list.filter((kb) => kb.id === getKbId());
+            kb_list = kb_list.filter((kb) => kb.id === getKbId()); // get kbId from window parameters if possible
             if (kb_list.length === 1) {
                 state.source_list = kb_list[0].sourceList ? kb_list[0].sourceList : [];
+                // AI enabled if we have an LLM connected and ready
+                state.ai_enabled = kb_list[0].hasLLM;
 
                 // set up range slider(s) and metadata categories
                 if (kb_list[0].categoryList) {
@@ -201,16 +209,29 @@ const extraReducers = (builder) => {
                     // collect all other metadata from the collection for display
                     state.metadata_list = [];
                     const seen = {};
+                    let document_count_map = {};
                     if (kb_list[0].categoryList) {
                         for (const item of kb_list[0].categoryList) {
                             const metadata = item.metadata ? item.metadata : '';
-                            if ((item.categoryType === "categorical list" || item.categoryType === "document type") && !seen[metadata]) {
+                            if ((metadata === "document-type") && !seen[metadata]) {
                                 seen[metadata] = true;
                                 state.metadata_list.push(item);
+                                // get the name and count values for each
+                                if (item.items) {
+                                    for (const data of item.items) {
+                                        if (data.name && data.count) {
+                                            document_count_map[data.name] = data.count;
+                                        }
+                                    }
+                                }
+
                             }
                         }
                     }
+                    state.document_type_count = document_count_map;
                 }
+            } else {
+                state.ai_enabled = false;
             }
             state.has_info = true;
             state.busy = false;
@@ -592,7 +613,7 @@ export const do_search = createAsyncThunk(
 
 // get required SimSage information
 export const create_short_summary = createAsyncThunk(
-    'create_short_summary', async({session, target_url, sentence_id, span}, {rejectWithValue}) => {
+    'create_short_summary', async({session, target_url, sentence_id}, {rejectWithValue}) => {
 
         const api_base = window.ENV.api_base;
         const session_id = (session && session.id) ? session.id : null;
@@ -603,7 +624,6 @@ export const create_short_summary = createAsyncThunk(
             clientId: session_id,
             url: target_url,
             sentenceId: sentence_id,
-            span: span,
         };
         return axios.post(url, data, get_headers(session_id))
             .then((response) => {
@@ -671,25 +691,24 @@ export const ask_document_question = createAsyncThunk(
             "answer": "",
         }
 
-        return axios.post(url, data, get_headers(session_id))
-            .then((response) => {
-                if (on_success) {
-                    on_success();
-                }
-                return response.data;
-            }).catch((err) => {
-                return rejectWithValue(err)
-            })
+        return axios.post(url, data, get_headers(session_id)).then((response) => {
+            if (on_success) {
+                on_success();
+            }
+            return response.data;
+        }).catch((err) => {
+            return rejectWithValue(err)
+        })
     }
 )
 
 
 export const {
-        go_home, update_search_text, set_focus_for_preview, set_source_value, set_metadata_value,
-        dismiss_search_error, set_group_similar, set_newest_first, set_source_filter, select_syn_set,
-        set_range_slider, set_metadata_values, set_source_values, close_preview,
-        toggle_ai, select_document_for_ai_query, close_query_ai
-    } = searchSlice.actions;
+    go_home, update_search_text, set_focus_for_preview, set_source_value, set_metadata_value,
+    dismiss_search_error, set_group_similar, set_newest_first, set_source_filter, select_syn_set,
+    set_range_slider, set_metadata_values, set_source_values, close_preview,
+    toggle_ai, select_document_for_ai_query, close_query_ai
+} = searchSlice.actions;
 
 export default searchSlice.reducer;
 

@@ -161,6 +161,7 @@ export const simsageSignIn = createAsyncThunk(
     async ({id_token}, {rejectWithValue}) => {
         const api_base = window.ENV.api_base;
         const url = api_base + '/auth/search/authenticate/msal/' + encodeURIComponent(window.ENV.organisation_id);
+
         return axios.get(url, {
             headers: {
                 "API-Version": window.ENV.api_version,
@@ -173,6 +174,7 @@ export const simsageSignIn = createAsyncThunk(
         }).catch((err) => {
             return rejectWithValue(err)
         })
+
     }
 );
 

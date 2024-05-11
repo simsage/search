@@ -10,8 +10,12 @@ export function MetadataSelector(props) {
     const {metadata_values, result_list} = useSelector((state) => state.searchReducer);
 
     const metadata = props.metadata ? props.metadata : '';
+    // selected values (if any)
     const values = metadata_values[metadata] ? copy(metadata_values[metadata]) : {};
     const busy = props.busy === true;
+
+    // how many of each document type are present "document-type" -> count
+    const item_counts = props.item_counts ? props.item_counts : {};
 
     const [expand, set_expand] = useState(false);
     const [filter, set_filter] = useState('');
@@ -37,22 +41,21 @@ export function MetadataSelector(props) {
         items = items.sort((a, b) => (a.name < b.name) ? -1 : 1)
         // sort these items the complicated way
         let sorted_list = [];
-        for (const item of items) {
-            if (values && item && values[item.name] === true) {
-                sorted_list.push(item);
-            }
-        }
         // and then the items not yet selected
         for (const item of items) {
-            if (values && item && values[item.name] !== true) {
+            if (item) {
+                item.count = item_counts[item.name] ? item_counts[item.name] : 0;
                 sorted_list.push(item);
             }
         }
+
         // apply the text filter if applicable - and filter items that have no count if there is a count
         sorted_list = sorted_list.filter((item) => { return (trim_filter.length === 0 ||
-                                       item.name.toLowerCase().indexOf(trim_filter) >= 0)
-                               });
-        const max_size = window.ENV.max_filter_size ? window.ENV.max_filter_size : 0;
+            item.name.toLowerCase().indexOf(trim_filter) >= 0) &&
+            (item.count > 0 || values[item.name] === true)
+        });
+
+        const max_size = 0;
         const has_reached_limit = max_size > 0 && sorted_list.length > max_size && !expand;
         if (has_reached_limit) {
             sorted_list = sorted_list.slice(0, max_size);
@@ -82,6 +85,7 @@ export function MetadataSelector(props) {
                            onChange={(event) => set_filter(event.target.value)}/>
                 </label>
             }
+            <div className="metadata-name-boxes">
             {
                 list.map((item, i) => {
                     return (
@@ -93,7 +97,7 @@ export function MetadataSelector(props) {
                                    onChange={(event) => on_set_metadata_value(item.name, event.target.checked)} />
                             <div className="d-flex justify-content-between flex-fill">
                                 <span className="" title={"filter search results for only " + item.name + " types."}>{item.name}</span>
-                                {show_counts &&
+                                {show_counts && ((item.count ? item.count : 0) > 0) && has_results &&
                                     <span className="small fst-italic"
                                           title={"the current results contain " + (has_results ? item.count : 0) + " " + item.name + " types."}>{(has_results ? item.count : 0)}</span>
                                 }
@@ -101,7 +105,7 @@ export function MetadataSelector(props) {
                         </label>
                     )
                 })
-            }
+            }</div>
             { has_reached_limit &&
                 <label className="list-group-item bg-light d-flex ps-3 pe-3 no-select"
                        title="has more items, click here to expand or use the filter to find such entities"

@@ -50,7 +50,7 @@ export function AIDialog() {
     return (
         <div className="chat-container">
             <div className="chat-header">
-                <span>Document Questions</span>
+                <span>Converse with this Document</span>
                 <span className="container-close"
                       title="close" onClick={() => closeQueryAI()} />
             </div>
