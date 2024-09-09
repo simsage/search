@@ -71,11 +71,11 @@ export function MetadataSelector(props) {
     const has_reached_limit = gil_results.has_reached_limit;
 
     return (
-        <div className="category-selector list-group pt-1">
-            {list.length > 0 &&
+        <div className="document-type-selector-width list-group pt-1 float-end">
+            {list.length >= 0 &&
                 <div className="selector-title">{title}</div>
             }
-            {list.length > 0 &&
+            {list.length >= 0 &&
                 <label className="list-group-item p-0 overflow-hidden">
                     <input type="text" value={filter} placeholder="Filter type..."
                            className="py-2 px-3 w-100 border-0"

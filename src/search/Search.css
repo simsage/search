@@ -5,3 +5,20 @@
     height: 100vh;
 }
 
+.small-screen {
+    display: none  !important;
+}
+
+.enterprise-logo {
+    max-width: 150px;
+    min-width: 90px;
+}
+
+@media (max-width: 1000px) {
+    .large-screen {
+        display: none !important;
+    }
+    .small-screen {
+        display: block !important;
+    }
+}

@@ -44,6 +44,8 @@ html, body, #content, .App, .dms {
     visibility: visible;
 }
 
+
+
 .confirm-delete {
     background: #f0444420 !important;
     color: #f04444 !important;

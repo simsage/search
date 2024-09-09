@@ -1,7 +1,7 @@
 
 .alert-message {
-    position: absolute;
-    z-index: 1200;
+    position: absolute !important;
+    z-index: 1200 !important;;
     top: 10vh;
     left: 25vw;
     width: 50vw;
@@ -9,7 +9,7 @@
     border-radius: 5px;
     font-size: 15px;
     color: #222;
-    background-color: #ff9900;
+    background-color: #ff9900 !important;
 
 }
 

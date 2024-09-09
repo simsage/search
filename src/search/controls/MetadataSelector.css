@@ -1,7 +1,8 @@
 
 .metadata-name-boxes {
-    height: 30vh;
     overflow: auto;
+    max-height: 220px;
+    margin-bottom: 20px;
     scrollbar-color: #aaa #e2e2e2;
     scrollbar-width: thin;
 }

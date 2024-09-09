@@ -87,7 +87,7 @@ export function SourceSelector(props) {
     }
 
     return (
-        <div className="category-selector list-group pt-1">
+        <div className="source-selector-width list-group pt-1 float-end">
             <div className="selector-title">Sources</div>
             <label className="list-group-item p-0 overflow-hidden">
                 <input type="text" value={source_filter} placeholder="Filter type..."

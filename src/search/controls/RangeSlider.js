@@ -44,10 +44,12 @@ export function RangeSlider(props) {
 
     return (
         <div className="range-slider mb-4 pb-2">
-            <div className="slider-title">{title}</div>
+            <div className="slider-title mb-2">{title}</div>
+            <div className="large-screen">
             <div className="slider-label mb-2 d-flex justify-content-between">
                 <span className="date-text">{unix_time_convert_to_date(update[0] * 1000)}</span>
                 <span className="date-text">{unix_time_convert_to_date(update[1] * 1000)}</span>
+            </div>
             </div>
             <div className="slider-box px-2">
                 <Slider

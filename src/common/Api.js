@@ -6,6 +6,8 @@
 // at least one day's difference between min- and max-value to display
 const min_date_difference = 24 * 3600;
 const archive_marker = ":::";
+export const user_metadata_marker = "user-"
+export const hashtag_metadata = "{hashtag}"
 
 // is value defined and not null?
 export function defined(value) {
@@ -103,11 +105,14 @@ function pad2(item) {
 // convert unix timestamp to string if it's for a reasonable time in the future
 export function unix_time_convert_to_date(timestamp) {
     if (timestamp > 1000) {
-        const a = new Date(timestamp);
+        const a = new Date(parseInt("" + timestamp));
         const year = a.getUTCFullYear();
+        if (isNaN(year)) return "";
         const month = a.getUTCMonth() + 1;
-        const date = a.getUTCDate();
-        return year + '/' + pad2(month) + '/' + pad2(date);
+        if (isNaN(month)) return "";
+        const day = a.getUTCDate();
+        if (isNaN(day)) return "";
+        return year + '/' + pad2(month) + '/' + pad2(day);
     }
     return "";
 }
@@ -115,10 +120,13 @@ export function unix_time_convert_to_date(timestamp) {
 // convert unix timestamp to string if it's for a reasonable time in the future
 export function unix_time_convert(timestamp) {
     if (timestamp > 1000) {
-        const a = new Date(timestamp);
+        const a = new Date(parseInt("" + timestamp));
         const year = a.getUTCFullYear();
+        if (isNaN(year)) return "";
         const month = a.getUTCMonth() + 1;
+        if (isNaN(month)) return "";
         const date = a.getUTCDate();
+        if (isNaN(date)) return "";
         const hour = a.getUTCHours();
         const min = a.getUTCMinutes();
         const sec = a.getUTCSeconds();
@@ -143,29 +151,69 @@ function translate_metadata_name(name) {
     if (name === "date") return "dates in this document";
     if (name === "time") return "times in this document";
     if (name === "money") return "monetary amounts in this document";
+    if (name === "{created}") return "created";
+    if (name === "{language}") return "document language";
+    if (name === "{lastmod}") return "last modified";
     return name;
 }
 
 
-// return the list of hash-tags and other metadata in a metadata_set
+// return the list of hashtags and other metadata in a metadata_set
 export function get_metadata_list(metadata_set) {
     const metadata = metadata_set ? metadata_set : {};
-    const tag_list = [];  // list of metadata {hashtag}
     const metadata_list = [];
     for (const [key, value] of Object.entries(metadata)) {
         if (key === "{hashtag}" && value) {
-            const list = value.split(",");
-            for (const item of list) {
-                if (item && item.trim().length > 0) {
-                    tag_list.push({"name": item.trim()});
-                }
-            }
-        } else if (key.indexOf("{") === -1) {
+            metadata_list.push({"key": translate_metadata_name("hashtag"), "value": value});
+
+        } else if (key === "{created}" || key === "{lastmod}") {
+            const dt_str = unix_time_convert(value);
+            if (dt_str)
+                metadata_list.push({"key": translate_metadata_name(key), "value": dt_str});
+            else
+                metadata_list.push({"key": translate_metadata_name(key), "value": value});
+
+            // filter out url, title and user-metadata
+        } else if (key !== "{url}" && key !== "{title}" && key !== "hashtag" && key.indexOf(user_metadata_marker) !== 0) {
             metadata_list.push({"key": translate_metadata_name(key), "value": value});
         }
     }
     metadata_list.sort((a, b) => (a.key > b.key) ? 1 : -1);
-    return {"tag_list": tag_list, "metadata_list": metadata_list};
+    return {"metadata_list": metadata_list};
+}
+
+
+// return the list user defined metadata from the metadata set
+export function get_user_metadata_list(metadata_set) {
+    const metadata = metadata_set ? metadata_set : {};
+    const user_metadata_list = [];
+    for (const [key, value] of Object.entries(metadata)) {
+        if (key.indexOf(user_metadata_marker) === 0) {
+            user_metadata_list.push({key: key, value: value});
+        }
+    }
+    user_metadata_list.sort((a, b) => (a.key > b.key) ? 1 : -1);
+    return user_metadata_list
+}
+
+
+// return the list of hashtag metadata from the metadata set
+export function get_hashtag_list(metadata_set) {
+    const metadata = metadata_set ? metadata_set : {};
+    let hashtag_list = []
+    if (metadata.hasOwnProperty(hashtag_metadata)) {
+        hashtag_list = metadata[hashtag_metadata].split(",")
+    }
+    hashtag_list.sort((a, b) => (a.key > b.key) ? 1 : -1);
+    const final_hashtag_list = [];
+    let counter = 1;
+    for (const hashtag of hashtag_list) {
+        if (hashtag && hashtag.trim && hashtag.trim().length > 1) {
+            final_hashtag_list.push({key: counter, value: hashtag.trim()})
+            counter += 1
+        }
+    }
+    return final_hashtag_list
 }
 
 
@@ -312,17 +360,13 @@ export function do_fetch(url, session_id, fn_success, fn_fail) {
 
 // get a logo for the current user to display in the UX
 export function get_enterprise_logo() {
-    return "images/brand/brand_enterprise-search.png";
-}
-
-export function get_client_logo() {
     const customer = window.ENV.customer;
     if (customer === 'arista') {
         return "images/brand/arista.png";
     } else if(customer === 'sjic'){
         return "images/brand/st_johns_logo.png";
     }else{
-        return null
+        return "images/brand/brand_enterprise-search.png";
     }
 }
 
@@ -642,7 +686,7 @@ export function download_document(dl_url, session_id) {
 export function download(url, session_id) {
     if (url.length > 0 && is_viewable(url)) {
         const url_lwr = url.toLowerCase();
-        // fix Google drive bug where we added an extra / to the end of /edit or /view
+        // fix Google-drive bug where we added an extra / to the end of /edit or /view
         if (url_lwr.indexOf("google.com") > 0 && (url_lwr.endsWith("/edit/") || url_lwr.endsWith("/view/"))) {
             url = url.substring(0, url.length - 1);
         }

@@ -7,7 +7,7 @@ import {
     get_time_range_metadata,
     defined,
     pretty_version,
-    copy, get_error, add_url_search_parameter, getKbId
+    copy, get_error, add_url_search_parameter, getKbId, hashtag_metadata
 } from "../common/Api";
 
 const initialState = {
@@ -33,6 +33,7 @@ const initialState = {
     busy_with_ai: false,
     qna_text: '',
     ai_response: '',
+    ai_insight: '',
     qna_url_list: [],
     search_text: '',
     prev_search_text: '',
@@ -72,6 +73,8 @@ const initialState = {
 
     // error handling
     search_error_text: '',
+    // error handling for metadata editing
+    metadata_error: '',
 
     // syn-sets:  {name: "law", description_list: ['criminal, jail', 'corporate, business']}
     syn_set_list: [],
@@ -87,6 +90,7 @@ const extraReducers = (builder) => {
                 state.result_list = [];
                 state.pages_loaded = 0;
                 state.ai_response = '';
+                state.ai_insight = '';
             }
             state.search_error_text = "";
             state.query_ai_focus_url = "";
@@ -127,12 +131,15 @@ const extraReducers = (builder) => {
                 state.spelling_correction = data.spellingCorrection ? data.spellingCorrection : '';
                 state.hash_tag_list = [];
                 state.entity_values = {};
-                state.ai_response = data.querySummarization ? data.querySummarization : '';
 
-                // only set the total document count on the first page
+                // only set the AI response for page 0
                 if (data.page === 0) {
-                    state.total_document_count = data.totalDocumentCount ? data.totalDocumentCount : 0;
+                    state.ai_response = data.qnaAnswer ? data.qnaAnswer : '';
+                    state.ai_insight = data.qnaInsight ? data.qnaInsight : '';
                 }
+
+                // set the total document count
+                state.total_document_count = data.totalDocumentCount ? data.totalDocumentCount : 0;
 
                 // set up range slider(s)
                 state.last_modified_slider = get_time_range_metadata(data.categoryList, parameters.last_modified_slider, "last-modified");
@@ -269,30 +276,6 @@ const extraReducers = (builder) => {
 
         ////////////////////////////////////////////////////////////////////////////////////
 
-        .addCase(get_preview_html.pending, (state) => {
-            state.busy = true;
-            state.search_error_text = "";
-        })
-
-        // get_preview_html
-        .addCase(get_preview_html.fulfilled, (state, action) => {
-            state.busy = false;
-            const data = action.payload;
-            if (data) {
-                const num_total_pages = data.numPages ? data.numPages : 1;
-                state.has_more_preview_pages = state.html_preview_list.length + 1 < num_total_pages;
-                state.html_preview_list.push(action.payload);
-            }
-        })
-
-        .addCase(get_preview_html.rejected, (state, action) => {
-            state.busy = false;
-            state.search_error_text = get_error(action);
-            console.error("rejected: get_preview_html:" + state.search_error_text);
-        })
-
-        ////////////////////////////////////////////////////////////////////////////////////
-
         .addCase(ask_document_question.pending, (state) => {
             state.busy = true;
             state.busy_with_ai = true;
@@ -319,6 +302,39 @@ const extraReducers = (builder) => {
             console.error("rejected: ask_document_question:" + state.search_error_text);
         })
 
+        ////////////////////////////////////////////////////////////////////////////////////
+
+        .addCase(save_hashtags.pending, (state) => {
+            return {...state, busy: true, busy_with_ai: true, metadata_error: ''}
+        })
+
+        // save user metadata succeeded
+        .addCase(save_hashtags.fulfilled, (state, action) => {
+            const data = action.payload;
+            // take a copy of the search results and change the metadata inside it
+            const result_list_copy = JSON.parse(JSON.stringify(state.result_list))
+            if (data.url) {
+                for (const result of result_list_copy) {
+                    if (result.url === data.url) {
+                        data.hashTagList.sort((a, b) => (a.key > b.key) ? 1 : -1);
+                        if (data.hashTagList)
+                            result.metadata[hashtag_metadata] = data.hashTagList.join(",")
+                        else
+                            result.metadata[hashtag_metadata] = ""
+                    }
+                }
+            }
+            return {...state, busy: false, busy_with_ai: false, metadata_error: '', result_list: result_list_copy}
+        })
+
+        .addCase(save_hashtags.rejected, (state, action) => {
+            console.error("rejected: save_hashtags:", action);
+            return {...state,
+                busy: false,
+                busy_with_ai: false,
+                metadata_error: get_error(action)
+            }
+        })
 
 }
 
@@ -438,6 +454,10 @@ const searchSlice = createSlice({
             return {...state, search_error_text: ''}
         },
 
+        set_metadata_error: (state, action) => {
+            return {...state, metadata_error: action.payload.error ?? ''}
+        },
+
         select_document_for_ai_query: (state, action) => {
             return {...state,
                 search_focus: null, // close
@@ -475,6 +495,30 @@ export const get_info = createAsyncThunk(
         return axios.get(url, get_headers(session_id))
             .then((response) => {
                 console.log('SimSage UX version ' + pretty_version());
+                return response.data;
+            }).catch((err) => {
+                return rejectWithValue(err)
+            })
+    }
+)
+
+
+// save a user metadata key/value pair for a document
+// saving with an empty metadata.value is a delete
+export const save_hashtags = createAsyncThunk(
+    'save_hashtags',
+    async({session_id, organisation_id, kb_id, document_url, hashtag_list}, {rejectWithValue}) => {
+
+        const api_base = window.ENV.api_base;
+        const url = api_base + '/document/user-hashtag';
+        const data ={
+            organisationId: organisation_id,
+            kbId: kb_id,
+            url: document_url,
+            hashTagList: hashtag_list
+        }
+        return axios.post(url, data, get_headers(session_id))
+            .then((response) => {
                 return response.data;
             }).catch((err) => {
                 return rejectWithValue(err)
@@ -579,6 +623,7 @@ export const do_search = createAsyncThunk(
             fragmentCount: window.ENV.fragment_count,
             maxWordDistance: window.ENV.max_word_distance,
             spellingSuggest: window.ENV.use_spell_checker,
+            useInsight: window.ENV.use_insight,
             contextLabel: '',
             contextMatchBoost: 0.01,
             groupSimilarDocuments: group_similar,
@@ -620,7 +665,7 @@ export const create_short_summary = createAsyncThunk(
         const url = api_base + '/semantic/short-summary';
         const data = {
             organisationId: window.ENV.organisation_id,
-            kbId: window.ENV.kb_id,
+            kbId: getKbId(),
             clientId: session_id,
             url: target_url,
             sentenceId: sentence_id,
@@ -632,36 +677,6 @@ export const create_short_summary = createAsyncThunk(
                 return rejectWithValue(err)
             })
     }
-)
-
-
-/**
- * get an html preview for a given url / page
- *
- */
-export const get_preview_html = createAsyncThunk(
-        'get_preview_html',
-    async ({session, url_id, html_preview_list},
-           {rejectWithValue}) => {
-
-            const api_base = window.ENV.api_base;
-            const session_id = (session && session.id) ? session.id : get_client_id();
-            const url = api_base + '/document/preview/html';
-
-            const data = {
-                "organisationId": window.ENV.organisation_id,
-                "kbId": getKbId(),
-                "urlId": url_id,
-                "page": (html_preview_list && html_preview_list.length) ? html_preview_list.length + 1 : 1,
-            }
-
-            return axios.post(url, data, get_headers(session_id))
-                .then((response) => {
-                    return response.data;
-                }).catch((err) => {
-                    return rejectWithValue(err)
-                })
-        }
 )
 
 
@@ -707,7 +722,8 @@ export const {
     go_home, update_search_text, set_focus_for_preview, set_source_value, set_metadata_value,
     dismiss_search_error, set_group_similar, set_newest_first, set_source_filter, select_syn_set,
     set_range_slider, set_metadata_values, set_source_values, close_preview,
-    toggle_ai, select_document_for_ai_query, close_query_ai
+    toggle_ai, select_document_for_ai_query, close_query_ai,
+    set_metadata_error
 } = searchSlice.actions;
 
 export default searchSlice.reducer;

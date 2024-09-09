@@ -26,9 +26,13 @@
     color: #fff;
 }
 
+.preview-floating-header {
+    width: fit-content;
+    float: right;
+}
+
 .dialog-padding {
-    display: inline-block;
-    padding: 20px;
+    padding: 50px;
 }
 
 .metadata-header {
@@ -69,7 +73,6 @@
 .scaled-iframe {
     border: 0;
     padding: 10px;
-    pointer-events: none;
 }
 
 

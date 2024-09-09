@@ -55,6 +55,7 @@ export function AIDialog() {
                       title="close" onClick={() => closeQueryAI()} />
             </div>
             <div className="chat-messages" ref={listRef}>
+                <div className="small-font">Generative AI can make mistakes. Consider checking important information.</div>
                 {
                     query_ai_dialog_list.map((msg, i) => {
                         if (msg && msg.role === "assistant") {

@@ -1,6 +1,6 @@
 window.ENV = {
     // SimSage platform version (used for display only in UI)
-    version: '7.15',
+    version: '7.17',
     // api version of api_base
     api_version: 1,
     // is this a production build or not?
@@ -13,6 +13,8 @@ window.ENV = {
     customer_website: '',
     // can set as false to skip previews
     show_previews: true,
+    // show metadata in preview window
+    show_preview_metadata: false,
     // trial expiry for customer trials - just set this to true to disable sign-in
     trial_expired: false,
     // the cloud service layer end-point, change "localhost:8080" to ...
@@ -52,13 +54,44 @@ window.ENV = {
     // AI is enabled is set by the search info
     // this is the "AI menu item" selector being ticked by default or not
     query_ai_enabled_by_default: false,
+    // if true, we ask for insights, if false, we ask for Q&A
+    use_insight: false,
     // display the summary button if AI is enabled
     use_article_summary: true,
     friendly_error_messages: true,
+    // show the user tags in the search results?
+    show_user_tags: true,
     // cookie storage length
     session_length_in_minutes: 60,
     // keycloak real, client_id and server
     kc_realm: "simsage-test",
     kc_client_id: "simsage-test-client",
+
+    // Collabora exceptions
+    video_types: ["dir", "dcr", "dxr", "cst", "cct", "cxt", "w3d", "fgd", "swa", "spl", "avif", "vtt", "mj2", "mp4",
+        "mjp2", "mpeg", "mpg", "mpe", "m1v", "m2v", "ogv", "drc", "ogm", "mov", "qt", "webm", "avi", "m4v"],
+    audio_types: ["mp3", "wav", "mp4", "webm", "weba", "mov", "au", "mpga", "mp2", "mp2a", "m2a", "m3a", "oga",
+        "ogg", "opus", "aif", "aiff", "aifc", "caf", "flac", "ra"],
+    // html types
+    html_types: ["asp", "aspx", "htm", "html"],
+    // Collabora valid (not odp)
+    valid_types: ["4th", "602", "ad", "ada", "adoc", "ads", "aj", "applescript", "as", "asciidoc", "asm",
+        "aw", "awk", "bas", "c", "c++", "cbl", "cha", "cl", "clj", "cls", "cpp", "cs", "css", "csv", "csvs",
+        "doc", "docm", "docx", "dot", "dotm", "dotx", "dox", "e", "el", "eps", "epsf", "epsi", "erl", "exp", "f",
+        "fbx", "fft", "flextext", "fodp", "fods", "fodt", "geojson", "gml", "go", "h", "haml", "hqx", "hs", "hx",
+        "ics", "inf", "itk", "java", "jl", "js", "json", "jsp", "jw", "jwt", "kt", "lhs", "lisp", "log",
+        "lsp", "lua", "man", "md", "me", "ml", "ms", "odf", "odft", "odg", "odi", "ods", "odt", "otc", "otg",
+        "oth", "oti", "otm", "otp", "ots", "ott", "oxps", "pdf", "pot", "potx", "ppa", "ppam", "pps", "ppsm", "ppsx",
+        "ppt", "pptm", "pptx", "ppz", "ps", "py", "rb", "rest", "restx", "rexx", "rfc", "rft", "roff", "rs", "rst",
+        "rtf", "s", "scala", "scm", "sed", "sgm", "sgml", "sql", "st", "sxw", "t", "tcl", "textgrid", "tk", "toml",
+        "tr", "ttl", "txt", "v", "vb", "vbs", "vcf", "vcs", "vhd", "vhdl", "vsd", "vsdm", "vsdx", "vss", "vssm",
+        "vssx", "vst", "vstm", "vstx", "vsw", "vtt", "wml", "wmls", "xla", "xlam", "xlc", "xld", "xll", "xlm", "xls",
+        "xlsb", "xlsm", "xlsx", "xlt", "xltm", "xltx", "xlw", "xps", "y", "yacc", "yaml"
+    ],
+
+    // Settings to run Collabora
+    wopi_url: "http://localhost:9980/browser/baa6eef/cool.html",
+    wopi_api_url: "http://localhost:8080/api/wopi",
+
     kc_endpoint: "https://security.simsage.ai",
 };
