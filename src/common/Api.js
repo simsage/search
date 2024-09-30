@@ -434,7 +434,7 @@ function simplify_metadata_type(metadata_type) {
  */
 export function get_filters(metadata_list, metadata_values, entity_values, source_list, source_values,
                             hash_tag_list, syn_set_filter, last_modified_slider, created_slider) {
-    const delta = 3600_000;
+    const delta = 30_000;
     let filter_str = "";
     let needs_and = false;
 
