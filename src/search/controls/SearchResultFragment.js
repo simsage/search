@@ -28,7 +28,7 @@ export function SearchResultFragment(props) {
     // user access
     const {user} = useSelector((state) => state.authReducer)
     // does this user have the "tagger" role?
-    const enable_add_tags = user.roles.filter((role) => role.role === "tagger").length > 0
+    let enable_add_tags = (user && user.roles) ? (user.roles.filter((role) => role.role === "tagger").length > 0) : false;
 
     const result = props.result;
     const session = props.session;
@@ -141,11 +141,16 @@ export function SearchResultFragment(props) {
         ))
     }
 
-    const source_set = {};
+    const source_set = {}
+    let source_type = ""
     if (props.source_list && props.source_list.length > 0) {
         for (const source of props.source_list) {
             source_set[source.sourceId] = source;
         }
+        if (result && source_set.hasOwnProperty(result.sourceId)) {
+            source_type = source_set[result.sourceId].sourceType ?? ""
+        }
+
     }
 
     // convert a key value list to just the value list as strings
@@ -351,7 +356,7 @@ export function SearchResultFragment(props) {
                         <div>
                             {parent_list && parent_list.length > 0 &&
                                 <div className="border-top line-width-limited">
-                                    <div className="similar-document-title">parent document</div>
+                                    <div className="similar-document-title">{source_type === "discourse" ? "topic" : "parent document"}</div>
                                     <ul>
                                         {
                                             parent_list.map((item, j) => {
@@ -368,7 +373,7 @@ export function SearchResultFragment(props) {
                             }
                             {child_list && child_list.length > 0 &&
                                 <div className="border-top line-width-limited">
-                                    <div className="similar-document-title">attachments</div>
+                                    <div className="similar-document-title">{source_type === "discourse" ? "replies" : "attachments"}</div>
                                     <ul>
                                         {
                                             child_list.map((item, j) => {

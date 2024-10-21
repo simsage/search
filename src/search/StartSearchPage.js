@@ -116,7 +116,7 @@ export function StartSearchPage() {
                 <div className="nav-search-container mb-5">
                     <div className="inner xl d-flex align-items-center position-relative">
                             <span className="nav-search-icon ms-2 d-flex align-items-center">
-                                <img src="images/icon_n-search.svg" alt="search" title="search"
+                                <img src={window.ENV.image_base_name + "/images/icon_n-search.svg"} alt="search" title="search"
                                      onClick={() => action_search()}/>
                             </span>
                         <input type="text" className="nav-search-input ps-1 pe-3" id="simsage-search-text"
@@ -137,23 +137,23 @@ export function StartSearchPage() {
                 </div>
 
                 <div className="d-flex justify-content-center mb-5">
-                    <img src="images/brand/logo_drive.svg" alt="" title="Google Drive" className="mx-3"
+                    <img src={window.ENV.image_base_name + "/images/brand/logo_drive.svg"} alt="" title="Google Drive" className="mx-3"
                          style={{"width": "40px"}}/>
-                    <img src="images/brand/logo_office.svg" alt="" title="Office" className="mx-3"
+                    <img src={window.ENV.image_base_name + "/images/brand/logo_office.svg"} alt="" title="Office" className="mx-3"
                          style={{"width": "40px"}}/>
-                    <img src="images/brand/logo_dropbox.svg" alt="" title="Dropbox" className="mx-3"
+                    <img src={window.ENV.image_base_name + "/images/brand/logo_dropbox.svg"} alt="" title="Dropbox" className="mx-3"
                          style={{"width": "40px"}}/>
-                    <img src="images/brand/logo_exchange.svg" alt="" title="Exchange" className="mx-3"
+                    <img src={window.ENV.image_base_name + "/images/brand/logo_exchange.svg"} alt="" title="Exchange" className="mx-3"
                          style={{"width": "40px"}}/>
-                    <img src="images/brand/logo_sharepoint.svg" alt="" title="SharePoint" className="mx-3"
+                    <img src={window.ENV.image_base_name + "/images/brand/logo_sharepoint.svg"} alt="" title="SharePoint" className="mx-3"
                          style={{"width": "40px"}}/>
-                    <img src="images/brand/logo_wordpress.svg" alt="" title="Wordpress" className="mx-3"
+                    <img src={window.ENV.image_base_name + "/images/brand/logo_wordpress.svg"} alt="" title="Wordpress" className="mx-3"
                          style={{"width": "40px"}}/>
-                    <img src="images/brand/logo_onedrive.svg" alt="" title="One-drive" className="mx-3"
+                    <img src={window.ENV.image_base_name + "/images/brand/logo_onedrive.svg"} alt="" title="One-drive" className="mx-3"
                          style={{"width": "40px"}}/>
-                    <img src="images/brand/logo_postgre.svg" alt="" title="Postgres" className="mx-3"
+                    <img src={window.ENV.image_base_name + "/images/brand/logo_postgre.svg"} alt="" title="Postgres" className="mx-3"
                          style={{"width": "40px"}}/>
-                    <img src="images/brand/logo_mysql.svg" alt="" title="MySQL" className="mx-3"
+                    <img src={window.ENV.image_base_name + "/images/brand/logo_mysql.svg"} alt="" title="MySQL" className="mx-3"
                          style={{"width": "40px"}}/>
                 </div>
             </div>

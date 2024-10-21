@@ -2,7 +2,6 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import {Provider} from 'react-redux';
 import './index.css';
-
 import 'bootstrap/dist/js/bootstrap.bundle.min';
 import 'bootstrap/dist/css/bootstrap.css';
 import 'typeface-roboto';
@@ -13,6 +12,7 @@ import keycloak from "./keycloak";
 
 import reportWebVitals from './reportWebVitals';
 import {App} from "./App";
+import {BrowserRouter} from "react-router-dom";
 
 let token = localStorage.getItem('token');
 let refreshToken = localStorage.getItem('refreshToken');
@@ -46,6 +46,7 @@ if (token && refreshToken) {
     init_options = {onLoad: 'check-sso', token: token, refreshToken: refreshToken};
 }
 
+const base_name = window.ENV.base_name
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
     <ReactKeycloakProvider
@@ -54,7 +55,9 @@ root.render(
         onTokens={tokenLogger}
         initOptions={init_options}>
         <Provider store={store}>
-            <App />
+            <BrowserRouter basename={base_name}>
+                <App />
+            </BrowserRouter>
         </Provider>
     </ReactKeycloakProvider>
 );

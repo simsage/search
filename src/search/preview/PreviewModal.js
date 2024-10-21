@@ -207,12 +207,12 @@ export function PreviewModal() {
                         }
                         <button className="btn pre-btn ms-2">
                             {show_metadata &&
-                                <img src="images/icon_im-close-white.svg" alt="close" title="close"
+                                <img src={window.ENV.image_base_name + "/images/icon_im-close-white.svg"} alt="close" title="close"
                                      className="image-close"
                                      onClick={() => on_close()}/>
                             }
                             {!show_metadata &&
-                                <img src="images/icon_im-close-black.svg" alt="close" title="close"
+                                <img src={window.ENV.image_base_name + "/images/icon_im-close-black.svg"} alt="close" title="close"
                                      className="image-close"
                                      onClick={() => on_close()}/>
                             }
@@ -261,13 +261,13 @@ export function PreviewModal() {
                                     <div className="col-2">
                                     <span title={get_special_title(url)}>
                                     {display_type === 'html' &&
-                                        <img src="images/html.svg" alt="html" style={{width: "50px"}}/>}
+                                        <img src={window.ENV.image_base_name + "/images/html.svg"} alt="html" style={{width: "50px"}}/>}
                                         {display_type === 'video' &&
-                                            <img src="images/video.svg" alt="video" style={{width: "50px"}}/>}
+                                            <img src={window.ENV.image_base_name + "/images/video.svg"} alt="video" style={{width: "50px"}}/>}
                                         {display_type === 'audio' &&
-                                            <img src="images/audio.svg" alt="audio" style={{width: "50px"}}/>}
+                                            <img src={window.ENV.image_base_name + "/images/audio.svg"} alt="audio" style={{width: "50px"}}/>}
                                         {display_type === 'unknown' &&
-                                            <img src="images/binary.svg" alt="unknown" style={{width: "50px"}}/>}
+                                            <img src={window.ENV.image_base_name + "/images/binary.svg"} alt="unknown" style={{width: "50px"}}/>}
                                     </span>
                                     </div>
                                     <div className="col-10">

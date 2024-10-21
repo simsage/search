@@ -63,10 +63,6 @@ window.ENV = {
     show_user_tags: true,
     // cookie storage length
     session_length_in_minutes: 60,
-    // keycloak real, client_id and server
-    kc_realm: "simsage-test",
-    kc_client_id: "simsage-test-client",
-
     // Collabora exceptions
     video_types: ["dir", "dcr", "dxr", "cst", "cct", "cxt", "w3d", "fgd", "swa", "spl", "avif", "vtt", "mj2", "mp4",
         "mjp2", "mpeg", "mpg", "mpe", "m1v", "m2v", "ogv", "drc", "ogm", "mov", "qt", "webm", "avi", "m4v"],
@@ -92,6 +88,11 @@ window.ENV = {
     // Settings to run Collabora
     wopi_url: "http://localhost:9980/browser/baa6eef/cool.html",
     wopi_api_url: "http://localhost:8080/api/wopi",
-
+    // url bases
+    base_name: "/search",
+    image_base_name: "/search",
+    // keycloak real, client_id and server
     kc_endpoint: "https://security.simsage.ai",
+    kc_realm: "simsage-test",
+    kc_client_id: "simsage-test-client"
 };

@@ -7,7 +7,7 @@ import {
     get_time_range_metadata,
     defined,
     pretty_version,
-    copy, get_error, add_url_search_parameter, getKbId, hashtag_metadata
+    copy, get_error, getKbId, hashtag_metadata
 } from "../common/Api";
 
 const initialState = {
@@ -176,9 +176,6 @@ const extraReducers = (builder) => {
                 }
                 state.has_more = has_more;
                 state.num_pages = num_pages;
-
-                // set the query string based on the results of the returned search
-                add_url_search_parameter("query", parameters.search_text)
 
                 state.pages_loaded = parseInt("" + (state.result_list.length / window.ENV.page_size));
             }

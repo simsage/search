@@ -204,7 +204,10 @@ function Search(props) {
 
                     {/* search box */}
                     <div className="col-8">
-                        <SearchBox on_search={() => search({next_page: false})}/>
+                        <SearchBox
+                                on_search={() => search({next_page: false})}
+                                on_search_text={(text) => search({next_page: false, search_text: text})}
+                        />
                     </div>
 
                     <div className="col-1">
@@ -224,9 +227,9 @@ function Search(props) {
                                     <div className="col-2 px-1 mx-1" title="menu">
                                         <button className={(show_menu ? "active" : "") + " btn nav-btn"}
                                                 onClick={(e) => toggle_accounts_menu(e)}>
-                                            <img src="images/icon_n-account.svg" alt=""
+                                            <img src={window.ENV.image_base_name + "/images/icon_n-account.svg"} alt=""
                                                  className={show_menu ? "d-none" : ""}/>
-                                            <img src="images/icon_n-account-active.svg" alt=""
+                                            <img src={window.ENV.image_base_name + "/images/icon_n-account-active.svg"} alt=""
                                                  className={!show_menu ? "d-none" : ""}/>
                                         </button>
                                         <AccountDropdown
@@ -242,9 +245,9 @@ function Search(props) {
                                             <div className="account" title="Select Data Source">
                                                 <button className={(show_kb_menu ? "active" : "") + " btn nav-btn"}
                                                         onClick={(e) => toggle_knowledgebase_menu(e)}>
-                                                    <img src="images/icon_ci-database.svg" alt=""
+                                                    <img src={window.ENV.image_base_name + "/images/icon_ci-database.svg"} alt=""
                                                          className={show_kb_menu ? "d-none" : ""}/>
-                                                    <img src="images/icon_ci-database_active.svg" alt=""
+                                                    <img src={window.ENV.image_base_name + "/images/icon_ci-database_active.svg"} alt=""
                                                          className={!show_kb_menu ? "d-none" : ""}/>
                                                 </button>
                                             </div>
@@ -265,9 +268,9 @@ function Search(props) {
                                     <div className="col-2 px-1 mx-2" title="menu">
                                         <button className={(show_menu ? "active" : "") + " btn nav-btn"}
                                                 onClick={(e) => toggle_accounts_menu(e)}>
-                                            <img src="images/icon_n-account.svg" alt=""
+                                            <img src={window.ENV.image_base_name + "/images/icon_n-account.svg"} alt=""
                                                  className={show_menu ? "d-none" : ""}/>
-                                            <img src="images/icon_n-account-active.svg" alt=""
+                                            <img src={window.ENV.image_base_name + "/images/icon_n-account-active.svg"} alt=""
                                                  className={!show_menu ? "d-none" : ""}/>
                                         </button>
                                         <AccountDropdown
@@ -285,9 +288,9 @@ function Search(props) {
                                             <div className="account" title="Select Data Source">
                                                 <button className={(show_kb_menu ? "active" : "") + " btn nav-btn"}
                                                         onClick={(e) => toggle_knowledgebase_menu(e)}>
-                                                    <img src="images/icon_ci-database.svg" alt=""
+                                                    <img src={window.ENV.image_base_name + "/images/icon_ci-database.svg"} alt=""
                                                          className={show_kb_menu ? "d-none" : ""}/>
-                                                    <img src="images/icon_ci-database_active.svg" alt=""
+                                                    <img src={window.ENV.image_base_name + "/images/icon_ci-database_active.svg"} alt=""
                                                          className={!show_kb_menu ? "d-none" : ""}/>
                                                 </button>
                                             </div>

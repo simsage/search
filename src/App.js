@@ -3,6 +3,7 @@ import {useDispatch} from 'react-redux';
 import {simsageSignIn} from "./reducers/authSlice";
 import Search from "./search/Search";
 import {useKeycloak} from "@react-keycloak/web";
+import {Route, Routes} from "react-router-dom";
 
 
 /**
@@ -49,7 +50,6 @@ export const App = () => {
             }).catch(function (ex) {
                 console.warn('Failed to refresh the token, or the session has expired', ex);
                 keycloak.login();
-                //window.location.reload();
             });
         }
     }, [initialized, keycloak, dispatch]);
@@ -59,6 +59,8 @@ export const App = () => {
     }
 
     return (
-        <Search />
+        <Routes>
+            <Route path="/" element={<Search />} />
+        </Routes>
     )
 }

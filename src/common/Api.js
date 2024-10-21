@@ -362,11 +362,11 @@ export function do_fetch(url, session_id, fn_success, fn_fail) {
 export function get_enterprise_logo() {
     const customer = window.ENV.customer;
     if (customer === 'arista') {
-        return "images/brand/arista.png";
+        return window.ENV.image_base_name + "/images/brand/arista.png";
     } else if(customer === 'sjic'){
-        return "images/brand/st_johns_logo.png";
+        return window.ENV.image_base_name + "/images/brand/st_johns_logo.png";
     }else{
-        return "images/brand/brand_enterprise-search.png";
+        return window.ENV.image_base_name + "/images/brand/brand_enterprise-search.png";
     }
 }
 
@@ -706,37 +706,17 @@ export function get_url_search_parameters_as_map(search_string) {
         for (let i = 0; i < vars.length; i++) {
             let pair = vars[i].split("=");
             if (pair.length === 2)
-                result[pair[0]] = pair[1]
+                result[pair[0]] = pair[1].replace('+', ' ')
         }
     }
     return result;
-}
-
-// adds or replaces an url parameter in the history with the passed in value
-export function add_url_search_parameter(key, value) {
-    const parameterMap = get_url_search_parameters_as_map(window.location.search)
-    if (value) {
-        parameterMap[key] = encodeURIComponent(value);
-    } else {
-        delete parameterMap[key]
-    }
-    let url = ""
-    Object.getOwnPropertyNames(parameterMap).forEach((param, idx) => {
-        url = url + (idx === 0 ? "?" : "&") + param + "=" + parameterMap[param]
-    })
-    if (url.length > 0) {
-        window.history.replaceState(null, null, url)
-    } else {
-        // Can't set URL to "", need to set whole path if no query string
-        window.history.replaceState({}, '', window.location.pathname);
-    }
 }
 
 // returns the currently selected Knowledgebase id
 // this will either be the one in the url or the default one if none set
 export function getKbId() {
     const params = get_url_search_parameters_as_map(window.location.search)
-    if (params.hasOwnProperty("kbId")) {
+    if (params.hasOwnProperty("kbId") && params["kbId"].length > 0) {
         return params["kbId"]
     } else {
         return window.ENV.kb_id
