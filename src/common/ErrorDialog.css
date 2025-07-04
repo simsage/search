@@ -10,7 +10,19 @@
     font-size: 15px;
     color: #222;
     background-color: #ff9900 !important;
+}
 
+.alert-message-dark {
+    position: absolute !important;
+    z-index: 1200 !important;;
+    top: 10vh;
+    left: 25vw;
+    width: 50vw;
+    display: inline-block;
+    border-radius: 5px;
+    font-size: 15px;
+    color: #222;
+    background-color: #552200 !important;
 }
 
 .close-alert {

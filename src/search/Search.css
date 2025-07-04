@@ -9,8 +9,12 @@
     display: none  !important;
 }
 
+.logo-size {
+    height: 50px;
+    width: 130px;
+}
 .enterprise-logo {
-    max-width: 150px;
+    max-width: 250px;
     min-width: 90px;
 }
 

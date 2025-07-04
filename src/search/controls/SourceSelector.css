@@ -1,4 +1,12 @@
+
 .source-selector {
+    overflow: auto;
+    max-height: 232px;
+    scrollbar-color: #aaa #e2e2e2;
+    scrollbar-width: thin;
+}
+
+.source-selector-dark {
     overflow: auto;
     max-height: 232px;
     scrollbar-color: #aaa #e2e2e2;
@@ -7,9 +15,11 @@
 
 .source-selector-width {
     max-width: 400px;
+    min-width: 300px;
 }
 
 .document-type-selector-width {
-    max-width: 200px;
+    max-width: 400px;
+    min-width: 300px;
 }
 
