@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px"
+     viewBox="0 0 32 32" style="enable-background:new 0 0 32 32;" xml:space="preserve">
+<style type="text/css">
+	.st4{opacity:5.000000e-02;fill:#333F49;}
+	.st45{fill:none;stroke:#333F49;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;}
+</style>
+<path class="st4" d="M27.7,8.4v15.1c0,2.3-1.9,4.1-4.1,4.1H8.4c-2.3,0-4.1-1.9-4.1-4.1V8.4c0-2.3,1.9-4.1,4.1-4.1h15.1
+	C25.8,4.3,27.7,6.2,27.7,8.4z"/>
+<path class="st45" d="M27.7,8.4v15.1c0,2.3-1.9,4.1-4.1,4.1H8.4c-2.3,0-4.1-1.9-4.1-4.1V8.4c0-2.3,1.9-4.1,4.1-4.1h15.1
+	C25.8,4.3,27.7,6.2,27.7,8.4z"/>
+<g>
+	<polyline class="st45" points="20.8,19.1 24.1,16 20.8,12.9 	"/>
+	<polyline class="st45" points="11.2,12.9 7.9,16 11.2,19.1 	"/>
+</g>
+<line class="st45" x1="13.8" y1="22" x2="18.2" y2="10"/>
+</svg>
