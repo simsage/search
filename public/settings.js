@@ -1,20 +1,28 @@
 window.ENV = {
     // SimSage platform version (used for display only in UI)
-    version: '7.17',
+    version: '8.3',
     // api version of api_base
     api_version: 1,
+    // run from this location, starting with a / (or empty)
+    base_name: "",
     // is this a production build or not?
     debug: true,
     // the title of the app, displayed everywhere
     app_title: "SimSage Search",
+    // UI language, en or fr
+    language: "en",
     // at present values are: arista, simsage, sjic
     customer: 'simsage',
     // a link (can be empty string for go back to SimSage) for the customer clicking on their logo in the UX
     customer_website: '',
     // can set as false to skip previews
-    show_previews: true,
+    show_previews: false,
     // show metadata in preview window
     show_preview_metadata: false,
+    // show llm search option in menu?
+    show_llm_menu: true,
+    // llm interface showing by default?
+    llm_search: false,
     // trial expiry for customer trials - just set this to true to disable sign-in
     trial_expired: false,
     // the cloud service layer end-point, change "localhost:8080" to ...
@@ -27,10 +35,11 @@ window.ENV = {
     // search parameters
     score_threshold: 0.8125,
     fragment_count: 10,
-    max_word_distance: 40,
+    max_word_distance: 20,
+    // default page size
     page_size: 10,
     // use spelling suggestions
-    use_spell_checker: true,
+    use_spell_checker: false,
     // show the advanced search documentation download menu?
     show_download_manual: true,
     // summarization parameters
@@ -40,6 +49,8 @@ window.ENV = {
     preview_min_height: 1024,
     // show metadata item counts in the UX (e.g. number of documents for each file-type)
     show_metadata_counts: true,
+    // show the star and undo icon for search/result boosting for users with the "teacher" role
+    show_boost_controls: true,
     // entities for entity viewer / selector
     entity_list: [{"value": "city", "name": "cities"}, {"value": "credit-card", "name": "credit cards"},
         {"value": "country", "name": "countries"}, {"value": "date", "name": "dates"},
@@ -50,10 +61,14 @@ window.ENV = {
     // override normal source display and show grouped sources
     // e.g. [{"name": 'Legal Group', "sources": ["glp","legal docs",]}, {...]
     override_source_list: [],
-    allow_knowledgbase_selector: true,
+    allow_knowledge_base_selector: true,
     // AI is enabled is set by the search info
     // this is the "AI menu item" selector being ticked by default or not
     query_ai_enabled_by_default: false,
+    // html layout
+    compact_view: false,
+    // show icons for sources in search by default
+    show_source_icon: false,
     // if true, we ask for insights, if false, we ask for Q&A
     use_insight: false,
     // display the summary button if AI is enabled
@@ -85,14 +100,19 @@ window.ENV = {
         "xlsb", "xlsm", "xlsx", "xlt", "xltm", "xltx", "xlw", "xps", "y", "yacc", "yaml"
     ],
 
+    // map source names to source icons
+    source_icons: {
+        "bugs": "images/source-icons/bugs-icon.svg",
+        "aid": "images/source-icons/arista-icon.png",
+        "reviewboard": "images/source-icons/reviewboard-icon.png",
+        "release tracker": "images/source-icons/tracker-icon.png",
+    },
+
     // Settings to run Collabora
     wopi_url: "http://localhost:9980/browser/baa6eef/cool.html",
     wopi_api_url: "http://localhost:8080/api/wopi",
-    // url bases
-    base_name: "/search",
-    image_base_name: "/search",
     // keycloak real, client_id and server
-    kc_endpoint: "https://security.simsage.ai",
     kc_realm: "simsage-test",
-    kc_client_id: "simsage-test-client"
+    kc_client_id: "simsage-test-client",
+    kc_endpoint: "https://security.simsage.ai",
 };

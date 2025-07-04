@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px"
+     viewBox="0 0 32 32" style="enable-background:new 0 0 32 32;" xml:space="preserve">
+<style type="text/css">
+	.st2{opacity:5.000000e-02;fill:#E84516;}
+	.st43{fill:none;stroke:#E84516;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;}
+</style>
+<path class="st2" d="M27.7,8.4v15.1c0,2.3-1.9,4.1-4.1,4.1H8.4c-2.3,0-4.1-1.9-4.1-4.1V8.4c0-2.3,1.9-4.1,4.1-4.1h15.1
+	C25.8,4.3,27.7,6.2,27.7,8.4z"/>
+<path class="st43" d="M27.7,8.4v15.1c0,2.3-1.9,4.1-4.1,4.1H8.4c-2.3,0-4.1-1.9-4.1-4.1V8.4c0-2.3,1.9-4.1,4.1-4.1h15.1
+	C25.8,4.3,27.7,6.2,27.7,8.4z"/>
+<polygon class="st43" points="20.6,16 13.1,11.7 13.1,20.3 "/>
+</svg>

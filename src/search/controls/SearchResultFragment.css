@@ -24,3 +24,30 @@
 .circle-image-size {
     width: 25px;
 }
+
+.font-size-adjust {
+    font-size: 16px;
+    font-weight: 400;
+}
+
+.undo-boost {
+    margin-left: 10px;
+    margin-right: 10px;
+    cursor: pointer;
+    color: #333;
+}
+
+.undo-boost-dark {
+    margin-left: 10px;
+    margin-right: 10px;
+    cursor: pointer;
+    color: #ccc;
+}
+
+.target-symbol {
+    display: inline-block;
+    margin-right: 10px;
+    font-size: 24px;
+    cursor: pointer;
+    color: #ff6666;
+}
