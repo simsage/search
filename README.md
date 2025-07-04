@@ -5,7 +5,8 @@ Make sure you remove any existing `package-lock.json` first
 ```
 export npm_config_loglevel=silent
 npm set audit false
-npm install
+# alas - a few conflicts with npm libraries
+npm install --force
 ```
 
 ## running this UI
