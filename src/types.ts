@@ -81,11 +81,6 @@ export interface SourceItem {
   [key: string]: any;
 }
 
-// Interfaces from searchSlice.ts
-export interface ShardItem {
-  [key: string]: any;
-}
-
 export interface ResultItem {
   urlId: string;
   url: string;
@@ -116,7 +111,7 @@ export interface SynSetItem {
 }
 
 export interface SearchState {
-  shard_list: ShardItem[];
+  shard_list: number[];
   result_list: ResultItem[];
 
   source_list: SourceItem[];
@@ -167,7 +162,7 @@ export interface SearchState {
     content: string;
   }>;
   query_ai_focus_document: any;
-  llm_state: any[];
+  llm_state: LLMState[];
   user_query: string;
 
   search_focus: any;
@@ -245,8 +240,8 @@ export interface PageSizePayload {
 }
 
 export interface GetInfoPayload {
-  session: any;
-  user: any;
+  session: Session;
+  user: User;
 }
 
 export interface SaveHashtagsPayload {
@@ -258,10 +253,10 @@ export interface SaveHashtagsPayload {
 }
 
 export interface DoSearchPayload {
-  session: any;
+  session: Session;
   search_page: number;
   client_id: string;
-  user: any;
+  user: User;
   search_text: string;
   page_size: number;
   prev_search_text: string;
@@ -284,13 +279,13 @@ export interface DoSearchPayload {
 }
 
 export interface CreateShortSummaryPayload {
-  session: any;
+  session: Session;
   target_url: string;
   sentence_id: string;
 }
 
 export interface TeachPayload {
-  session: any;
+  session: Session;
   search_text: string;
   result: any;
   increment: number;
@@ -298,7 +293,7 @@ export interface TeachPayload {
 }
 
 export interface AskDocumentQuestionPayload {
-  session: any;
+  session: Session;
   prev_conversation_list: any[];
   question: string;
   document_url: string;
@@ -307,7 +302,7 @@ export interface AskDocumentQuestionPayload {
 }
 
 export interface DoLlmSearchPayload {
-  session: any;
+  session: Session;
   prev_conversation_list: any[];
   question: string;
   metadata_list: MetadataItem[];
@@ -319,7 +314,7 @@ export interface DoLlmSearchPayload {
 }
 
 export interface DoLlmSearchStep2Payload {
-  session: any;
+  session: Session;
   prev_conversation_list: any[];
   question: string;
   metadata_list: MetadataItem[];
@@ -329,7 +324,7 @@ export interface DoLlmSearchStep2Payload {
 }
 
 export interface DoLlmSearchStep3Payload {
-  session: any;
+  session: Session;
   prev_conversation_list: any[];
   question: string;
   search_result: any;
@@ -337,16 +332,41 @@ export interface DoLlmSearchStep3Payload {
 
 // Interfaces from authSlice.ts
 export interface User {
+  id: string;
+  email: string;
+  firstName: string;
+  surname: string;
   [key: string]: any;
 }
 
+export function emptyUser(): User {
+  return {id: "", email: "", firstName: "", surname: ""}
+}
+
 export interface Session {
+  id: string;
+  organisationId: string;
+  userId: string;
+  email: string;
+  lastAccess: number;
+  role: string;
+  sessionType: string;
   [key: string]: any;
+}
+
+export function emptySession(): Session {
+  return {id: "", organisationId: "", userId: "", email: "", lastAccess: 0, role: "", sessionType: ""}
 }
 
 export interface Organisation {
   id?: string;
+  name: string;
+  enabled: boolean;
   [key: string]: any;
+}
+
+export function emptyOrganisation(): Organisation {
+  return {id: undefined, name: "", enabled: false}
 }
 
 export interface AuthState {
@@ -425,12 +445,6 @@ export interface WopiMessage {
   };
 }
 
-export interface SessionObject {
-  id: string;
-  organisationId: string;
-  [key: string]: any;
-}
-
 // Type for the action parameter in get_error
 export interface ActionWithError {
   error?: {
@@ -456,7 +470,7 @@ export interface LLMState {
     content: string;
     step?: number;
     searchKeywords?: string;
-    searchResult?: any;
+    searchResult?: SearchResult;
     expand?: boolean;
   }>;
 }

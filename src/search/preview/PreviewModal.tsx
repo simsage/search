@@ -7,7 +7,7 @@ import {useSelector} from "react-redux";
 import {close_preview} from "../../reducers/searchSlice";
 import { RootState, AppDispatch } from '../../store';
 import { useDispatch as useReduxDispatch } from "react-redux";
-import { PreviewMetadataItem, HtmlPreviewItem, WopiMessage, SessionObject } from '../../types';
+import { PreviewMetadataItem, HtmlPreviewItem, WopiMessage, Session } from '../../types';
 
 import icon_close_white from "../../assets/images/ui/icon_im-close-white.svg"
 import icon_close_black from "../../assets/images/ui/icon_im-close-black.svg"
@@ -29,7 +29,7 @@ export function PreviewModal(): JSX.Element {
     const typedHtmlPreviewList = html_preview_list as HtmlPreviewItem[];
     const {session} = useSelector((state: RootState) => state.authReducer);
     // Ensure session is properly typed
-    const typedSession = session as SessionObject;
+    const typedSession = session as Session;
 
     const wopiRef = useRef<HTMLIFrameElement>(null);
 

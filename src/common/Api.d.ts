@@ -40,7 +40,7 @@ declare module './Api' {
     export function get_doc_types(query: string): string[];
     export function get_source_filter(source_list: any[], source_values: any): string;
     export function get_source_set(query: string): { [key: string]: boolean };
-    export function get_full_username(user: any): string;
+    export function get_full_username(user: User): string;
     export const language_lookup: { [key: string]: string };
     export function time_ago(epoch: number): string;
     export function limit_text(str: string, length: number): string;

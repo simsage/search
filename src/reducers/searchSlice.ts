@@ -33,7 +33,7 @@ import {
     AskDocumentQuestionPayload,
     DoLlmSearchPayload,
     DoLlmSearchStep2Payload,
-    DoLlmSearchStep3Payload
+    DoLlmSearchStep3Payload, LLMState
 } from '../types';
 
 // name of the ux cookie
@@ -797,7 +797,7 @@ export const get_info = createAsyncThunk(
 
         const user_id = user && user.id ? user.id : get_client_id();
         const api_base = window.ENV.api_base;
-        const session_id = (session && session.id) ? session.id : null;
+        const session_id = (session && session.id) ? session.id : undefined;
         const url = api_base + '/knowledgebase/search/info/' + encodeURIComponent(window.ENV.organisation_id) + '/' +
                     encodeURIComponent(user_id);
         return axios.get(url, get_headers(session_id))
@@ -863,7 +863,7 @@ export const do_search = createAsyncThunk(
            }: DoSearchPayload, {rejectWithValue}) => {
 
         const api_base = window.ENV.api_base;
-        const session_id = (session && session.id) ? session.id : null;
+        const session_id = (session && session.id) ? session.id : undefined;
         const url = session_id ? (api_base + '/dms/query') : (api_base + '/semantic/query');
 
         const filter_text = get_filters(metadata_list, metadata_values, entity_values, source_list, source_values,
@@ -946,7 +946,7 @@ export const create_short_summary = createAsyncThunk(
     async({session, target_url, sentence_id}: CreateShortSummaryPayload, {rejectWithValue}) => {
 
         const api_base = window.ENV.api_base;
-        const session_id = (session && session.id) ? session.id : null;
+        const session_id = (session && session.id) ? session.id : undefined;
         const url = api_base + '/semantic/short-summary';
         const data = {
             organisationId: window.ENV.organisation_id,
@@ -970,7 +970,7 @@ export const teach = createAsyncThunk(
     async({session, search_text, result, increment, on_done}: TeachPayload, {rejectWithValue}) => {
 
         const api_base = window.ENV.api_base;
-        const session_id = (session && session.id) ? session.id : null;
+        const session_id = (session && session.id) ? session.id : undefined;
         const url = api_base + '/semantic/teach';
         const data = {
             organisationId: window.ENV.organisation_id,

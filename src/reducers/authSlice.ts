@@ -1,14 +1,21 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import axios from "axios";
 import { get_error, get_headers } from "../common/Api";
-import { Organisation, AuthState, AuthErrorPayload, SignInPayload, LogOutPayload } from '../types';
+import {
+    AuthState,
+    AuthErrorPayload,
+    SignInPayload,
+    LogOutPayload,
+    emptySession,
+    emptyOrganisation, emptyUser
+} from '../types';
 import { useAuth } from 'react-oidc-context';
 
 const initialState: AuthState = {
-    user: {},
+    user: emptyUser(),
     busy: false,
-    session: {},
-    organisation: {},
+    session: emptySession(),
+    organisation: emptyOrganisation(),
     // sign-in menu
     show_menu: false,
     show_kb_menu: false,
@@ -67,7 +74,7 @@ const authSlice = createSlice({
             .addCase(simsage_sign_in.fulfilled, (state, action) => {
                 if (action.payload.data) {
                     console.log("signed-in");
-                    let organisation: Organisation = {};
+                    let organisation = emptyOrganisation();
                     if (action.payload.data.organisationList) {
                         for (const org of action.payload.data.organisationList) {
                             if (org && org.id === window.ENV.organisation_id) {
@@ -122,9 +129,9 @@ const authSlice = createSlice({
                     busy: false,
                     message: '',
                     error_message: '',
-                    session: {},
-                    user: {},
-                    organisation: {},
+                    session: emptySession(),
+                    user: emptyUser(),
+                    organisation: emptyOrganisation(),
                     result_list: [],
                     page: 0,
                     status: 'logged_out',
@@ -137,9 +144,9 @@ const authSlice = createSlice({
                     busy: false,
                     message: '',
                     error_message: '',
-                    session: {},
-                    user: {},
-                    organisation: {},
+                    session: emptySession(),
+                    user: emptyUser(),
+                    organisation: emptyOrganisation(),
                     result_list: [],
                     page: 0,
                     status: "rejected"

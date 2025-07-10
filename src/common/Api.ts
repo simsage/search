@@ -34,11 +34,13 @@ import img_rss from "../assets/images/source-icons/icon_ci-rss.svg"
 import img_imanage from "../assets/images/source-icons/icon_ci-imanage.svg"
 import img_file from "../assets/images/source-icons/icon_ci-nfs.svg"
 import img_dropbox from "../assets/images/source-icons/icon_ci-dropbox.svg"
-import {ActionWithError, HeadersConfig, SourceItem} from "../types";
+import {ActionWithError, HeadersConfig, SourceItem, User} from "../types";
 
 // Export hashtag_metadata constant
 export const hashtag_metadata = "{hashtag}";
 export const user_metadata_marker = "user-"
+// used as a marker for url_of_archive:::path_to_child_inside_archive
+export const archive_separator = ":::"
 
 // is value defined and not null?
 export function defined(value: any): boolean {
@@ -482,8 +484,8 @@ export function get_headers(session_id?: string): HeadersConfig {
 
 // Extract the child part of an archive URL
 export function get_archive_child(url: string): string {
-    if (url && url.indexOf('!') >= 0) {
-        const parts = url.split('!');
+    if (url && url.indexOf(archive_separator) >= 0) {
+        const parts = url.split(archive_separator);
         if (parts.length > 1) {
             return parts[1];
         }
@@ -493,8 +495,8 @@ export function get_archive_child(url: string): string {
 
 // Extract the last part of an archive URL
 export function get_archive_child_last(url: string): string {
-    if (url && url.indexOf('!') >= 0) {
-        const parts = url.split('!');
+    if (url && url.indexOf(archive_separator) >= 0) {
+        const parts = url.split(archive_separator);
         if (parts.length > 1) {
             const child_parts = parts[1].split('/');
             if (child_parts.length > 0) {
@@ -508,8 +510,8 @@ export function get_archive_child_last(url: string): string {
 
 // Extract the parent part of an archive URL
 export function get_archive_parent(url: string): string {
-    if (url && url.indexOf('!') >= 0) {
-        const parts = url.split('!');
+    if (url && url.indexOf(archive_separator) >= 0) {
+        const parts = url.split(archive_separator);
         if (parts.length > 0) {
             return parts[0];
         }
@@ -519,12 +521,12 @@ export function get_archive_parent(url: string): string {
 
 // Check if a URL is an archive file
 export function is_archive_file(url: string): boolean {
-    return !!(url && url.indexOf('!') >= 0);
+    return !!(url && url.indexOf(archive_separator) >= 0);
 }
 
 // Check if a URL is an archive
 export function is_archive(url: string): boolean {
-    return !!(url && url.indexOf('!') >= 0);
+    return !!(url && url.indexOf(archive_separator) >= 0);
 }
 
 // Check if a URL is viewable in the browser
@@ -582,7 +584,7 @@ export function download(url: string, session_id: string): void {
 }
 
 // Get the full username
-export function get_full_username(user: any): string {
+export function get_full_username(user: User): string {
     if (user) {
         if (user.firstName && user.surname) {
             return user.firstName + ' ' + user.surname;
