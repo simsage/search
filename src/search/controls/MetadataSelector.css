@@ -1,8 +1,61 @@
 
 .metadata-name-boxes {
-    overflow: auto;
-    max-height: 220px;
-    margin-bottom: 20px;
+    max-height: 232px;
     scrollbar-color: #aaa #e2e2e2;
     scrollbar-width: thin;
+    overflow-y: auto;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    padding: 10px;
+    background-color: #f9f9f9;
+    margin-bottom: 10px;
+    transition: border-color 0.3s, background-color 0.3s;
+}
+
+.metadata-name-boxes-dark {
+    max-height: 232px;
+    scrollbar-color: #aaa #e2e2e2;
+    scrollbar-width: thin;
+    overflow-y: auto;
+    border: 1px solid #444;
+    border-radius: 4px;
+    padding: 10px;
+    background-color: #2a2b2a;
+    margin-bottom: 10px;
+    transition: border-color 0.3s, background-color 0.3s;
+}
+
+.text-bold {
+    font-weight: 600;
+}
+
+.metadata-links {
+    font-size: 12px;
+    margin-right: 8px;
+    color: var(--link-color);
+    cursor: pointer;
+    text-decoration: none;
+    font-weight: normal;
+}
+
+.metadata-links-bold {
+    font-size: 12px;
+    font-weight: 600;
+    margin-right: 8px;
+    color: var(--link-color);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.metadata-selector-input {
+    width: 100%;
+    border: 1px solid #888;
+    padding: 0 0 0 12px;
+    border-radius: 4px;
+    outline: none !important;
+}
+
+.metadata-item-list {
+    line-height: 28px;
+    font-weight: 500;
 }

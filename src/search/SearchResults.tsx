@@ -1,20 +1,21 @@
-import React from "react";
+import React, {useState} from "react";
 import './SearchResults.css';
 import { SearchResultFragment } from "./controls/SearchResultFragment";
-import { SynSetSelector } from "./controls/SynSetSelector";
-import { SourceSelector } from "./controls/SourceSelector";
-import { MetadataSelector } from "./controls/MetadataSelector";
 import { useDispatch, useSelector } from "react-redux";
 import {
-    set_group_similar,
-    set_newest_first, set_page_size, set_search_page
+    set_page_size,
+    set_search_page,
+    user_result_feedback
 } from "../reducers/searchSlice";
 import useWindowDimensions from "./controls/useWindowDimensions";
-import { CompactSearchResultFragment } from "./controls/CompactSearchResultFragment";
 import { useTranslation } from "react-i18next";
 import { RootState, AppDispatch } from '../store';
-
-const min_width = 1024;
+import icon_smile from "../assets/images/ui/happy.svg";
+import icon_scowl from "../assets/images/ui/unhappy.svg";
+import FeedbackDialog from "../common/FeedbackDialog";
+import {FeedbackData} from "../types";
+import {SideBar} from "./controls/SideBar";
+import { min_width } from "../common/Api";
 
 /**
  * Props interface for the SearchResults component
@@ -33,11 +34,13 @@ export function SearchResults(props: SearchResultsProps): JSX.Element {
     
     // get state
     const {
-        group_similar, newest_first, syn_set_list, syn_set_values, source_list,
-        busy, ai_insight, metadata_list, document_type_count,
-        total_document_count, ai_response, result_list, search_focus, busy_with_summary,
-        busy_with_ai, compact_view, search_page, page_size, theme
+        busy, ai_insight, total_document_count, ai_response, result_list, search_focus, busy_with_summary,
+        busy_with_ai, search_page, page_size, theme, prev_search_text,
     } = useSelector((state: RootState) => state.searchReducer);
+    const { session, show_query_builder } = useSelector((state: RootState) => state.authReducer);
+
+    const [show_bad_feedback_dialog, setShowBadFeedbackDialog] = useState<boolean>(false);
+    const [feedback_received, setFeedbackReceived] = useState(false);
 
     const page_size_options = [10, 25, 50, 75, 100];
 
@@ -79,14 +82,36 @@ export function SearchResults(props: SearchResultsProps): JSX.Element {
         }
     }
 
-    function on_set_group_similar(group_similar: boolean): void {
-        dispatch(set_group_similar(group_similar));
-        search({ group_similar: group_similar, next_page: false, reset_pagination: true });
+    // feedback if the results were ok or not
+    function on_comprehensive_feedback(data: FeedbackData): void {
+        if (!busy && !feedback_received) {
+            dispatch(user_result_feedback({
+                session: session,
+                data: data,
+                on_success: () => {
+                    setTimeout(() => {
+                        setFeedbackReceived(false)
+                    }, 2000);
+                    setFeedbackReceived(true)
+                    setShowBadFeedbackDialog(false)
+                }
+            }));
+        }
     }
 
-    function on_set_sort_by_newest(newest_first: boolean): void {
-        dispatch(set_newest_first(newest_first));
-        search({ newest_first: newest_first, next_page: false, reset_pagination: true });
+    // feedback if the results were ok or not
+    function start_bad_feedback(): void {
+        if (!feedback_received) {
+            setShowBadFeedbackDialog(true)
+        }
+    }
+
+    // for feedback - these are the simsage technical details of what happened
+    const get_technical_feedback = (): string => {
+        const best_score = result_list.length > 0 ? result_list[0].score : 0.0;
+        return "searched for '" + prev_search_text + "', " +
+        "found " + total_document_count.toLocaleString() + " results, " +
+        "best score " + best_score.toFixed(2)
     }
 
     let document_count_text = (busy ? t("please wait") :
@@ -96,16 +121,42 @@ export function SearchResults(props: SearchResultsProps): JSX.Element {
     );
 
     const show_preview = (search_focus !== null && window.ENV.show_previews);
-    const document_filter = theme === "light" ? "result-document-filter" : "result-document-filter-dark";
+    const feedback = window.ENV.show_feedback && prev_search_text && prev_search_text.length > 0
+    const feedback_link = window.ENV.optional_search_feedback_link;
+    const feedback_link_title = window.ENV.optional_search_feedback_link_title;
+    const use_custon_feedback = feedback_link.length > 0 && feedback_link_title.length > 0;
 
     return (
         <div className={(busy && !show_preview) ? "h-100 wait-cursor" : "h-100"}>
-            <div className="row mx-0 results-container overflow-auto h-100" id="search-results-id">
+            <div className={(theme === "light" ? "results-container" : "results-container-dark") + " row mx-0 overflow-auto h-100"} id="search-results-id">
 
-                <div className={width && width > min_width ? (compact_view ? "col-9 pe-4" : "col-8 pe-4") : "col-12 pe-4"}>
+                <div className={(width && width > min_width) ? (show_query_builder ? "col-9 mt-4" : "col-12 mt-4") : "col-12 mt-4"}>
                     {((!has_qna_result && !has_search_result) || has_search_result) &&
                         <div className="small text-muted ms-2 fw-light px-3 pb-3">
+                            { !busy && feedback && !use_custon_feedback &&
+                                <span className="feedback-offset">
+                                    <img src={icon_scowl} className="feedback-icon" alt="unhappy"
+                                         onClick={() => start_bad_feedback()}
+                                         title="my feedback: not seeing what I expected." />
+                                    <img src={icon_smile} className="feedback-icon" alt="happy"
+                                         onClick={() => on_comprehensive_feedback({reasons: ['Search Results are good'], comment: "great", technical: get_technical_feedback()})}
+                                         title="my feedback: great search results" />
+                                    {feedback_received &&
+                                        <span>&#x1F44D;</span>
+                                    }
+                                </span>
+                            }
                             {document_count_text}
+                            { !busy && feedback && use_custon_feedback &&
+                                <span className="feedback-offset">
+                                    <a href={feedback_link}
+                                       target="_blank"
+                                       rel="noreferrer"
+                                       className="link-primary"
+                                       title={"Click here to provide " + feedback_link_title}
+                                    >{feedback_link_title}</a>
+                                </span>
+                            }
                             {busy &&
                                 <div className="loading-dots-container">
                                     <span className="loading-dots">
@@ -115,10 +166,17 @@ export function SearchResults(props: SearchResultsProps): JSX.Element {
                                     </span>
                                 </div>
                             }
+                            <FeedbackDialog
+                                isOpen={show_bad_feedback_dialog}
+                                onClose={() => setShowBadFeedbackDialog(false)}
+                                isDarkMode={theme !== "light"}
+                                technical={get_technical_feedback()}
+                                onSubmit={(data) => on_comprehensive_feedback(data)}
+                            />
                         </div>
                     }
                     {(has_qna_result || has_insight) &&
-                        <div className={compact_view ? "ps-4 mb-2" : "p-4 mb-3 mx-2"}>
+                        <div className={"p-4 mb-3 mx-2"}>
                             {(ai_response?.length || has_insight) &&
                                 <section className={theme === "light" ? "message" : "message-dark"}>
                                     <header></header>
@@ -160,14 +218,9 @@ export function SearchResults(props: SearchResultsProps): JSX.Element {
                     }
 
                     {
-                        !compact_view && result_list.map((result, i) => {
-                            return (<SearchResultFragment result={result} key={"sr" + i} on_seach={search} />);
-                        })
-                    }
-
-                    {
-                        compact_view && result_list.map((result, i) => {
-                            return (<CompactSearchResultFragment result={result} key={"csr" + i} on_seach={search} />);
+                        result_list.map((result, i) => {
+                            return (<SearchResultFragment result={result} key={"sr" + i}
+                                                          on_seach={search} />);
                         })
                     }
 
@@ -177,152 +230,12 @@ export function SearchResults(props: SearchResultsProps): JSX.Element {
                             {busy_with_summary ? "creating summary..." : ""}
                         </div>
                     }
-                </div>
 
-                {width && width > min_width && !compact_view &&
-                    <div className="col-4 mb-5">
-                        <div className="sticky-top search-control-padding">
-
-                                <div className={document_filter + " row pb-3"}>
-                                    <div className="col-12">
-                                        {source_list &&
-                                            <div>
-                                                <SourceSelector
-                                                    on_search={(value) => search({
-                                                        ...value,
-                                                        next_page: false
-                                                    })}/>
-                                                <br/>
-                                            </div>
-                                        }
-                                    </div>
-                                </div>
-
-                                <div className={document_filter + " row"}>
-                                    <div className="col-12">
-                                        {metadata_list && metadata_list.length >= 0 && metadata_list.map((item, index) => {
-                                            return (
-                                                <div key={"mdl_2_" + index}>
-                                                    <MetadataSelector key={"mds" + index}
-                                                                      title={"Types"}
-                                                                      busy={busy}
-                                                                      metadata={item.metadata}
-                                                                      has_results={has_search_result}
-                                                                      on_search={(value) => search({
-                                                                          ...value,
-                                                                          next_page: false
-                                                                      })}
-                                                                      item_counts={document_type_count}
-                                                                      list={item.items}/>
-                                                </div>
-                                            );
-                                        })
-                                        }
-                                    </div>
-                                </div>
-
-                                <div className={document_filter + " row"}>
-                                    <div className="col-12">
-                                        <div className={"float-end"} style={{"marginRight": "140px"}}>
-
-                                            <div className="form-check form-switch my-4 ps-0 d-flex">
-                                                <input className="form-check-input h6 ms-0 my-0 me-2"
-                                                       type="checkbox"
-                                                       role="switch"
-                                                       disabled={busy}
-                                                       checked={group_similar}
-                                                       onChange={(event) => on_set_group_similar(event.target.checked)}
-                                                />
-                                                <label className="" htmlFor="flexSwitchCheckDefault">{t("Group similar")}</label>
-                                            </div>
-
-                                            <div className="form-check form-switch my-4 ps-0 d-flex">
-                                                <input className="form-check-input h6 ms-0 my-0 me-2"
-                                                       type="checkbox"
-                                                       role="switch"
-                                                       disabled={busy}
-                                                       checked={newest_first}
-                                                       onChange={(event) => on_set_sort_by_newest(event.target.checked)}
-                                                />
-                                                <label className="" htmlFor="flexSwitchCheckDefault">{t("Sort by newest first")}</label>
-                                            </div>
-
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className={document_filter + " row"}>
-                                    <div className="col-12">
-                                    {
-                                        syn_set_list.map((syn_set, i) => {
-                                            return (
-                                                <div key={i}>
-                                                    <SynSetSelector
-                                                        key={"syn" + i}
-                                                        name={syn_set.word}
-                                                        syn_set_values={syn_set_values}
-                                                        on_search={(value) => search({...value, next_page: false})}
-                                                        busy={busy}
-                                                        description_list={syn_set.wordCloudCsvList}/>
-                                                </div>
-                                            );
-                                        })
-                                    }
-                                    </div>
-                                </div>
-
-                        </div>
-
-                    </div>
-                }
-
-                {width && width > min_width && compact_view &&
-                    <div className="col-3 mb-5">
-                        <div className="sticky-top search-control-padding">
-
-                            <div className={document_filter + " row"}>
-                                {source_list &&
-                                    <div>
-                                        <SourceSelector
-                                            on_search={(value) => search({
-                                                ...value,
-                                                next_page: false
-                                            })}/>
-                                        <br/>
-                                    </div>
-                                }
-                            </div>
-
-                            <div className={document_filter + " row mt-3"}>
-                                {metadata_list && metadata_list.length >= 0 && metadata_list.map((item, index) => {
-                                    return (
-                                        <div key={"mdl_3_" + index}>
-                                            <MetadataSelector key={"mdl" + index}
-                                                              title={"Types"}
-                                                              busy={busy}
-                                                              metadata={item.metadata}
-                                                              has_results={has_search_result}
-                                                              on_search={(value) => search({
-                                                                  ...value,
-                                                                  next_page: false
-                                                              })}
-                                                              item_counts={document_type_count}
-                                                              list={item.items}/>
-                                        </div>
-                                    );
-                                })
-                                }
-                            </div>
-
-                        </div>
-                    </div>
-                }
-
-                <nav aria-label="navigation">
-                    {total_document_count > 0 &&
-                    <span>
+                    <nav aria-label="navigation">
+                        {total_document_count > 0 &&
+                            <span>
                         <span className={theme === "light" ? "page-size-label" : "page-size-label-dark"}>{t("Show")}</span>
-                        <span className="page-size-select mx-1 me-4">
+                        <span className="page-size-select mx-1">
                             <select
                                 className="form-select"
                                 onChange={(event) => setPageSize(parseInt(event.target.value))}
@@ -335,23 +248,32 @@ export function SearchResults(props: SearchResultsProps): JSX.Element {
                             </select>
                         </span>
                     </span>
-                    }
-                    { total_document_count > page_size &&
-                    <ul className="pagination ms-5">
-                        <li className={(has_prev_page && !busy) ? "page-item pointer-cursor" : "page-item disabled"}>
-                            {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-                            <a className={"page-link"} onClick={() => prev_page()}>{t("Previous")}</a>
-                        </li>
-                        <li className={(has_next_page && !busy) ? "page-item pointer-cursor" : "page-item disabled"}>
-                            {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-                            <a className="page-link" onClick={() => next_page()}>{t("Next")}</a>
-                        </li>
-                        {num_pages > 0 &&
-                            <li className={(theme === "light" ? "small-font-size" : "small-font-size-dark") + " mt-1 ms-2"}>{t("page")} {search_page + 1} {t("of")} {num_pages}</li>
                         }
-                    </ul>
-                    }
-                </nav>
+                        { total_document_count > page_size &&
+                            <ul className="pagination ms-5">
+                                <li className={(has_prev_page && !busy) ? "page-item pointer-cursor" : "page-item disabled"}>
+                                    {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+                                    <a className={"page-link"} onClick={() => prev_page()}>{t("Previous")}</a>
+                                </li>
+                                <li className={(has_next_page && !busy) ? "page-item pointer-cursor" : "page-item disabled"}>
+                                    {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+                                    <a className="page-link" onClick={() => next_page()}>{t("Next")}</a>
+                                </li>
+                                {num_pages > 0 &&
+                                    <li className={(theme === "light" ? "small-font-size" : "small-font-size-dark") + " mt-1 ms-2"}>{t("page")} {search_page + 1} {t("of")} {num_pages.toLocaleString()}</li>
+                                }
+                            </ul>
+                        }
+                    </nav>
+
+                </div>
+
+                {/* the sidebar on the right hand side */}
+                { show_query_builder &&
+                <div className="col-3 mb-5 p-0">
+                    <SideBar on_search={(values: any) => search(values)} />
+                </div>
+                }
 
             </div>
         </div>

@@ -13,11 +13,6 @@ html, body, #content, .App, .dms {
     -ms-user-select: none;
     user-select: none;
 }
-/* Width/Height */
-::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-}
 /* Track */
 ::-webkit-scrollbar-track {
     background: transparent;

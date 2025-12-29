@@ -1,0 +1,52 @@
+/* SimSageBusyIndicator.module.css */
+
+/* Main container for the animation */
+.simsageBusyContainer {
+    width: 70px;
+    height: 60px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* The glowing orb element */
+.glowingOrb {
+    width: 30px;
+    height: 30px;
+    background-color: #00bfff; /* Deep Sky Blue */
+    border-radius: 50%;
+    animation: pulse-glow 2s infinite ease-in-out;
+}
+
+/* The text element */
+.simsageText {
+    margin-top: 8px;
+    color: #f0f0f0;
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+
+/* The text element */
+.simsageTextDark {
+    margin-top: 8px;
+    color: #0f0f0f;
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+
+/* Keyframes are defined in the same file.
+  CSS Modules ensures the animation name is unique and correctly scoped.
+*/
+@keyframes pulse-glow {
+    0%, 100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 5px #00bfff, 0 0 10px #00bfff, 0 0 15px #00bfff;
+    }
+    50% {
+        transform: scale(1);
+        box-shadow: 0 0 10px #00bfff, 0 0 20px #00bfff, 0 0 30px #00bfff;
+    }
+}

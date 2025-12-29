@@ -4,7 +4,7 @@ import {
     get_archive_child, get_archive_child_last,
     get_archive_parent,
     highlight,
-    is_archive_file, is_online,
+    is_archive_file,
     is_viewable, limit_text, time_ago
 } from "../../common/Api";
 import React from "react";
@@ -54,7 +54,7 @@ export function AIResultFragment(props: AIResultFragmentProps): JSX.Element {
 
     function handle_title_click(result: any, url: string): void {
         if (!window.ENV.show_previews) {
-            download(get_archive_parent(url), session_id);
+            download(url, session_id); // download has logic to determine what to do with archives
         } else {
             dispatch(set_focus_for_preview(result));
         }
@@ -67,7 +67,7 @@ export function AIResultFragment(props: AIResultFragmentProps): JSX.Element {
         } else {
             if (is_viewable(url)) {
                 return "open \"" + actual_url + "\" in the browser";
-            } else if (!Api.is_archive(url)) {
+            } else if (!Api.is_archive_file(url)) {
                 return "download \"" + actual_url + "\" to your computer";
             } else {
                 return "cannot download archive file \"" + actual_url + "\"";
@@ -109,7 +109,7 @@ export function AIResultFragment(props: AIResultFragmentProps): JSX.Element {
                     }
                     { !custom_render_type &&
                         <div className="ms-3 w-100">
-                            { (window.ENV.show_previews || !is_online(url)) &&
+                            { (window.ENV.show_previews || !is_viewable(url)) &&
                                 <div>
                                     <AIResultIconDisplay
                                         result={result}
@@ -126,7 +126,7 @@ export function AIResultFragment(props: AIResultFragmentProps): JSX.Element {
                                 </div>
                             }
 
-                            { !window.ENV.show_previews && is_online(url) &&
+                            { !window.ENV.show_previews && is_viewable(url) &&
                                 <div>
                                     <AIResultIconDisplay
                                         result={result}
@@ -174,65 +174,58 @@ export function AIResultFragment(props: AIResultFragmentProps): JSX.Element {
                                 </span>
                                 }
                             </div>
-                            {
-                                text_list.length > 0 &&
-                                <div>
-                                    {parent_list && parent_list.length > 0 &&
-                                        <div className="border-top line-width-limited">
-                                            <div
-                                                className="similar-document-title">{source_type === "discourse" ? "topic" : "parent document"}</div>
-                                            <ul>
-                                                {
-                                                    parent_list.map((item: any, j: number) => {
-                                                        const title = item.title ? item.title : (item.webUrl ? item.webUrl : item.relatedUrl);
-                                                        return (<li key={j} className={similar_document}
-                                                                    onClick={() => handle_title_click(item, item.webUrl ? item.webUrl : item.relatedUrl)}
-                                                                    title={get_title_for_links(item.webUrl ? item.webUrl : item.relatedUrl)}>
-                                                            {title}
-                                                        </li>);
-                                                    })
-                                                }
-                                            </ul>
-                                        </div>
-                                    }
-                                    {child_list && child_list.length > 0 &&
-                                        <div className="border-top line-width-limited">
-                                            <div
-                                                className="similar-document-title">{source_type === "discourse" ? "replies" : "attachments"}</div>
-                                            <ul>
-                                                {
-                                                    child_list.map((item: any, j: number) => {
-                                                        const title = item.title ? item.title : (item.webUrl ? item.webUrl : item.relatedUrl);
-                                                        return (<li key={j} className={similar_document}
-                                                                    onClick={() => handle_title_click(item, item.relatedUrl)}
-                                                                    title={get_title_for_links(item.relatedUrl)}>
-                                                            {title}
-                                                        </li>);
-                                                    })
-                                                }
-                                            </ul>
-                                        </div>
-                                    }
-                                    {
-                                        ((child_list && child_list.length > 0) || (parent_list && parent_list.length > 0)) &&
-                                        <div className="border-bottom line-width-limited"/>
-                                    }
-                                    {similar_document_list && similar_document_list.length > 0 &&
-                                        <div>
-                                            <div className="similar-document-title">similar documents</div>
-                                            <ul>
-                                                {
-                                                    similar_document_list.map((similar: any, j: number) => {
-                                                        return (<li key={j} className={similar_document}>
-                                                            {similar.url}
-                                                        </li>);
-                                                    })
-                                                }
-                                            </ul>
-                                        </div>
-                                    }
-                                </div>
-                            }
+                            <div>
+                                {parent_list && parent_list.length > 0 &&
+                                    <div className="border-top line-width-limited">
+                                        <div
+                                            className="similar-document-title">{source_type === "discourse" ? "topic" : "parent document"}</div>
+                                        <ul>
+                                            {
+                                                parent_list.map((item: any, j: number) => {
+                                                    const title = item.title ? item.title : (item.webUrl ? item.webUrl : item.relatedUrl);
+                                                    return (<li key={j} className={similar_document}>{title}</li>);
+                                                })
+                                            }
+                                        </ul>
+                                    </div>
+                                }
+                                {child_list && child_list.length > 0 &&
+                                    <div className="border-top line-width-limited">
+                                        <div
+                                            className="similar-document-title">{source_type === "discourse" ? "replies" : "attachments"}</div>
+                                        <ul>
+                                            {
+                                                child_list.map((item: any, j: number) => {
+                                                    const title = item.title ? item.title : (item.webUrl ? item.webUrl : item.relatedUrl);
+                                                    return (<li key={j} className={similar_document}
+                                                                onClick={() => handle_title_click(item, item.relatedUrl)}
+                                                                title={get_title_for_links(item.relatedUrl)}>
+                                                        {title}
+                                                    </li>);
+                                                })
+                                            }
+                                        </ul>
+                                    </div>
+                                }
+                                {similar_document_list && similar_document_list.length > 0 &&
+                                    <div>
+                                        <div className="similar-document-title">{"similar documents" + (similar_document_list.length === 10 ? " (top 10)" : "")}</div>
+                                        <ul>
+                                            {
+                                                similar_document_list.map((similar: any, j: number) => {
+                                                    return (<li key={j} className={similar_document}>
+                                                        {limit_text(similar.url, 100)}
+                                                    </li>);
+                                                })
+                                            }
+                                        </ul>
+                                    </div>
+                                }
+                                {
+                                    ((child_list && child_list.length > 0) || (parent_list && parent_list.length > 0)) &&
+                                    <div className="border-bottom line-width-limited"/>
+                                }
+                            </div>
                         </div>
                     }
                 </div>

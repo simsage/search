@@ -1,27 +1,20 @@
 import React from "react";
-import * as Api from "./Api";
 import { useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import { RootState } from '../store';
 import {SourceItem} from "../types";
-
-// Type assertions for Api functions
-const download_document = (Api as any).download_document;
-const get_archive_child = (Api as any).get_archive_child;
-const is_viewable = (Api as any).is_viewable;
-const is_archive = (Api as any).is_archive;
-const get_source_for_result = (Api as any).get_source_for_result;
-const get_icon_src = (Api as any).get_icon_src;
-const preview_image_url = (Api as any).preview_image_url;
+import {
+    get_archive_child, get_icon_src, get_source_for_result, is_archive_file, is_viewable, download,
+    preview_image_url
+} from "./Api";
 
 interface ResultIconDisplayProps {
     result: any;
     url: string;
     set_focus_for_preview?: (result: any) => void;
-    check_teach?: () => void;
 }
 
-export const ResultIconDisplay = ({ result, url, set_focus_for_preview, check_teach }: ResultIconDisplayProps): JSX.Element => {
+export const ResultIconDisplay = ({ result, url, set_focus_for_preview }: ResultIconDisplayProps): JSX.Element => {
     const { t } = useTranslation();
     const { source_list, show_source_icon } = useSelector((state: RootState) => state.searchReducer);
     const { session } = useSelector((state: RootState) => state.authReducer);
@@ -29,8 +22,7 @@ export const ResultIconDisplay = ({ result, url, set_focus_for_preview, check_te
 
     function click_preview_image(event: React.MouseEvent<HTMLImageElement>, result: any, url: string): void {
         if (!window.ENV.show_previews) {
-            if (check_teach) check_teach();
-            download_document(url, session_id);
+            download(url, session_id);
         } else if (set_focus_for_preview) {
             set_focus_for_preview(result);
         }
@@ -42,7 +34,7 @@ export const ResultIconDisplay = ({ result, url, set_focus_for_preview, check_te
             return t("preview") + " " + actual_url;
         } else if (is_viewable(url)) {
             return t("open") + " " + actual_url + " " + t("in the browser");
-        } else if (!is_archive(url)) {
+        } else if (!is_archive_file(url)) {
             return t("download") + " " + actual_url + " " + t("to your computer");
         } else {
             return t("cannot download archive file") + " " + actual_url;

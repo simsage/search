@@ -1,8 +1,14 @@
 import React, {useEffect, useRef, useState} from 'react';
 
 import './PreviewModal.css';
-import * as Api from "../../common/Api";
-import {download, get_archive_child, get_metadata_list, get_user_metadata_list, is_viewable} from "../../common/Api";
+import {
+    download,
+    get_archive_child,
+    get_metadata_list,
+    get_user_metadata_list,
+    is_archive_file,
+    is_viewable
+} from "../../common/Api";
 import {useSelector} from "react-redux";
 import {close_preview} from "../../reducers/searchSlice";
 import { RootState, AppDispatch } from '../../store';
@@ -62,7 +68,7 @@ export function PreviewModal(): JSX.Element {
         const is_online_view = is_viewable(url || '');
         setIsOnlineView(is_online_view);
         const document_type = search_focus && search_focus.documentType ? search_focus.documentType : '';
-        setIsArchive(Api.is_archive(url || ''));
+        setIsArchive(is_archive_file(url || ''));
 
         const preview_data = typedHtmlPreviewList && typedHtmlPreviewList.length > 0 ? typedHtmlPreviewList[0] : null;
         let w = preview_data && preview_data.width ? (preview_data.width) : 0;

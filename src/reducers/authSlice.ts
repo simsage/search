@@ -19,6 +19,7 @@ const initialState: AuthState = {
     // sign-in menu
     show_menu: false,
     show_kb_menu: false,
+    show_query_builder: false,
     // message from the system to display
     system_message: '',
     // error dialog
@@ -37,14 +38,21 @@ const authSlice = createSlice({
         },
 
         toggle_menu: (state) => {
-            return {...state, show_menu: !state.show_menu, show_kb_menu: false};
+            return {...state, show_menu: !state.show_menu, show_kb_menu: false, show_query_builder: false};
         },
 
         close_kb_menu: (state) => {
-            return {...state, show_kb_menu: false, show_menu: false};
+            return {...state, show_kb_menu: false, show_menu: false, show_query_builder: false};
         },
+
         toggle_kb_menu: (state) => {
-            return {...state, show_kb_menu: !state.show_kb_menu, show_menu: false};
+            return {...state, show_kb_menu: !state.show_kb_menu, show_menu: false, show_query_builder: false};
+        },
+
+        toggle_query_builder: (state) => {
+            return {
+                ...state, show_menu: false, show_kb_menu: false, show_query_builder: !state.show_query_builder
+            }
         },
 
         dismiss_auth_error: (state) => {
@@ -208,7 +216,7 @@ export const simsageLogOut = createAsyncThunk(
 );
 
 export const {
-    close_menu, close_kb_menu, toggle_menu,
+    close_menu, close_kb_menu, toggle_menu, toggle_query_builder,
     toggle_kb_menu, dismiss_auth_error
 } = authSlice.actions;
 export default authSlice.reducer;

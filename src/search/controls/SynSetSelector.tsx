@@ -45,7 +45,7 @@ export function SynSetSelector(props: SynSetSelectorProps): JSX.Element {
     }
 
     return (
-        <div className={"document-type-selector-width list-group pt-1 float-end"}>
+        <div className={"document-type-selector-width list-group pt-1"}>
             <span className={"no-select"} title={"please select a specific meaning for \"" + name + "\" below to search for more specific results."}>
             Meaning for: <i>{name}</i></span>
             <div>

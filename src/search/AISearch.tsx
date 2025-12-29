@@ -3,7 +3,6 @@ import {useDispatch, useSelector} from "react-redux";
 
 import './Search.css';
 import {ErrorDialog} from "../common/ErrorDialog";
-import {AIFirst} from "./controls/AIFirst";
 import {close_kb_menu, close_menu} from "../reducers/authSlice";
 import {
     close_preview,
@@ -19,6 +18,8 @@ import {
 } from "../common/Api";
 import ErrorMessage from "../common/ErrorMessage";
 import { RootState, AppDispatch } from '../store';
+import {ConversationalAIDialog} from "./controls/ConversationalAIDialog";
+import {DoSearchPayload} from "../types";
 
 // Use AppDispatch type for dispatch
 const useAppDispatch = () => useDispatch<AppDispatch>();
@@ -32,7 +33,7 @@ function AISearch(): JSX.Element {
     const dispatch = useAppDispatch();
     const {show_menu, show_kb_menu} = useSelector((state: RootState) => state.authReducer);
     const {busy, has_info} = useSelector((state: RootState) => state.searchReducer);
-    const {shard_list, search_text, group_similar, newest_first, metadata_list, metadata_values} = useSelector((state: RootState) => state.searchReducer);
+    const {shard_list, search_text, group_similar, sort_order, metadata_list, metadata_values} = useSelector((state: RootState) => state.searchReducer);
     const {entity_values, hash_tag_list, syn_set_values} = useSelector((state: RootState) => state.searchReducer);
     const {source_list, source_values, result_list, prev_search_text, prev_filter,
            pages_loaded, use_ai, ai_enabled, search_page, page_size, theme} = useSelector((state: RootState) => state.searchReducer);
@@ -78,14 +79,14 @@ function AISearch(): JSX.Element {
 
     // perform search
     function search(values: any): void {
-        const data = {
+        const data: DoSearchPayload = {
             session: session,
             client_id: get_client_id(),
             user: user,
             search_text: search_text,
             shard_list: shard_list,
             group_similar: group_similar,
-            newest_first: newest_first,
+            sort_order: sort_order,
             search_page: search_page,
             page_size: page_size,
             entity_values: entity_values,
@@ -102,7 +103,9 @@ function AISearch(): JSX.Element {
             next_page: false,
             reset_pagination: false,
             use_ai: (use_ai && ai_enabled),
-            language_search: false
+            author: "",
+            path: "",
+            title: ""
         };
         if (session && session.id && !busy) {
             if (values) {
@@ -130,7 +133,7 @@ function AISearch(): JSX.Element {
             <ErrorMessage />
 
             <div className={(busy ? "wait-cursor " : "") + (theme === "light" ? "outer" : "outer-dark")}>
-                <AIFirst/>
+                <ConversationalAIDialog />
             </div>
 
         </div>

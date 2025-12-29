@@ -58,7 +58,6 @@ npm run start
 | show_metadata_counts          | false                                                            | Show counters in side bar results                                      |
 | use_insight                   | true                                                             | Use insight features                                                   |
 | use_article_summary           | true                                                             | Use article summary features                                           |
-| compact_view                  | false                                                            | Use compact view for search results                                    |
 | allow_knowledge_base_selector | true                                                             | Allow users to select different knowledge bases                        |
 | override_source_list          | []                                                               | Artificial source groupings if not empty                               |
 | show_source_icon              | true                                                             | Show source icons in search results                                    |

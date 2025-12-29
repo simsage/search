@@ -1,17 +1,15 @@
-<?xml version="1.0" encoding="utf-8"?>
-<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-	 viewBox="0 0 32 32" style="enable-background:new 0 0 32 32;" xml:space="preserve">
-<style type="text/css">
-	.st7{fill:#FFFFFF;}
-	.st42{fill:#95cde5;}
-</style>
-<path class="st42" d="M25.2,11.8H6.8v-3c0-0.9,0.7-1.7,1.7-1.7h15.1c0.9,0,1.7,0.7,1.7,1.7V11.8z"/>
-<path class="st42" d="M23.5,24.8H8.5c-0.9,0-1.7-0.7-1.7-1.7v-3h18.4v3C25.2,24.1,24.4,24.8,23.5,24.8z"/>
-<rect x="6.8" y="13.7" class="st42" width="18.4" height="4.7"/>
-<path class="st7" d="M10.3,10.1c-0.4,0-0.7-0.3-0.7-0.7c0-0.4,0.3-0.7,0.7-0.7S11,9,11,9.4C11,9.7,10.7,10.1,10.3,10.1z"/>
-<path class="st7" d="M10.3,16.7c-0.4,0-0.7-0.3-0.7-0.7c0-0.4,0.3-0.7,0.7-0.7S11,15.6,11,16C11,16.4,10.7,16.7,10.3,16.7z"/>
-<path class="st7" d="M10.3,23.2c-0.4,0-0.7-0.3-0.7-0.7c0-0.4,0.3-0.7,0.7-0.7s0.7,0.3,0.7,0.7C11,22.9,10.7,23.2,10.3,23.2z"/>
-<path class="st7" d="M13,10.1c-0.4,0-0.7-0.3-0.7-0.7c0-0.4,0.3-0.7,0.7-0.7s0.7,0.3,0.7,0.7C13.7,9.7,13.4,10.1,13,10.1z"/>
-<path class="st7" d="M13,16.7c-0.4,0-0.7-0.3-0.7-0.7c0-0.4,0.3-0.7,0.7-0.7s0.7,0.3,0.7,0.7C13.7,16.4,13.4,16.7,13,16.7z"/>
-<path class="st7" d="M13,23.2c-0.4,0-0.7-0.3-0.7-0.7c0-0.4,0.3-0.7,0.7-0.7s0.7,0.3,0.7,0.7C13.7,22.9,13.4,23.2,13,23.2z"/>
+<svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="#0284C7"
+        stroke-width="1.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+>
+    <ellipse cx="12" cy="5" rx="9" ry="3" />
+    <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
+    <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
 </svg>

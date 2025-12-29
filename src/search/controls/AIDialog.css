@@ -1,30 +1,38 @@
 .ai-float {
-    position: absolute;
+    position: fixed;
+    z-index: 5000;
+    width: 100%;
+    height: 100%;
+    top: 0;
     left: 0;
-    right: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.5); /* Dimmed background */
 }
 .chat-container {
-    z-index: 5000;
-    background: #fff;
     position: relative;
-    left: 50%;
+    background: #fff;
+    left: 25%;
     top: 10px;
     width: 45%;
     border: 1px solid #ccc;
     border-radius: 5px;
     overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
 .chat-container-dark {
-    z-index: 5000;
+    z-index: -5000;
     background: #2b2a33;
     color: #aaa;
     position: relative;
-    left: 50%;
+    left: 25%;
     top: 10px;
     width: 45%;
     border: 1px solid #555;
     border-radius: 5px;
     overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
 .container-close {
     float: right;
@@ -72,12 +80,7 @@
     width: 100%;
     background-color: #f4f4f4;
     text-align: right;
-}
-
-.bot-message {
-    background-color: #007bff;
-    min-width: 60%;
-    color: #fff;
+    border-radius: 10px 0 10px 10px !important;
 }
 
 .user-message-dark {
@@ -86,12 +89,21 @@
     background-color: #555;
     color: #fff;
     text-align: right;
+    border-radius: 10px 0 10px 10px !important;
+}
+
+.bot-message {
+    background-color: #007bff;
+    min-width: 60%;
+    color: #fff;
+    border-radius: 0 10px 10px 10px !important;
 }
 
 .bot-message-dark {
     background-color: #007bff;
     min-width: 60%;
     color: #fff;
+    border-radius: 0 10px 10px 10px !important;
 }
 
 .please-wait-message {

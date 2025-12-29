@@ -1,5 +1,23 @@
-<?xml version="1.0" encoding="utf-8"?>
-<svg width="32px" height="32px" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
-   <circle cx="512" cy="512" r="512" style="fill:#03363d"/>
-   <path transform="translate(.001 .736)" d="M495.1 432v247.3H290.3L495.1 432zm0-88.7c0 56.6-45.8 102.4-102.4 102.4s-102.4-45.8-102.4-102.4h204.8zm33.8 336c0-56.6 45.8-102.4 102.4-102.4s102.4 45.8 102.4 102.4H528.9zm0-88.8V343.3h204.8L528.9 590.5z" style="fill:#fff"/>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 32 32"
+   version="1.1"
+   id="svg1"
+   xmlns="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <g
+     id="g1"
+     transform="matrix(0.02505827,0,0,0.0259324,2.5361305,2.3869464)">
+    <circle
+       cx="512"
+       cy="512"
+       style="fill:#03363d"
+       id="circle1"
+       r="512" />
+    <path
+       d="m 495.101,432.736 v 247.3 h -204.8 z m 0,-88.7 c 0,56.6 -45.8,102.4 -102.4,102.4 -56.6,0 -102.4,-45.8 -102.4,-102.4 z m 33.8,336 c 0,-56.6 45.8,-102.4 102.4,-102.4 56.6,0 102.4,45.8 102.4,102.4 z m 0,-88.8 v -247.2 h 204.8 z"
+       style="fill:#ffffff"
+       id="path1" />
+  </g>
 </svg>

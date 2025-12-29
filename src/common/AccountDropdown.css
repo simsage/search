@@ -53,3 +53,119 @@
     color: #1c9bd2;
 }
 
+[data-theme="light"] {
+    --color-card-bg: #ffffff;
+    --color-text: #333333;
+    --color-border: #eee;
+    --color-shadow: rgba(0, 0, 0, 0.05);
+    --color-switch-off: #ccc;
+    --color-switch-on: #2196F3;
+    --color-switch-knob: #ffffff;
+}
+
+/* [data-theme="dark"] overrides the defaults for Dark Mode */
+[data-theme="dark"] {
+    --color-card-bg: #2c2c2c;
+    --color-text: #f0f0f0;
+    --color-border: #444444;
+    --color-shadow: rgba(0, 0, 0, 0.2);
+    --color-switch-off: #555;
+    --color-switch-on: #5d8dea; /* A slightly lighter blue for dark bg */
+    --color-switch-knob: #e0e0e0;
+}
+
+.settings-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    width: 350px;
+    background-color: var(--color-card-bg);
+    border-radius: 10px;
+    box-shadow: 0 4px 15px var(--color-shadow);
+    overflow: hidden;
+}
+
+/* Each menu item */
+.menu-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--color-border);
+    cursor: pointer;
+}
+
+.menu-item:last-child {
+    border-bottom: none;
+}
+
+/* The text label for the setting */
+.menu-item-label {
+    font-size: 16px;
+    color: var(--color-text);
+    /* Prevents text from being selected when clicking */
+    user-select: none;
+}
+
+/* * THE SWITCH STYLES
+ */
+
+/* 1. The switch container (a label) */
+.settings-menu .switch {
+    position: relative;
+    display: inline-block;
+    width: 30px;
+    height: 16px;
+}
+
+/* 2. Hide the default checkbox */
+.settings-menu .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* 3. The slider (the visible part) */
+.settings-menu .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--color-switch-off);
+    transition: .4s;
+    border-radius: 28px; /* Makes it pill-shaped */
+}
+
+/* 4. The knob */
+.settings-menu .slider:before {
+    position: absolute;
+    content: "";
+    height: 12px;
+    width: 12px;
+    left: 2px;
+    bottom: 2px;
+    background-color: var(--color-switch-knob);
+    transition: .4s;
+    border-radius: 50%; /* Makes it a circle */
+}
+
+/* 5. The "ON" state */
+.settings-menu input:checked + .slider {
+    background-color: var(--color-switch-on);
+}
+
+.settings-menu input:focus + .slider {
+    box-shadow: 0 0 1px var(--color-switch-on);
+}
+
+/* 6. The animation for the knob */
+.settings-menu input:checked + .slider:before {
+    transform: translateX(14px); /* Moves the knob to the right */
+}
+
+.scroll-kb {
+    max-height: 400px;
+    overflow: scroll;
+}

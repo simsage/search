@@ -3,9 +3,15 @@
 }
 
 .results-container {
-    padding-top: 2rem;
     padding-bottom: 8rem;
     scrollbar-width: auto;
+    background-color: #f8f8f8;
+}
+
+.results-container-dark {
+    padding-bottom: 8rem;
+    scrollbar-width: auto;
+    background-color: #121212;
 }
 
 .result-preview {
@@ -139,7 +145,6 @@
     border-radius: 5px;
     font-size: 13px;
     /* font-weight: 500; */
-    display: flex;
     justify-content: center;
     align-items: center;
     padding: .3rem .7rem;
@@ -151,7 +156,6 @@
     border-radius: 5px;
     font-size: 13px;
     /* font-weight: 500; */
-    display: flex;
     justify-content: center;
     align-items: center;
     padding: .3rem .7rem;
@@ -211,6 +215,7 @@
 
 .similar-document-title {
     font-size: 14px;
+    color: #888;
     cursor: default;
     font-style: italic;
 }
@@ -343,8 +348,7 @@
 
 
 .search-control-padding {
-    padding-left: 20px;
-    padding-right: 50px;
+    padding-left: 50px;
 }
 .warning-text {
     font-size: 10px;
@@ -430,3 +434,80 @@
 .summary-text-dark {
     color: #aaa;
 }
+
+.feedback-offset {
+    margin-left: 10px;
+    margin-right: 20px;
+}
+
+.feedback-icon {
+    margin-left: 10px;
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+}
+
+.side-bar {
+    width: 320px;
+    float: right;
+    border-left: 1px solid #e0e0e0;
+    background-color: #fff;
+    box-shadow: -2px 0 6px rgba(0, 0, 0, 0.1);
+}
+
+.side-bar-dark {
+    border-left: 1px solid #333;
+    background-color: #1e1e1e;
+    box-shadow: -2px 0 6px rgba(0, 0, 0, 0.4) !important;
+}
+
+.custom-small-label-2 {
+    display: inline-block;
+    font-size: 12px;
+    max-width: 100px;
+    min-width: 100px;
+}
+
+.show-similar-width {
+    display: inline-block;
+    width: 100%;
+    max-width: 160px;
+    min-width: 160px;
+}
+
+.query-builder-header {
+    margin-left: -10px;
+    margin-bottom: 5px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.query-builder-text {
+    margin-top: 0;
+    display: inline-block;
+    padding-bottom: 10px;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--bs-body-color);
+    justify-content: space-between;
+    cursor: default;
+}
+
+.clear-all-link {
+    font-size: 12px;
+    float: right;
+    margin-top: 4px;
+    margin-right: 5px;
+    color: var(--link-color);
+    cursor: pointer;
+    text-decoration: none;
+    font-weight: normal;
+}
+
+.query-builder-main-input {
+    width: 100%;
+    border: 1px solid #888;
+    padding: 6px;
+    border-radius: 4px;
+    outline: none !important;
+}
+

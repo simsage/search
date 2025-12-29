@@ -2,9 +2,8 @@ import React, { useCallback } from 'react';
 import './AccountDropdown.css';
 import { close_menu, simsageLogOut } from "../reducers/authSlice";
 import {
-    set_compact_view,
     set_icon_mode,
-    set_llm_search,
+    llm_view,
     toggle_ai,
     toggle_theme
 } from "../reducers/searchSlice";
@@ -33,7 +32,7 @@ export function AccountDropdown(props?: AccountDropdownProps): JSX.Element {
 
     const { show_menu } = useSelector((state: RootState) => state.authReducer);
     const { session } = useSelector((state: RootState) => state.authReducer);
-    const { use_ai, ai_enabled, compact_view, show_source_icon, llm_search, theme } =
+    const { use_ai, ai_enabled, show_source_icon, llm_search, theme } =
         useSelector((state: RootState) => state.searchReducer);
     const auth = useAuth();
 
@@ -46,7 +45,7 @@ export function AccountDropdown(props?: AccountDropdownProps): JSX.Element {
 
     function view_advanced_query_syntax(): void {
         dispatch(close_menu());
-        window.open(process.env.PUBLIC_URL + "resources/search-syntax.pdf", "blank");
+        window.open(process.env.PUBLIC_URL + "/resources/search-syntax.pdf", "blank");
     }
 
     const set_ai = (e: React.MouseEvent<HTMLInputElement>): void => {
@@ -55,16 +54,10 @@ export function AccountDropdown(props?: AccountDropdownProps): JSX.Element {
         if (props?.on_search) props.on_search();
     }
 
-    const toggle_compact_view = (e: React.MouseEvent<HTMLInputElement>): void => {
-        if (e) e.stopPropagation();
-        dispatch(set_compact_view(!compact_view));
-        if (props?.on_search) props.on_search();
-    }
-
-    const toggle_agentic_ui = (e: React.MouseEvent<HTMLInputElement>): void => {
+    const toggle_agentic_ui = (e?: React.MouseEvent<HTMLInputElement>): void => {
         if (e) e.stopPropagation();
         dispatch(close_menu());
-        dispatch(set_llm_search(!llm_search));
+        dispatch(llm_view(!llm_search));
     }
 
     const toggle_icon_mode = (e: React.MouseEvent<HTMLInputElement>): void => {
@@ -74,7 +67,9 @@ export function AccountDropdown(props?: AccountDropdownProps): JSX.Element {
     }
 
     const toggle_ui_theme = (e: React.MouseEvent<HTMLInputElement>): void => {
-        if (e) e.stopPropagation();
+        if (e) {
+            e.stopPropagation();
+        }
         dispatch(toggle_theme());
     }
 
@@ -82,55 +77,56 @@ export function AccountDropdown(props?: AccountDropdownProps): JSX.Element {
     const acc_item = (theme === "light" ? "acc-item" : "acc-item-dark");
 
     return (
-        <div className={(show_menu ? "d-flex" : "d-none") + (theme === "light" ? " account-dropdown" : " account-dropdown-dark")}>
-            <ul className="acc-nav mb-0">
-                <li className={acc_item + " px-4 py-3"} onClick={() => window.location.href = "/"}>
-                    <label>{t("Home")}</label>
+        <div className={(show_menu ? "d-flex me-4 mt-3" : "d-none") + (theme === "light" ? " account-dropdown" : " account-dropdown-dark")}>
+            <ul className="acc-nav mb-0 settings-menu" data-theme={theme}>
+                <li className={acc_item + " menu-item"} onClick={() => window.location.href = "/"} title={t("Home")}>
+                    <label className="menu-item-label">{t("Home")}</label>
                 </li>
                 {window.ENV.show_download_manual &&
-                    <li className={acc_item + " px-4 py-3"}
+                    <li className={acc_item + " menu-item"} title={t("Advanced query syntax")}
                         onClick={() => view_advanced_query_syntax()}>
-                        <label>{t("Advanced query syntax")}</label>
+                        <label className="menu-item-label">{t("Advanced query syntax")}</label>
                     </li>
                 }
                 {ai_enabled && window.ENV.show_llm_menu &&
-                    <li className={acc_item + " px-4 py-3 form-check form-switch"}>
-                        <label className="form-check-label small">{t("Agentic UI")}</label>
-                        <input className="form-check-input" type="checkbox" defaultChecked={llm_search} value={llm_search ? 'true' : 'false'}
-                               onClick={(e) => toggle_agentic_ui(e)}/>
+                    <li className={acc_item + " menu-item"} onClick={() => toggle_agentic_ui(undefined)} title={t("Agentic UI")}>
+                        <label className="menu-item-label">
+                            {t("Agentic UI")}
+                        </label>
                     </li>
                 }
                 {ai_enabled && !llm_search &&
-                    <li className={acc_item + " px-4 py-3 form-check form-switch"}>
-                        <label className="form-check-label small">{t("Question Answering")}</label>
-                        <input className="form-check-input" type="checkbox" defaultChecked={use_ai} value={use_ai ? 'true' : 'false'}
-                               onClick={(e) => set_ai(e)}/>
+                    <li className={acc_item + " menu-item"} title={t("Question Answering")}>
+                        <label className="menu-item-label" htmlFor="opt2">{t("Question Answering")}</label>
+                        <label className="switch">
+                            <input type="checkbox" id="opt2" defaultChecked={use_ai}
+                                   onClick={(e) => set_ai(e)}/>
+                            <span className="slider"></span>
+                        </label>
                     </li>
                 }
                 { !llm_search &&
-                <li className={acc_item + " px-4 py-3 form-check form-switch"}>
-                    <label className="form-check-label small">{t("Compact View")}</label>
-                    <input className="form-check-input" type="checkbox" defaultChecked={compact_view} value={compact_view ? 'true' : 'false'}
-                           onClick={(e) => toggle_compact_view(e)}/>
-                </li>
+                    <li className={acc_item + " menu-item"} title={t("Source Icons")}>
+                        <label className="menu-item-label" htmlFor="opt4">{t("Source Icons")}</label>
+                        <label className="switch">
+                            <input type="checkbox" id="opt4" defaultChecked={show_source_icon}
+                                   onClick={(e) => toggle_icon_mode(e)}/>
+                            <span className="slider"></span>
+                        </label>
+                    </li>
                 }
-                { !llm_search &&
-                <li className={acc_item + " px-4 py-3 form-check form-switch"}>
-                    <label className="form-check-label small">{t("Source Icons")}</label>
-                    <input className="form-check-input" type="checkbox" defaultChecked={show_source_icon} value={show_source_icon ? 'true' : 'false'}
-                           onClick={(e) => toggle_icon_mode(e)}/>
-                </li>
-                }
-                <li className={acc_item + " px-4 py-3 form-check form-switch"}>
-                    <label className="form-check-label small">{t("Dark Theme")}</label>
-                    <input className="form-check-input" type="checkbox" defaultChecked={theme === "dark"}
-                           value={theme === "dark" ? 'true' : 'false'}
-                           onClick={(e) => toggle_ui_theme(e)}/>
+                <li className={acc_item + " menu-item"} title={t("Dark Theme")}>
+                    <label className="menu-item-label" htmlFor="opt5">{t("Dark Theme")}</label>
+                    <label className="switch">
+                        <input type="checkbox" id="opt5" defaultChecked={theme === "dark"}
+                               onClick={(e) => toggle_ui_theme(e)}/>
+                        <span className="slider"></span>
+                    </label>
                 </li>
                 {is_authenticated &&
-                    <li className={acc_item + " px-4 py-3"}
+                    <li className={acc_item + " menu-item"} title={t("Sign out")}
                         onClick={() => on_sign_out()}>
-                        <label>{t("Sign out")}</label>
+                        <label className="menu-item-label">{t("Sign out")}</label>
                     </li>
                 }
             </ul>

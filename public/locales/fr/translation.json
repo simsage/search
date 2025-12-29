@@ -4,6 +4,7 @@
   "one-result": "un résultat",
   "no-results": "Aucun résultat...",
   "Sources": "Sources",
+  "Entities": "Entités",
   "Types": "Types",
   "select all": "tout sélectionner",
   "clear": "tout effacer",
@@ -14,8 +15,8 @@
   " source types.": " types de sources.",
   "the current source has ": "la source actuelle contient ",
   " documents.": " documents.",
-  "Group similar": "Regrouper les éléments similaires",
-  "Sort by newest first": "Trier par le plus récent en premier",
+  "Group similar": "Meilleures Nouveautés",
+  "Sort by": "Trier par:",
   "Filter type...": "Filtrer par type...",
   "Previous": "Précédente",
   "Next": "Suivante",
@@ -43,7 +44,7 @@
   "close": "fermer",
   "Home": "Retour",
   "Advanced query syntax": "Syntaxe de requête avancée",
-  "Agentic UI": "Interface Utilisateur Agent",
+  "Agentic UI": "Utilisateur Conversationnelle",
   "Question Answering": "Mode réponse aux questions",
   "Compact View": "Vue compacte",
   "Source Icons": "Afficher les icônes source",
@@ -69,5 +70,8 @@
   "time.month_ago": "il y a {{count}} mois",
   "time.month_ago_plural": "il y a {{count}} mois",
   "time.year_ago": "il y a {{count}} an",
-  "time.year_ago_plural": "il y a {{count}} ans"
+  "time.year_ago_plural": "il y a {{count}} ans",
+  "boost this document in search rankings": "augmenter ce document dans les classements de recherche",
+  "lower this document in search rankings": "diminuer ce document dans les classements de recherche",
+  "this document has a ranking of": "ce document a un classement de"
 }

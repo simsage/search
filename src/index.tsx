@@ -22,9 +22,10 @@ const oidcConfig = {
     client_id: window.ENV.kc_client_id,
     redirect_uri: window.location.origin + window.ENV.base_name,
     response_type: 'code',
-    automaticSilentRenew: true,
+    scope: 'openid profile email offline_access',
+    automaticSilentRenew: false,
     userStore: new WebStorageStateStore({ store: window.localStorage }),
-    onSigninCallback: (user: any) => { // this is used - no matter what the linter says
+    onSigninCallback: (user: any) => {
         const stored_search = sessionStorage.getItem(OIDC_REDIRECT_STORAGE_KEY)
         sessionStorage.removeItem(OIDC_REDIRECT_STORAGE_KEY);
         let new_url = window.location.pathname + (stored_search || '');

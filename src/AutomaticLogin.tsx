@@ -2,7 +2,7 @@
 import { useAuth } from 'react-oidc-context';
 import { useEffect, ReactNode } from 'react';
 
-export const OIDC_REDIRECT_STORAGE_KEY = 'pre-oidc-query-string';
+export const OIDC_REDIRECT_STORAGE_KEY = 'search-oidc-query-string';
 
 interface AutomaticLoginProps {
     children: ReactNode;
@@ -16,12 +16,10 @@ export function AutomaticLogin({ children }: AutomaticLoginProps) {
         // Check if the library is done loading and the user is not authenticated.
         // The `activeNavigator` check prevents a redirect loop during the login process.
         if (!auth.isLoading && !auth.isAuthenticated && !auth.activeNavigator) {
-            if (window.location.search) {
-                sessionStorage.setItem(OIDC_REDIRECT_STORAGE_KEY, window.location.search);
-            }
             auth.signinRedirect();
         }
-    }, [auth]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [auth.isLoading, auth.isAuthenticated, auth.activeNavigator, auth.signinRedirect]);
 
     // While the authentication is loading or the user is not yet authenticated,
     // you can show a loading message or a splash screen.

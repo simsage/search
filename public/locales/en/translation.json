@@ -4,6 +4,7 @@
   "one-result": "one result",
   "no-results": "No results...",
   "Sources": "Sources",
+  "Entities": "Entities",
   "Types": "Types",
   "select all": "select all",
   "clear": "clear",
@@ -15,7 +16,7 @@
   "the current source has ": "the current source has ",
   " documents.": " documents.",
   "Group similar": "Group similar",
-  "Sort by newest first": "Sort by newest first",
+  "Sort by": "Sort by:",
   "Filter type...": "Filter type...",
   "Previous": "Previous",
   "Next": "Next",
@@ -43,7 +44,7 @@
   "close": "close",
   "Home": "Home",
   "Advanced query syntax": "Advanced query syntax",
-  "Agentic UI": "Agentic UI",
+  "Agentic UI": "Conversational UI",
   "Question Answering": "Question Answering",
   "Compact View": "Compact View",
   "Source Icons": "Source Icons",
@@ -69,5 +70,8 @@
   "time.month_ago": "{{count}} month ago",
   "time.month_ago_plural": "{{count}} months ago",
   "time.year_ago": "{{count}} year ago",
-  "time.year_ago_plural": "{{count}} years ago"
+  "time.year_ago_plural": "{{count}} years ago",
+  "boost this document in search rankings": "boost this document in search rankings",
+  "lower this document in search rankings": "lower this document in search rankings",
+  "this document has a ranking of": "this document has a ranking of"
 }

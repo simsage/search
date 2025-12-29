@@ -14,7 +14,7 @@ export function AIDialog(): JSX.Element {
     const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const listRef = useRef<HTMLDivElement>(null);
-    const { query_ai_focus_url, query_ai_focus_url_id, query_ai_focus_title,
+    const { query_ai_focus_url, query_ai_focus_title,
            busy_with_ai, query_ai_dialog_list, theme } = useSelector((state: RootState) => state.searchReducer);
     const { session } = useSelector((state: RootState) => state.authReducer);
     const [query, set_query] = useState<string>('');
@@ -44,7 +44,6 @@ export function AIDialog(): JSX.Element {
                 prev_conversation_list: query_ai_dialog_list,
                 question: query,
                 document_url: query_ai_focus_url,
-                document_url_id: query_ai_focus_url_id,
                 on_success: () => { set_query(''); }
                 }
             ));
@@ -60,6 +59,12 @@ export function AIDialog(): JSX.Element {
             </div>
             <div className="chat-messages" ref={listRef}>
                 <div className="small-font">{t("Generative AI can make mistakes. Consider checking important information.")}</div>
+                {
+                    query_ai_focus_title && query_ai_focus_title.length > 0 &&
+                    <div className={(theme === "light" ? "bot-message" : "bot-message-dark") + " ai-message"}>
+                        {unescape_owasp(t("Please ask me any question about") + " " + getDocumentName())}
+                    </div>
+                }
                 {
                     query_ai_dialog_list.map((msg, i) => {
                         if (msg && msg.role === "assistant") {

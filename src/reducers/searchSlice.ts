@@ -1,6 +1,5 @@
 import {createAsyncThunk, createSlice, PayloadAction} from "@reduxjs/toolkit";
 import axios from "axios";
-import i18n from '../i18n';
 import {
     get_client_id,
     get_headers,
@@ -10,13 +9,12 @@ import {
     copy, get_error, getKbId,
     hashtag_metadata,
     get_cookie_value,
-    update_cookie_value, get_document_types, get_source_filter
+    update_cookie_value, get_document_types, get_source_filter, empty_llm_state, update_search_text_text, update_md_text
 } from "../common/Api";
 import {
     MetadataItem,
     KnowledgeBase,
     SearchState,
-    MessageExpandPayload,
     FocusPreviewPayload,
     UserQueryPayload,
     SourceValuePayload,
@@ -29,18 +27,24 @@ import {
     SaveHashtagsPayload,
     DoSearchPayload,
     CreateShortSummaryPayload,
-    TeachPayload,
+    BoostDocumentPayload,
     AskDocumentQuestionPayload,
     DoLlmSearchPayload,
     DoLlmSearchStep2Payload,
-    DoLlmSearchStep3Payload, LLMState
+    DoLlmSearchStep3Payload,
+    LLMState,
+    SearchResult,
+    ConversationItem,
+    ActionWithError,
+    LlmLoadhistory,
+    LlmLoadhistoryResult, LlmSavehistory, UserQueryFeedback
 } from '../types';
+import {useTranslation} from "react-i18next";
 
 // name of the ux cookie
 const ux_cookie = "ux-cookie";
 // cookie values for init store
 const use_ai = get_cookie_value(ux_cookie, "use_ai");
-const compact_view = get_cookie_value(ux_cookie, "compact_view");
 const source_icon = get_cookie_value(ux_cookie, "source_icon");
 const llm_search = window.ENV.show_llm_menu ? get_cookie_value(ux_cookie, "llm_search") : "false";
 const fast = get_cookie_value(ux_cookie, "fast");
@@ -55,7 +59,7 @@ const initialState: SearchState = {
     source_filter: '',
 
     has_info: false,            // get info done?
-    theme: theme ? theme : "light", // UI theme (dark or light)
+    theme: theme ? theme : window.ENV.default_theme, // UI theme (dark or light)
 
     search_page: 0,             // the current page
     page_size: window.ENV.page_size,
@@ -63,7 +67,9 @@ const initialState: SearchState = {
 
     total_document_count: 0,
     group_similar: false,
-    newest_first: false,
+    all_have_group_similar: false,
+    sort_order: 0,
+    show_side_bar: false,
     busy: false,
     busy_with_summary: false,
     busy_with_ai: false,
@@ -83,7 +89,6 @@ const initialState: SearchState = {
     ai_enabled: false,
     // use ai (i.e. menu switch)
     use_ai: use_ai ? use_ai.toLowerCase()==="true" : window.ENV.query_ai_enabled_by_default,
-    compact_view: compact_view ? compact_view.toLowerCase()==="true" : window.ENV.compact_view,
     show_source_icon: source_icon ? source_icon.toLowerCase()==="true" : window.ENV.show_source_icon,
     llm_search: llm_search ? llm_search.toLowerCase()==="true" : window.ENV.llm_search,
     fast: fast ? fast.toLowerCase()==="true" : false,
@@ -93,9 +98,12 @@ const initialState: SearchState = {
     query_ai_focus_url_id: 0,
     query_ai_focus_title: '',
     query_ai_dialog_list: [],
-    query_ai_focus_document: null,
-    llm_state: [],
+    query_ai_focus_document: undefined,  // SearchResult
     user_query: "",
+
+    // the llm conversation system
+    llm_state: empty_llm_state(),
+    llm_state_history: [],
 
     // preview data
     search_focus: null,             // for previewing items
@@ -119,7 +127,12 @@ const initialState: SearchState = {
     // syn-sets: {name: "law", description_list: ['criminal, jail', 'corporate, business']}
     syn_set_list: [],
     syn_set_values: {},
-    all_kbs:[]
+    all_kbs:[],
+
+    // filters
+    author: "",
+    title: "",
+    path: ""
 };
 
 
@@ -152,6 +165,9 @@ const extraReducers = (builder: any) => {
                 state.result_list = (data && data.resultList && data.resultList.length > 0) ? data.resultList : []
                 state.syn_set_list = data.synSetList ? data.synSetList : [];
                 state.shard_list = data.shardSizeList ? data.shardSizeList : [];
+                if (data.search_text) {
+                    state.search_text = data.search_text;
+                }
                 state.hash_tag_list = [];
                 state.entity_values = {};
                 state.boost_document_id_list = data.boostedDocumentIDs ?? [];
@@ -186,6 +202,8 @@ const extraReducers = (builder: any) => {
                         state.source_values[id] = true
                     }
                 }
+                // SM-2448 update previous filter so that we don't reset pagination
+                state.prev_filter = get_filters(state.metadata_list, state.metadata_values, state.entity_values, state.source_list, state.source_values, state.hash_tag_list, []);
                 state.search_page = action.payload.data.page;
                 state.pages_loaded = parseInt("" + (state.result_list.length / state.page_size));
             }
@@ -212,7 +230,15 @@ const extraReducers = (builder: any) => {
             kb_list = kb_list.filter((kb: KnowledgeBase) => kb.id === getKbId()); // get kbId from window parameters if possible
             if (kb_list.length === 1) {
                 state.source_list = kb_list[0].sourceList ? kb_list[0].sourceList : [];
+                let all_sources_have_similarity = true;
+                for (const source of state.source_list) {
+                    if (!source.enableDocumentSimilarity) {
+                        all_sources_have_similarity = false
+                        break
+                    }
+                }
                 // AI enabled if we have an LLM connected and ready
+                state.all_have_group_similar = all_sources_have_similarity;
                 state.ai_enabled = kb_list[0].hasLLM || false;
 
                 // set up metadata categories
@@ -281,45 +307,48 @@ const extraReducers = (builder: any) => {
 
         ////////////////////////////////////////////////////////////////////////////////////
 
-        .addCase(teach.pending, (state: SearchState) => {
+        .addCase(boost_document.pending, (state: SearchState) => {
             state.busy = true;
         })
 
-        .addCase(teach.fulfilled, (state: SearchState) => {
+        .addCase(boost_document.fulfilled, (state: SearchState) => {
             state.busy = false;
         })
 
-        .addCase(teach.rejected, (state: SearchState) => {
+        .addCase(boost_document.rejected, (state: SearchState) => {
             state.busy = false;
-            console.error("rejected: teach:" + state.search_error_text);
+            console.error("rejected: boost_document:" + state.search_error_text);
         })
 
         ////////////////////////////////////////////////////////////////////////////////////
 
         .addCase(ask_document_question.pending, (state: SearchState) => {
-            state.busy = true;
-            state.busy_with_ai = true;
-            state.search_error_text = "";
-        })
-
-        // ask_document_question
-        .addCase(ask_document_question.fulfilled, (state: SearchState, action: any) => {
-            state.busy = false;
-            state.busy_with_ai = false;
-            const data = action.payload;
-            if (data && data.answer && data.conversationList.length > 0) {
-                let list = copy(state.query_ai_dialog_list);
-                list.push({"role": "user", "content": data.conversationList[data.conversationList.length - 1].content});
-                list.push({"role": "assistant", "content": data.answer});
-                state.query_ai_dialog_list = list;
+            return {
+                ...state,
+                search_error_text: "",
+                busy: true,
+                busy_with_ai: true
             }
         })
 
-        .addCase(ask_document_question.rejected, (state: SearchState, action: any) => {
-            state.busy = false;
-            state.busy_with_ai = false;
-            state.search_error_text = get_error(action);
+        // ask_document_question
+        .addCase(ask_document_question.fulfilled, (state: SearchState, action: PayloadAction<LLMState>) => {
+            return {
+                ...state,
+                query_ai_dialog_list: action.payload.conversationList,
+                busy: false,
+                busy_with_ai: false
+            }
+        })
+
+        .addCase(ask_document_question.rejected, (state: SearchState, action: PayloadAction<ActionWithError>) => {
             console.error("rejected: ask_document_question:" + state.search_error_text);
+            return {
+                ...state,
+                search_error_text: get_error(action),
+                busy: false,
+                busy_with_ai: false
+            }
         })
 
         ////////////////////////////////////////////////////////////////////////////////////
@@ -368,12 +397,14 @@ const extraReducers = (builder: any) => {
         })
 
         // llm_search
-        .addCase(do_llm_search.fulfilled, (state: SearchState, action: any) => {
-            const data = action.payload;
+        .addCase(do_llm_search.fulfilled, (state: SearchState, action: PayloadAction<LLMState>) => {
+            const data: LLMState = copy(action.payload)
+            data.focus_id = state.llm_state.focus_id
+            const { t } = useTranslation();
 
             // find the last result that has search results in it to display
             const conversation_size = data.conversationList && data.conversationList.length > 0 ? data.conversationList.length : 0
-            let last_result = null
+            let last_result: ConversationItem | null = null
             let sr_counter = -1
             if (conversation_size > 0) {
                 let counter = conversation_size
@@ -396,7 +427,7 @@ const extraReducers = (builder: any) => {
             // set searched for text?
             const last_conversation = sr_counter >= 0 ? data.conversationList[sr_counter] : null
             if (last_conversation && last_conversation.content === "") {
-                last_conversation.content = i18n.t("searched for") + " \"" + last_conversation.searchKeywords + "\""
+                last_conversation.content = t("searched for") + " \"" + last_conversation.searchKeywords + "\""
             }
 
             // collect all other metadata from the collection for display
@@ -408,13 +439,6 @@ const extraReducers = (builder: any) => {
             const shard_list = searchData?.shardSizeList ? searchData.shardSizeList : []
             const boost_document_id_list = searchData?.boostedDocumentIDs ?? []
             const total_document_count = searchData?.totalDocumentCount ? searchData.totalDocumentCount : 0
-
-            let source_values: {[key: string]: boolean} = {}
-            if (searchData?.selectedSources && searchData.selectedSources.length > 0) {
-                for (const id of searchData.selectedSources) {
-                    source_values[id] = true
-                }
-            }
 
             let metadata_list: MetadataItem[] = []
             if (searchData?.categoryList) {
@@ -428,6 +452,24 @@ const extraReducers = (builder: any) => {
                 }
             }
 
+            // no results found in a SimSage search?
+            if (last?.step === 0 && state.user_query.trim().toLowerCase().startsWith("simsage search") && conversation_size > 0) {
+                const last_conversation = data.conversationList[conversation_size - 1]
+                if (!last_conversation.searchResult || last_conversation.searchResult.resultList.length === 0) {
+                    // add an assistant message that there were no results found
+                    data.conversationList.push({
+                        role: "assistant",
+                        content: t("no-results"),
+                        aiUrlIdUsed: 0,
+                        aiUrlUsed: '',
+                        step: 0,
+                        searchKeywords: state.user_query,
+                        searchResult: undefined,
+                        expand: false
+                    })
+                }
+            }
+
             return {
                 ...state,
                 busy: false,
@@ -435,7 +477,6 @@ const extraReducers = (builder: any) => {
                 llm_state: data,
                 user_query: (last?.step === 0) ? '' : state.user_query,
                 document_type_count: document_type_count,
-                source_values: source_values,
                 source_id_count: source_id_count,
                 shard_list: shard_list,
                 boost_document_id_list: boost_document_id_list,
@@ -471,28 +512,18 @@ const extraReducers = (builder: any) => {
 
         // llm_search
         .addCase(do_llm_search_step2.fulfilled, (state: SearchState, action: any) => {
-            const data = action.payload;
+            const data: LLMState = copy(action.payload)
+            data.focus_id = state.llm_state.focus_id
 
             // find the last result that has search results in it to display
-            let last_result = null
-            let new_conversation_list = []
-            for (let current_conversation of data.conversationList) {
-                let has_result = false
-                if (current_conversation && current_conversation.searchResult && current_conversation.searchResult.resultList &&
-                    current_conversation.searchResult.resultList.length > 0) {
-                    last_result = current_conversation
-                    has_result = true
-                }
-                if (current_conversation.role === "assistant" && current_conversation.content.indexOf('SimSage search:') >= 0) {
-                    // skip
-                } else if (current_conversation.role === "assistant" && has_result) {
-                    current_conversation.content = i18n.t("searched for") + " \"" + current_conversation.searchKeywords + "\""
-                    new_conversation_list.push(current_conversation)
-                } else {
-                    new_conversation_list.push(current_conversation)
-                }
+            let last_result: ConversationItem | null = null
+            if (data.conversationList.length > 0) {
+                last_result = data.conversationList[data.conversationList.length - 1]
             }
-            data.conversationList = new_conversation_list
+            // set the focus id for the best search result match?
+            if (last_result && last_result.aiUrlIdUsed > 0) {
+                data.focus_id = last_result.aiUrlIdUsed
+            }
 
             // get the search-result from this item
             const searchData = last_result?.searchResult ?? null
@@ -506,13 +537,6 @@ const extraReducers = (builder: any) => {
             const shard_list = searchData?.shardSizeList ? searchData.shardSizeList : []
             const boost_document_id_list = searchData?.boostedDocumentIDs ?? []
             const total_document_count = searchData?.totalDocumentCount ? searchData.totalDocumentCount : 0
-
-            let source_values: {[key: string]: boolean} = {}
-            if (searchData?.selectedSources && searchData.selectedSources.length > 0) {
-                for (const id of searchData.selectedSources) {
-                    source_values[id] = true
-                }
-            }
 
             let metadata_list: MetadataItem[] = []
             if (searchData?.categoryList) {
@@ -532,7 +556,6 @@ const extraReducers = (builder: any) => {
                 busy_with_ai: false,
                 llm_state: data,
                 document_type_count: document_type_count,
-                source_values: source_values,
                 source_id_count: source_id_count,
                 shard_list: shard_list,
                 boost_document_id_list: boost_document_id_list,
@@ -568,10 +591,31 @@ const extraReducers = (builder: any) => {
 
         // llm_search
         .addCase(do_llm_search_step3.fulfilled, (state: SearchState, action: any) => {
-            const data = action.payload;
+            const data: LLMState = copy(action.payload)
+            data.focus_id = state.llm_state.focus_id
+            const { t } = useTranslation();
 
             // find the last result that has search results in it to display
-            console.log("data.conversationList", data.conversationList)
+            let last_result: ConversationItem | null = null
+            let search_result_set: {[key: number]: SearchResult} = {}
+            if (data.conversationList.length > 0) {
+                last_result = data.conversationList[data.conversationList.length - 1]
+                data.conversationList.forEach((conversation: ConversationItem) => {
+                    conversation?.searchResult?.resultList?.forEach((result: SearchResult) => {
+                        search_result_set[result.urlId] = result
+                    })
+                })
+            }
+            // set the focus id for the best search result match?
+            let query_ai_focus_document: undefined | SearchResult = undefined
+            if (last_result && last_result.aiUrlIdUsed > 0) {
+                data.focus_id = last_result.aiUrlIdUsed
+                query_ai_focus_document = search_result_set[last_result.aiUrlIdUsed]
+            }
+
+            // set query_ai_focus_document | undefined | SearchResult
+
+            // find the last result that has search results in it to display
             let new_conversation_list = []
             let last_keywords = ""
             for (let current_conversation of data.conversationList) {
@@ -586,16 +630,16 @@ const extraReducers = (builder: any) => {
                     has_result = true
                 }
                 if (current_conversation.role === "assistant" && has_result && current_conversation.content === state.user_query) {
-                    current_conversation.content = i18n.t("searched for") + " \"" + last_keywords + "\""
+                    current_conversation.content = t("searched for") + " \"" + last_keywords + "\""
                 }
                 new_conversation_list.push(current_conversation)
             }
-            console.log("new_conversation_list", new_conversation_list)
             data.conversationList = new_conversation_list
 
             return {
                 ...state,
                 busy: false,
+                query_ai_focus_document: query_ai_focus_document,
                 busy_with_ai: false,
                 llm_state: data,
                 user_query: ""
@@ -612,6 +656,132 @@ const extraReducers = (builder: any) => {
                 search_error_text: error_str
             }
         })
+
+        ////////////////////////////////////////////////////////////////////////////////////
+
+        .addCase(load_llm_history.pending, (state: SearchState) => {
+            return {
+                ...state,
+                busy: true,
+            }
+        })
+
+        // llm_search
+        .addCase(load_llm_history.fulfilled, (state: SearchState, action: PayloadAction<LlmLoadhistoryResult>) => {
+            const state_list = copy(action.payload.llmStateList)
+            for (let llm_state of state_list) {
+                let focusSearchResults: any = undefined
+                llm_state.conversationList.forEach((item: ConversationItem) => {
+                    // pick the last item of the last search
+                    if (item.searchResult !== undefined) {
+                        if (item.searchResult.resultList.length > 0) {
+                            focusSearchResults = item.searchResult.resultList[0]
+                        }
+                    }
+                })
+                if (focusSearchResults && focusSearchResults.urlId) {
+                    llm_state.focus_id = focusSearchResults.urlId
+                }
+            }
+            return {
+                ...state,
+                busy: false,
+                llm_state_history: state_list,
+            }
+        })
+
+        .addCase(load_llm_history.rejected, (state: SearchState, action: any) => {
+            const error_str = get_error(action)
+            console.error("rejected: load_llm_history:" + error_str);
+            return {
+                ...state,
+                busy: false,
+                search_error_text: error_str
+            }
+        })
+
+        ////////////////////////////////////////////////////////////////////////////////////
+
+        .addCase(save_llm_history.pending, (state: SearchState) => {
+            return {
+                ...state,
+                busy: true,
+            }
+        })
+
+        // llm_search
+        .addCase(save_llm_history.fulfilled, (state: SearchState) => {
+            return {
+                ...state,
+                busy: false,
+            }
+        })
+
+        .addCase(save_llm_history.rejected, (state: SearchState, action: any) => {
+            const error_str = get_error(action)
+            console.error("rejected: save_llm_history:" + error_str);
+            return {
+                ...state,
+                busy: false,
+                search_error_text: error_str
+            }
+        })
+
+        ////////////////////////////////////////////////////////////////////////////////////
+
+        .addCase(clear_llm_history.pending, (state: SearchState) => {
+            return {
+                ...state,
+                busy: true,
+            }
+        })
+
+        // llm_search
+        .addCase(clear_llm_history.fulfilled, (state: SearchState) => {
+            return {
+                ...state,
+                busy: false,
+                llm_state_history: []
+            }
+        })
+
+        .addCase(clear_llm_history.rejected, (state: SearchState, action: any) => {
+            const error_str = get_error(action)
+            console.error("rejected: clear_llm_history:" + error_str);
+            return {
+                ...state,
+                busy: false,
+                search_error_text: error_str
+            }
+        })
+
+        ////////////////////////////////////////////////////////////////////////////////////
+
+        .addCase(user_result_feedback.pending, (state: SearchState) => {
+            return {
+                ...state,
+                busy: true,
+            }
+        })
+
+        // llm_search
+        .addCase(user_result_feedback.fulfilled, (state: SearchState) => {
+            return {
+                ...state,
+                busy: false,
+            }
+        })
+
+        .addCase(user_result_feedback.rejected, (state: SearchState, action: any) => {
+            const error_str = get_error(action)
+            console.error("rejected: user_result_feedback:" + error_str);
+            return {
+                ...state,
+                busy: false,
+                search_error_text: error_str
+            }
+        })
+
 };
 
 const searchSlice = createSlice({
@@ -631,16 +801,10 @@ const searchSlice = createSlice({
         },
 
         update_search_text: (state, action: PayloadAction<string>) => {
-            return {...state, search_text: action.payload}
-        },
-
-        toggle_message_expand: (state, action: PayloadAction<MessageExpandPayload>) => {
-            const index = action.payload.index
-            const new_state = JSON.parse(JSON.stringify(state.llm_state))
-            if (index >= 0 && index < new_state.conversationList.length) {
-                new_state.conversationList[index].expand = new_state.conversationList[index].expand !== true
-            }
-            return {...state, llm_state: new_state}
+            const title_value = update_md_text("title", state.title, action.payload)
+            const path_value = update_md_text("inurl", state.path, action.payload)
+            const author_value = update_md_text("author", state.author, action.payload)
+            return {...state, search_text: action.payload, title: title_value, author: author_value, path: path_value}
         },
 
         set_focus_for_preview: (state, action: PayloadAction<any>) => {
@@ -655,15 +819,89 @@ const searchSlice = createSlice({
         },
 
         set_user_query: (state, action: PayloadAction<UserQueryPayload>) => {
-            console.log("action.payload", action.payload)
             return {...state,
                 user_query: action.payload.user_query,
             }
         },
 
-        set_focus_for_ai_queries: (state, action: PayloadAction<any>) => {
+        set_author: (state, action: PayloadAction<string>) => {
+            const search_text_update = update_search_text_text(state.search_text, "author", action.payload)
+            const author_value = update_md_text("author", action.payload, search_text_update)
+            return {...state, author: author_value, search_text: search_text_update}
+        },
+
+        set_title: (state, action: PayloadAction<string>) => {
+            const search_text_update = update_search_text_text(state.search_text, "title", action.payload)
+            const title_value = update_md_text("title", action.payload, search_text_update)
+            return {...state, title: title_value, search_text: search_text_update}
+        },
+
+        set_path: (state, action: PayloadAction<string>) => {
+            const search_text_update = update_search_text_text(state.search_text, "inurl", action.payload)
+            const path_value = update_md_text("inurl", action.payload, search_text_update)
+            return {...state, path: path_value, search_text: search_text_update}
+        },
+
+        set_focus_for_ai_queries: (state, action: PayloadAction<SearchResult | undefined>) => {
+            const llm_state: LLMState = copy(state.llm_state)
+            llm_state.focus_id = action.payload ? action.payload.urlId : 0
             return {...state,
-                query_ai_focus_document: action.payload,
+                query_ai_focus_document: action.payload, llm_state: llm_state
+            }
+        },
+
+        move_llm_state_to_history: (state) => {
+            if (state.llm_state.conversationList.length > 0) {
+                const existing_state = copy(state.llm_state)
+                const new_history: LLMState[] = copy(state.llm_state_history)
+                const exists = new_history
+                    .find((llm_state) =>
+                        llm_state.conversationList.length > 0 &&
+                        llm_state.conversationList.length === existing_state.conversationList.length &&
+                        llm_state.focus_id === existing_state.focus_id &&
+                        llm_state.conversationList[0].content === existing_state.conversationList[0].content)
+                if (exists === undefined) {
+                    const final_history: LLMState[] = [existing_state]
+                    for (const history of new_history) {
+                        final_history.push(history)
+                    }
+                    return {...state, llm_state_history: final_history, llm_state: empty_llm_state()}
+                }
+            }
+            return {...state, llm_state: empty_llm_state()}
+        },
+
+        clear_llm_state: (state) => {
+            return {...state, llm_state: empty_llm_state()}
+        },
+
+        move_llm_history_to_state: (state, action: PayloadAction<LLMState>) => {
+            let llm_state = copy(action.payload)
+            llm_state.focus_id = 0
+            return {
+                ...state,
+                query_ai_focus_document: undefined,
+                llm_state: llm_state
+            }
+        },
+
+        update_llm_state: (state, action: PayloadAction<LLMState>) => {
+            let query_ai_focus_document = state.query_ai_focus_document
+            if (action.payload.focus_id === 0) {
+                query_ai_focus_document = undefined
+            } else {
+                let search_result_set: {[key: number]: SearchResult} = {}
+                state.llm_state.conversationList.forEach((conversation: ConversationItem) => {
+                    conversation?.searchResult?.resultList?.forEach((result: SearchResult) => {
+                        search_result_set[result.urlId] = result
+                    })
+                })
+                query_ai_focus_document = search_result_set[action.payload.focus_id]
+            }
+            return {
+                ...state,
+                query_ai_focus_document: query_ai_focus_document,
+                llm_state: action.payload
             }
         },
 
@@ -676,17 +914,12 @@ const searchSlice = createSlice({
             return {...state, use_ai: !state.use_ai}
         },
 
-        set_compact_view: (state, action: PayloadAction<boolean>) => {
-            update_cookie_value(ux_cookie, 'compact_view', action.payload)
-            return {...state, compact_view: action.payload}
-        },
-
         set_icon_mode: (state, action: PayloadAction<boolean>) => {
             update_cookie_value(ux_cookie, 'source_icon', action.payload)
             return {...state, show_source_icon: action.payload}
         },
 
-        set_llm_search: (state, action: PayloadAction<boolean>) => {
+        llm_view: (state, action: PayloadAction<boolean>) => {
             window.history.replaceState({}, "", window.location.pathname);
             update_cookie_value(ux_cookie, 'llm_search', action.payload)
             return {...state,
@@ -695,13 +928,22 @@ const searchSlice = createSlice({
                 query_ai_focus_url_id: 0,
                 query_ai_focus_title: '',
                 query_ai_dialog_list: [],
-                query_ai_focus_document: null,
-                llm_state: [],
+                query_ai_focus_document: undefined,
+                llm_state: empty_llm_state(),
                 document_type_count: {},
                 source_id_count: {},
                 metadata_values: {},
                 source_values: {},
                 source_filter: '',
+                ai_response: '',
+                ai_insight: '',
+                qna_url_list: [],
+                search_text: '',
+                prev_search_text: '',
+                prev_filter: '',
+                effective_search_string: '',
+                shard_list: [],
+                result_list: []
             }
         },
 
@@ -713,8 +955,12 @@ const searchSlice = createSlice({
             return {...state, group_similar: action.payload}
         },
 
-        set_newest_first: (state, action: PayloadAction<boolean>) => {
-            return {...state, newest_first: action.payload}
+        set_sort_order: (state, action: PayloadAction<number>) => {
+            return {...state, sort_order: action.payload}
+        },
+
+        set_show_side_bar: (state, action: PayloadAction<boolean>) => {
+            return {...state, show_side_bar: action.payload}
         },
 
         set_source_filter: (state, action: PayloadAction<string>) => {
@@ -764,9 +1010,7 @@ const searchSlice = createSlice({
                 query_ai_focus_url: action.payload.url,
                 query_ai_focus_url_id: action.payload.url_id,
                 query_ai_focus_title: action.payload.title,
-                query_ai_dialog_list: [
-                    {"role": "assistant", "content": i18n.t("Please ask me any question about") + " %doc%"}
-                ]
+                query_ai_dialog_list: []
             }
         },
 
@@ -847,7 +1091,7 @@ export const do_search = createAsyncThunk(
                prev_filter,
                shard_list,
                group_similar,
-               newest_first,
+               sort_order,
                metadata_list,
                metadata_values,
                entity_values,
@@ -859,20 +1103,22 @@ export const do_search = createAsyncThunk(
                pages_loaded,
                use_ai,
                next_page,
-               reset_pagination
+               reset_pagination,
+               author,
+               path,
+               title
            }: DoSearchPayload, {rejectWithValue}) => {
 
         const api_base = window.ENV.api_base;
         const session_id = (session && session.id) ? session.id : undefined;
-        const url = session_id ? (api_base + '/dms/query') : (api_base + '/semantic/query');
+        const url = api_base + '/semantic/query';
 
-        const filter_text = get_filters(metadata_list, metadata_values, entity_values, source_list, source_values,
-                                        hash_tag_list, []);
+        const filter_text = get_filters(metadata_list, metadata_values, entity_values, source_list, source_values, hash_tag_list, []);
 
         const in_parameters = {session, client_id, user, search_text, shard_list,
-            group_similar, newest_first, metadata_list, metadata_values, entity_values, source_list,
+            group_similar, sort_order, metadata_list, metadata_values, entity_values, source_list,
             source_values, hash_tag_list, syn_set_values, result_list: result_list, prev_search_text: prev_search_text,
-            prev_filter: prev_filter};
+            prev_filter: prev_filter, author: author, title: title, path: path};
 
         // reset pagination?  if this is a different search or the previous search had no results
         let new_search_page = search_page;
@@ -909,20 +1155,21 @@ export const do_search = createAsyncThunk(
             contextLabel: '',
             contextMatchBoost: 0.01,
             groupSimilarDocuments: group_similar,
-            sortByAge: newest_first,
+            sortBy: sort_order,
             sourceId: '',
             useQuestionAnsweringAi: use_ai,
             wordSynSet: syn_set_values,
             documentTypeFilter: get_document_types(metadata_values),
             startDate: 0, // was the slider
             endDate: 0,
+            timezoneOffset: new Date().getTimezoneOffset()
         };
 
         if (search_text.trim().length > 0) {
             return axios.post(url, data, get_headers(session_id))
                 .then((response) => {
                     if (response && response.data && response.data.messageType === 'message') {
-                        response.data.search_text = search_text;
+                        response.data.new_search_text = search_text;
                         response.data.original_text = search_text;
                         response.data.page = new_search_page;
                         response.data.pages_loaded = new_pages_loaded
@@ -964,10 +1211,10 @@ export const create_short_summary = createAsyncThunk(
     }
 );
 
-// teach SimSage re-enforce a Document's importance for a given search / document combination
-export const teach = createAsyncThunk(
-    'teach', 
-    async({session, search_text, result, increment, on_done}: TeachPayload, {rejectWithValue}) => {
+// boost_document SimSage re-enforce a Document's importance for a given search / document combination
+export const boost_document = createAsyncThunk(
+    'boost_document',
+    async({session, search_text, result, increment, on_done}: BoostDocumentPayload, {rejectWithValue}) => {
 
         const api_base = window.ENV.api_base;
         const session_id = (session && session.id) ? session.id : undefined;
@@ -996,24 +1243,21 @@ export const teach = createAsyncThunk(
  */
 export const ask_document_question = createAsyncThunk(
     'ask_document_question',
-    async ({session, prev_conversation_list, question, document_url, document_url_id, on_success}: AskDocumentQuestionPayload,
+    async ({session, prev_conversation_list, question, document_url, on_success}: AskDocumentQuestionPayload,
            {rejectWithValue}) => {
 
         const api_base = window.ENV.api_base;
         const session_id = (session && session.id) ? session.id : get_client_id();
         const url = api_base + '/semantic/document-qa';
-        let conversationList = [];
-        if (prev_conversation_list.length > 1) {
-            conversationList = prev_conversation_list.slice(1, prev_conversation_list.length);
-        }
+        let conversationList = copy(prev_conversation_list)
         conversationList.push({"role": "user", "content": question})
         const data = {
             "organisationId": window.ENV.organisation_id,
             "kbId": getKbId(),
             "url": document_url,
-            "urlId": document_url_id,
             "conversationList": conversationList,
-            "answer": "",
+            metadataUrl: "",
+            language: ""
         }
 
         return axios.post(url, data, get_headers(session_id)).then((response) => {
@@ -1021,6 +1265,7 @@ export const ask_document_question = createAsyncThunk(
                 on_success();
             }
             return response.data;
+
         }).catch((err) => {
             return rejectWithValue(err)
         })
@@ -1037,8 +1282,6 @@ export const do_llm_search = createAsyncThunk(
                session,
                prev_conversation_list,
                question,
-               metadata_list,
-               metadata_values,
                source_list,
                source_values,
                focus_url,
@@ -1057,7 +1300,7 @@ export const do_llm_search = createAsyncThunk(
             "kbId": getKbId(),
             "conversationList": conversationList,
             "sourceFilter": filter_text,
-            "documentTypeFilter": get_document_types(metadata_values),
+            "documentTypeFilter": [],
             "url": focus_url ?? "",
             "metadataUrl": metadata_url ?? "",
             "language": window.ENV.language
@@ -1131,7 +1374,6 @@ export const do_llm_search_step3 = createAsyncThunk(
         // cut off the last item in the conversation list before sending it?
         if (conversationList.length > 0) {
             const last = conversationList[conversationList.length - 1]
-            console.log("last", last)
             // if (last.content.indexOf("I could not find any documents for ") < 0) {
             if (last.searchResult.totalDocumentCount > 0) {
                 conversationList = conversationList.slice(0, conversationList.length - 1)
@@ -1154,15 +1396,123 @@ export const do_llm_search_step3 = createAsyncThunk(
     }
 );
 
+/**
+ * load existing llm history
+ */
+export const load_llm_history = createAsyncThunk(
+    'load_llm_history',
+    async ({
+               session,
+           }: LlmLoadhistory,
+           {rejectWithValue}) => {
+
+        const api_base = window.ENV.api_base;
+        const session_id = (session && session.id) ? session.id : get_client_id();
+        const url = api_base + '/semantic/load-llm-history/' + encodeURIComponent(window.ENV.organisation_id) + '/' + encodeURIComponent(getKbId());
+        return axios.get(url, get_headers(session_id)).then((response) => {
+            return response.data;
+        }).catch((err) => {
+            return rejectWithValue(err)
+        })
+    }
+);
+
+/**
+ * save existing llm history
+ */
+export const save_llm_history = createAsyncThunk(
+    'save_llm_history',
+    async ({
+               session,
+               llmStateList
+           }: LlmSavehistory,
+           {rejectWithValue}) => {
+
+        const api_base = window.ENV.api_base;
+        const session_id = (session && session.id) ? session.id : get_client_id();
+        const url = api_base + '/semantic/save-llm-history'
+        const data = {
+            organisationId: window.ENV.organisation_id,
+            kbId: getKbId(),
+            llmStateList: llmStateList
+        }
+        return axios.post(url, data, get_headers(session_id)).then((response) => {
+            return response.data;
+        }).catch((err) => {
+            return rejectWithValue(err)
+        })
+    }
+);
+
+/**
+ * clear llm history
+ */
+export const clear_llm_history = createAsyncThunk(
+    'clear_llm_history',
+    async ({
+               session,
+           }: LlmLoadhistory,
+           {rejectWithValue}) => {
+
+        const api_base = window.ENV.api_base;
+        const session_id = (session && session.id) ? session.id : get_client_id();
+        const url = api_base + '/semantic/clear-llm-history/' + encodeURIComponent(window.ENV.organisation_id) + '/' + encodeURIComponent(getKbId());
+        return axios.delete(url, get_headers(session_id)).then((response) => {
+            return response.data;
+        }).catch((err) => {
+            return rejectWithValue(err)
+        })
+    }
+);
+
+/**
+ * user feeds back of the query results were good or bad
+ */
+export const user_result_feedback = createAsyncThunk(
+    'user_result_feedback',
+    async ({session, data, on_success}: UserQueryFeedback,
+           {rejectWithValue}) => {
+
+        const api_base = window.ENV.api_base;
+        const session_id = (session && session.id) ? session.id : get_client_id();
+        const url = api_base + '/semantic/user-feedback'
+        const json_data = {
+            "organisationId": window.ENV.organisation_id,
+            "kbId": encodeURIComponent(getKbId()),
+            "clientId": get_client_id(),
+            "feedbackJson": JSON.stringify(data),
+        }
+        return axios.post(url, json_data, get_headers(session_id)).then((response) => {
+            if (on_success) on_success()
+            return response.data;
+        }).catch((err) => {
+            return rejectWithValue(err)
+        })
+    }
+);
+
 export const {
     go_home, update_search_text, set_focus_for_preview, set_source_value, set_metadata_value,
-    dismiss_search_error, set_group_similar, set_newest_first, set_source_filter, select_syn_set,
+    dismiss_search_error, set_group_similar, set_sort_order, set_source_filter, select_syn_set,
     set_source_values, close_preview,
-    toggle_ai, select_document_for_ai_query, close_query_ai,
-    set_compact_view, set_icon_mode, set_llm_search,
+    toggle_ai,
+    select_document_for_ai_query,
+    close_query_ai,
+    set_icon_mode,
+    llm_view,
     set_metadata_error,
-    set_search_page, set_page_size, toggle_theme,
-    set_focus_for_ai_queries, set_user_query, toggle_message_expand
+    set_search_page,
+    set_page_size,
+    toggle_theme,
+    set_focus_for_ai_queries,
+    set_user_query,
+    move_llm_state_to_history,
+    move_llm_history_to_state,
+    update_llm_state,
+    clear_llm_state,
+    set_author,
+    set_path,
+    set_title
 } = searchSlice.actions;
 
 export default searchSlice.reducer;

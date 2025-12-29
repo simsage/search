@@ -28,7 +28,19 @@ export function KnowledgebaseDropdown(): JSX.Element {
     }
 
     const defaultKb = get_default_kb();
-    const optKbs = all_kbs.filter(kb => kb.id !== window.ENV.kb_id);
+    let kb_list: KnowledgeBase[] = JSON.parse(JSON.stringify(all_kbs));
+
+    function compare_fn(a: KnowledgeBase, b: KnowledgeBase): number {
+        if (a.name < b.name) {
+            return 1
+        } else if (a.name > b.name) {
+            return -1
+        }
+        // a must be equal to b
+        return 0
+    }
+
+    kb_list.sort(compare_fn)
 
     function change_kb(kbId: string): void {
         const kb_value = kbId === defaultKb.id ? "" : kbId;
@@ -40,30 +52,25 @@ export function KnowledgebaseDropdown(): JSX.Element {
         window.location.reload();
     }
 
+    const limit = (text: string): string => {
+        if (text.length > 20) {
+            return text.substring(0, 20) + "..."
+        }
+        return text
+    }
+
     const acc_item = (theme === "light" ? "acc-item" : "acc-item-dark");
 
     return (
-        <div className={(show_kb_menu ? "d-flex" : "d-none") + (theme === "light" ? " account-dropdown" : " account-dropdown-dark")}>
-            <ul className="acc-nav ps-0 mb-0">
-                <li
-                    onClick={() => change_kb(defaultKb.id)}
-                    className={acc_item + " px-4 py-3 default_kb"}>
-                    <label className={defaultKb.id === currentKb ? "fw-bold" : ""}>
-                        {defaultKb.name + (defaultKb.id === currentKb ? " ✓" : "")}
-                    </label>
-                </li>
-                <div className={"kb_scroll_container"}>
-                    {optKbs.map(kbData =>
-                        <li
-                            key={kbData.id}
-                            onClick={() => change_kb(kbData.id)}
-                            className={acc_item + " px-4 py-3" + (kbData.id === defaultKb.id ? " default_kb" : "")}>
-                            <label className={kbData.id === currentKb ? "fw-bold" : ""}>
-                                {kbData.name + (kbData.id === currentKb ? " ✓" : "")}
-                            </label>
-                        </li>
-                    )}
-                </div>
+        <div className={(show_kb_menu ? "d-flex me-4 mt-3" : "d-none") + (theme === "light" ? " account-dropdown" : " account-dropdown-dark")}>
+            <ul className="acc-nav settings-menu scroll-kb" data-theme={theme}>
+                {kb_list.map(kbData =>
+                    <li onClick={() => change_kb(kbData.id)} className={acc_item + " menu-item"} key={kbData.id} title={kbData.name}>
+                        <label className={"menu-item-label"}>
+                            {(kbData.id === currentKb ? "✓ " : "") + limit(kbData.name)}
+                        </label>
+                    </li>
+                )}
             </ul>
         </div>
     );
