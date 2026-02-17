@@ -32,8 +32,8 @@ const useAppDispatch = () => useDispatch<AppDispatch>();
 function AISearch(): JSX.Element {
     const dispatch = useAppDispatch();
     const {show_menu, show_kb_menu} = useSelector((state: RootState) => state.authReducer);
-    const {busy, has_info} = useSelector((state: RootState) => state.searchReducer);
-    const {shard_list, search_text, group_similar, sort_order, metadata_list, metadata_values} = useSelector((state: RootState) => state.searchReducer);
+    const {busy, has_info, language_code} = useSelector((state: RootState) => state.searchReducer);
+    const {shard_list, search_text, sort_order, metadata_list, metadata_values} = useSelector((state: RootState) => state.searchReducer);
     const {entity_values, hash_tag_list, syn_set_values} = useSelector((state: RootState) => state.searchReducer);
     const {source_list, source_values, result_list, prev_search_text, prev_filter,
            pages_loaded, use_ai, ai_enabled, search_page, page_size, theme} = useSelector((state: RootState) => state.searchReducer);
@@ -85,7 +85,6 @@ function AISearch(): JSX.Element {
             user: user,
             search_text: search_text,
             shard_list: shard_list,
-            group_similar: group_similar,
             sort_order: sort_order,
             search_page: search_page,
             page_size: page_size,
@@ -105,7 +104,8 @@ function AISearch(): JSX.Element {
             use_ai: (use_ai && ai_enabled),
             author: "",
             path: "",
-            title: ""
+            title: "",
+            language_code: language_code
         };
         if (session && session.id && !busy) {
             if (values) {

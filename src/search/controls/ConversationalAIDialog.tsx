@@ -408,7 +408,7 @@ export function ConversationalAIDialog() {
 
     // get a list of filtered sources as a group (if groups are set up) or just sources otherwise
     const sources = (): SourceGroup[] => {
-        return get_source_list(source_list, source_values, sourceFilter);
+        return get_source_list(source_list, source_values, sourceFilter, undefined);
     }
 
     // set/unset selected source

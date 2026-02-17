@@ -104,8 +104,6 @@ export function MetadataSelector(props: MetadataSelectorProps): JSX.Element {
         //Pull in all sources
         let items = props.list ? copy(props.list) : [];
         const trim_filter = filter.trim().toLowerCase();
-        // sort by name
-        items = items.sort((a: MetadataItemCount, b: MetadataItemCount) => (a.name < b.name) ? -1 : 1);
         // sort these items the complicated way
         let sorted_list: MetadataItemCount[] = [];
         // and then the items not yet selected
@@ -118,6 +116,15 @@ export function MetadataSelector(props: MetadataSelectorProps): JSX.Element {
                 sorted_list.push(newItem);
             }
         }
+
+        // sort by total or name
+        sorted_list = sorted_list.sort((a: MetadataItemCount, b: MetadataItemCount) => {
+            if (a.count !== undefined && b.count !== undefined) {
+                if (a.count < b.count) return 1
+                if (a.count > b.count) return -1
+            }
+            return (a.name < b.name) ? -1 : 1
+        })
 
         // apply the text filter if applicable - and filter items that have no count if there is a count
         sorted_list = sorted_list.filter((item) => {

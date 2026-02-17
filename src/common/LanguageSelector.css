@@ -1,0 +1,11 @@
+/* the language selector */
+.input-group .btn.dropdown-toggle {
+    padding-left: 8px;
+    padding-right: 8px;
+    height: 40px;
+    min-width: 70px;
+}
+
+.input-group {
+    overflow: visible;
+}

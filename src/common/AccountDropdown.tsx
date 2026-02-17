@@ -83,9 +83,9 @@ export function AccountDropdown(props?: AccountDropdownProps): JSX.Element {
                     <label className="menu-item-label">{t("Home")}</label>
                 </li>
                 {window.ENV.show_download_manual &&
-                    <li className={acc_item + " menu-item"} title={t("Advanced query syntax")}
+                    <li className={acc_item + " menu-item"} title={t("Manual")}
                         onClick={() => view_advanced_query_syntax()}>
-                        <label className="menu-item-label">{t("Advanced query syntax")}</label>
+                        <label className="menu-item-label">{t("Manual")}</label>
                     </li>
                 }
                 {ai_enabled && window.ENV.show_llm_menu &&

@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import {get_archive_parent} from "./Api";
+import icon_open_link from "../assets/images/ui/icon_open_link.svg"
 
 interface CopyToClipboardProps {
     web_url: string;        // the url to display
@@ -43,8 +45,26 @@ const CopyToClipboard = ({ web_url, title, url, urlId, extra_style, text_limit}:
         return text
     }
 
+    const open_link = (url: string): void => {
+        window.open(url, "_blank")
+    }
+
+    const display_url = get_archive_parent(web_url ?? url)
+    const can_open = display_url.indexOf("https://") === 0 || display_url.indexOf("http://") === 0
+
     return (
         <>
+            {isCopied && can_open &&
+                <span>
+                    <img
+                        src={icon_open_link}
+                        alt="open link"
+                        title={urlId ? `Click to open: ${display_url} (id: ${urlId})` : `Click to open: ${display_url}`}
+                        style={{width: "20px", marginRight: "4px"}}
+                        onClick={() => open_link(display_url)}
+                    />
+                </span>
+            }
             {isCopied ? (
                 // If copied, show the feedback message
                 <span className={extra_style}>Copied! ✅</span>
@@ -53,11 +73,21 @@ const CopyToClipboard = ({ web_url, title, url, urlId, extra_style, text_limit}:
                 <>
           <span
               className={extra_style}
-              onClick={() => handleCopy(url ?? web_url)}
               style={{ cursor: 'pointer', userSelect: 'none' }}
-              title={`Click to copy: ${url ?? web_url} (id: ${urlId})`}
+              title={urlId ? `Click to copy: ${display_url} (id: ${urlId})` : `Click to copy: ${display_url}`}
           >
-            { limit(title ?? web_url) }
+            {can_open &&
+                <span>
+                    <img
+                        src={icon_open_link}
+                        alt="open link"
+                        title={urlId ? `Click to open: ${display_url} (id: ${urlId})` : `Click to open: ${display_url}`}
+                        style={{width: "20px", marginRight: "4px"}}
+                        onClick={() => open_link(display_url)}
+                    />
+                </span>
+            }
+            <span onClick={() => handleCopy(display_url)}>{ limit(title ?? web_url) }</span>
           </span>
 
                     {/* Conditionally render the icon only if url2 exists */}
@@ -65,10 +95,10 @@ const CopyToClipboard = ({ web_url, title, url, urlId, extra_style, text_limit}:
                         <span
                             onClick={(event) => {
                                 event.stopPropagation(); // Prevents the parent span's onClick from firing
-                                handleCopy(url ?? web_url);
+                                handleCopy(display_url);
                             }}
                             style={{ cursor: 'pointer', marginLeft: '8px' }}
-                            title={`Click to copy: ${url ?? web_url}`}
+                            title={`Click to copy: ${display_url}`}
                         >
               📋
             </span>

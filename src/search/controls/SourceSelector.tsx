@@ -49,14 +49,15 @@ export function SourceSelector(props: SourceSelectorProps): JSX.Element {
     }
 
     function get_svg_icon_path(name: string): string {
-        const select_items = get_source_list(source_list, source_values, source_filter).filter(source => source.name === name);
+        const select_items = get_source_list(source_list, source_values, source_filter, source_id_count)
+            .filter(source => source.name === name);
         if (select_items.length > 0) {
             return get_icon_src(select_items[0]);
         }
         return 'default';
     }
 
-    let display_source_list = get_source_list(source_list, source_values, source_filter);
+    let display_source_list = get_source_list(source_list, source_values, source_filter, source_id_count);
     const max_size = 0;
     const has_reached_limit = max_size > 0 && display_source_list.length > max_size && !expand;
     if (has_reached_limit) {
@@ -141,7 +142,7 @@ export function SourceSelector(props: SourceSelectorProps): JSX.Element {
                                        readOnly={busy}
                                        onChange={(event) => on_set_source_value(event, item.sourceId as string, item.name, event.target.checked)}/>
                                 <div className="d-flex justify-content-between flex-fill">
-                                        <span title={"filter search results for only " + item.name + " sources."}>
+                                        <span title={"filter search results for only " + item.name + " sources. (id: " + item.sourceId + ")"}>
                                             <span>
                                                 <img className={"sourceTypeIcon"} src={get_svg_icon_path(item.name)} alt="search"/>
                                             </span>

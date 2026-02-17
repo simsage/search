@@ -1,7 +1,6 @@
 import React from "react";
 import '../SearchResults.css';
 
-import { SynSetSelector } from "./SynSetSelector";
 import { SourceSelector } from "./SourceSelector";
 import { MetadataSelector } from "./MetadataSelector";
 import { useDispatch, useSelector } from "react-redux";
@@ -10,13 +9,14 @@ import {
     set_path,
     set_title,
     set_source_value,
-    set_metadata_value, update_search_text,
+    set_metadata_value, update_search_text, set_date_after, set_date_before,
 } from "../../reducers/searchSlice";
 import useWindowDimensions from "./useWindowDimensions";
 import { useTranslation } from "react-i18next";
 import { RootState, AppDispatch } from '../../store';
 import {EntitySelector} from "./EntitySelector";
 import {min_width} from "../../common/Api";
+import CustomDatePicker from "../../common/CustomDatePicker";
 
 /**
  * Props interface for the SearchResults component
@@ -32,10 +32,9 @@ export function SideBar(props: SideBarProps): JSX.Element {
 
     // get state
     const {
-        syn_set_list, syn_set_values,
         source_list, search_text,
         busy, metadata_list, document_type_count, result_list,
-        theme, author, title, path
+        theme, author, title, path, after, before
     } = useSelector((state: RootState) => state.searchReducer);
 
     const d_set_author = (text: string): void => {
@@ -46,6 +45,12 @@ export function SideBar(props: SideBarProps): JSX.Element {
     }
     const d_set_title = (text: string): void => {
         dispatch(set_title(text))
+    }
+    const d_set_after = (after: string): void => {
+        dispatch(set_date_after(after))
+    }
+    const d_set_before = (before: string): void => {
+        dispatch(set_date_before(before))
     }
 
     const search_keydown = (event: React.KeyboardEvent): void => {
@@ -99,6 +104,8 @@ export function SideBar(props: SideBarProps): JSX.Element {
         d_set_author("")
         d_set_path("")
         d_set_title("")
+        d_set_after("")
+        d_set_before("")
     }
 
     function search(values?: any): void {
@@ -176,6 +183,13 @@ export function SideBar(props: SideBarProps): JSX.Element {
                     }
                 </div>
 
+                {/* Date selectors */}
+                <div className={document_filter + " row pb-4"}>
+                    <span className="text-bold mb-2" style={{marginLeft: "-12px"}}>{t("Dates")}</span>
+                    <CustomDatePicker value={after} onDateChange={(date) => d_set_after(date)} onClear={() => d_set_after("")} label="after" />
+                    <CustomDatePicker value={before} onDateChange={(date) => d_set_before(date)} onClear={() => d_set_before("")} label="before" />
+                </div>
+
                 {/* DOCUMENT-TYPE/FILE-TYPE SELECTOR */}
                 <div className={document_filter + " row"}>
                     {metadata_list && metadata_list.length >= 0 && metadata_list.map((item, index) => {
@@ -208,23 +222,23 @@ export function SideBar(props: SideBarProps): JSX.Element {
                 </div>
 
                 {/* SYNSET SELECTOR */}
-                <div className={document_filter + " row pe-2"}>
-                    {
-                        syn_set_list.map((syn_set, i) => {
-                            return (
-                                <div key={i}>
-                                    <SynSetSelector
-                                        key={"syn" + i}
-                                        name={syn_set.word}
-                                        syn_set_values={syn_set_values}
-                                        on_search={(value) => search({...value, next_page: false})}
-                                        busy={busy}
-                                        description_list={syn_set.wordCloudCsvList}/>
-                                </div>
-                            );
-                        })
-                    }
-                </div>
+                {/*<div className={document_filter + " row pe-2"}>*/}
+                {/*    {*/}
+                {/*        syn_set_list.map((syn_set, i) => {*/}
+                {/*            return (*/}
+                {/*                <div key={i}>*/}
+                {/*                    <SynSetSelector*/}
+                {/*                        key={"syn" + i}*/}
+                {/*                        name={syn_set.word}*/}
+                {/*                        syn_set_values={syn_set_values}*/}
+                {/*                        on_search={(value) => search({...value, next_page: false})}*/}
+                {/*                        busy={busy}*/}
+                {/*                        description_list={syn_set.wordCloudCsvList}/>*/}
+                {/*                </div>*/}
+                {/*            );*/}
+                {/*        })*/}
+                {/*    }*/}
+                {/*</div>*/}
 
             </div>
         }

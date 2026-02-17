@@ -9,7 +9,12 @@ import {
     copy, get_error, getKbId,
     hashtag_metadata,
     get_cookie_value,
-    update_cookie_value, get_document_types, get_source_filter, empty_llm_state, update_search_text_text, update_md_text
+    update_cookie_value,
+    get_document_types,
+    get_source_filter,
+    empty_llm_state,
+    update_search_text_text,
+    update_md_text
 } from "../common/Api";
 import {
     MetadataItem,
@@ -37,7 +42,13 @@ import {
     ConversationItem,
     ActionWithError,
     LlmLoadhistory,
-    LlmLoadhistoryResult, LlmSavehistory, UserQueryFeedback
+    LlmLoadhistoryResult,
+    LlmSavehistory,
+    UserQueryFeedback,
+    GetSearchSuggestionsPayload,
+    SearchSuggestion,
+    GetSearchFavouritesPayload,
+    SearchFavouritePayload
 } from '../types';
 import {useTranslation} from "react-i18next";
 
@@ -66,8 +77,6 @@ const initialState: SearchState = {
     pages_loaded: 0,            // how many pages loaded currently
 
     total_document_count: 0,
-    group_similar: false,
-    all_have_group_similar: false,
     sort_order: 0,
     show_side_bar: false,
     busy: false,
@@ -132,7 +141,14 @@ const initialState: SearchState = {
     // filters
     author: "",
     title: "",
-    path: ""
+    path: "",
+    after: "",
+    before: "",
+
+    search_suggestion_list: [],
+    search_favourite_list: [],
+
+    language_code: "en"
 };
 
 
@@ -230,15 +246,7 @@ const extraReducers = (builder: any) => {
             kb_list = kb_list.filter((kb: KnowledgeBase) => kb.id === getKbId()); // get kbId from window parameters if possible
             if (kb_list.length === 1) {
                 state.source_list = kb_list[0].sourceList ? kb_list[0].sourceList : [];
-                let all_sources_have_similarity = true;
-                for (const source of state.source_list) {
-                    if (!source.enableDocumentSimilarity) {
-                        all_sources_have_similarity = false
-                        break
-                    }
-                }
                 // AI enabled if we have an LLM connected and ready
-                state.all_have_group_similar = all_sources_have_similarity;
                 state.ai_enabled = kb_list[0].hasLLM || false;
 
                 // set up metadata categories
@@ -782,6 +790,69 @@ const extraReducers = (builder: any) => {
             }
         })
 
+        ////////////////////////////////////////////////////////////////////////////////////
+
+        .addCase(get_search_suggestions.fulfilled, (state: SearchState, action: PayloadAction<SearchSuggestion[]>) => {
+            return {
+                ...state,
+                search_suggestion_list: action.payload
+            }
+        })
+
+        .addCase(get_search_suggestions.rejected, (state: SearchState, action: any) => {
+            const error_str = get_error(action)
+            console.error("rejected: get_search_suggestions:" + error_str);
+            return {...state}
+        })
+
+        ////////////////////////////////////////////////////////////////////////////////////
+
+        .addCase(get_search_favourites.fulfilled, (state: SearchState, action: PayloadAction<SearchFavourite[]>) => {
+            const search_favourite_list = action.payload.map((item) => item.text)
+            return {
+                ...state,
+                search_favourite_list: search_favourite_list
+            }
+        })
+
+        .addCase(get_search_favourites.rejected, (state: SearchState, action: any) => {
+            const error_str = get_error(action)
+            console.error("rejected: get_search_favourites:" + error_str);
+            return {...state}
+        })
+
+        ////////////////////////////////////////////////////////////////////////////////////
+
+        .addCase(add_search_favourite.fulfilled, (state: SearchState, action: PayloadAction<SearchFavourite[]>) => {
+            const search_favourite_list = action.payload.map((item) => item.text)
+            return {
+                ...state,
+                search_favourite_list: search_favourite_list
+            }
+        })
+
+        .addCase(add_search_favourite.rejected, (state: SearchState, action: any) => {
+            const error_str = get_error(action)
+            console.error("rejected: add_search_favourite:" + error_str);
+            return {...state}
+        })
+
+        ////////////////////////////////////////////////////////////////////////////////////
+
+        .addCase(delete_search_favourite.fulfilled, (state: SearchState, action: PayloadAction<SearchFavourite[]>) => {
+            const search_favourite_list = action.payload.map((item) => item.text)
+            return {
+                ...state,
+                search_favourite_list: search_favourite_list
+            }
+        })
+
+        .addCase(delete_search_favourite.rejected, (state: SearchState, action: any) => {
+            const error_str = get_error(action)
+            console.error("rejected: delete_search_favourite:" + error_str);
+            return {...state}
+        })
+
 };
 
 const searchSlice = createSlice({
@@ -800,11 +871,18 @@ const searchSlice = createSlice({
             return {...state, theme: new_theme}
         },
 
+        set_language_code: (state, action: PayloadAction<string>) => {
+            return {...state, language_code: action.payload}
+        },
+
         update_search_text: (state, action: PayloadAction<string>) => {
             const title_value = update_md_text("title", state.title, action.payload)
             const path_value = update_md_text("inurl", state.path, action.payload)
             const author_value = update_md_text("author", state.author, action.payload)
-            return {...state, search_text: action.payload, title: title_value, author: author_value, path: path_value}
+            const before_value = update_md_text("before", state.before, action.payload)
+            const after_value = update_md_text("after", state.after, action.payload)
+            return {...state, search_text: action.payload, title: title_value, author: author_value,
+                path: path_value, before: before_value, after: after_value}
         },
 
         set_focus_for_preview: (state, action: PayloadAction<any>) => {
@@ -828,6 +906,18 @@ const searchSlice = createSlice({
             const search_text_update = update_search_text_text(state.search_text, "author", action.payload)
             const author_value = update_md_text("author", action.payload, search_text_update)
             return {...state, author: author_value, search_text: search_text_update}
+        },
+
+        set_date_after: (state, action: PayloadAction<string>) => {
+            const search_text_update = update_search_text_text(state.search_text, "after", action.payload)
+            const after_value = update_md_text("after", action.payload, search_text_update)
+            return {...state, after: after_value, search_text: search_text_update}
+        },
+
+        set_date_before: (state, action: PayloadAction<string>) => {
+            const search_text_update = update_search_text_text(state.search_text, "before", action.payload)
+            const before_value = update_md_text("before", action.payload, search_text_update)
+            return {...state, before: before_value, search_text: search_text_update}
         },
 
         set_title: (state, action: PayloadAction<string>) => {
@@ -951,10 +1041,6 @@ const searchSlice = createSlice({
             return {...state, busy: action.payload}
         },
 
-        set_group_similar: (state, action: PayloadAction<boolean>) => {
-            return {...state, group_similar: action.payload}
-        },
-
         set_sort_order: (state, action: PayloadAction<number>) => {
             return {...state, sort_order: action.payload}
         },
@@ -1030,6 +1116,11 @@ const searchSlice = createSlice({
         set_page_size: (state, action: PayloadAction<PageSizePayload>) => {
             return {...state, page_size: action.payload.page_size}
         },
+
+        clear_search_suggestions: (state) => {
+            return {...state, search_suggestion_list: []}
+        },
+
     },
     extraReducers
 });
@@ -1090,7 +1181,6 @@ export const do_search = createAsyncThunk(
                prev_search_text,
                prev_filter,
                shard_list,
-               group_similar,
                sort_order,
                metadata_list,
                metadata_values,
@@ -1106,7 +1196,8 @@ export const do_search = createAsyncThunk(
                reset_pagination,
                author,
                path,
-               title
+               title,
+               language_code
            }: DoSearchPayload, {rejectWithValue}) => {
 
         const api_base = window.ENV.api_base;
@@ -1116,7 +1207,7 @@ export const do_search = createAsyncThunk(
         const filter_text = get_filters(metadata_list, metadata_values, entity_values, source_list, source_values, hash_tag_list, []);
 
         const in_parameters = {session, client_id, user, search_text, shard_list,
-            group_similar, sort_order, metadata_list, metadata_values, entity_values, source_list,
+            sort_order, metadata_list, metadata_values, entity_values, source_list,
             source_values, hash_tag_list, syn_set_values, result_list: result_list, prev_search_text: prev_search_text,
             prev_filter: prev_filter, author: author, title: title, path: path};
 
@@ -1152,9 +1243,7 @@ export const do_search = createAsyncThunk(
             maxWordDistance: window.ENV.max_word_distance,
             spellingSuggest: window.ENV.use_spell_checker,
             useInsight: window.ENV.use_insight,
-            contextLabel: '',
-            contextMatchBoost: 0.01,
-            groupSimilarDocuments: group_similar,
+            languageCode: language_code,
             sortBy: sort_order,
             sourceId: '',
             useQuestionAnsweringAi: use_ai,
@@ -1491,9 +1580,116 @@ export const user_result_feedback = createAsyncThunk(
     }
 );
 
+/**
+ * get a list of search suggestions
+ */
+export const get_search_suggestions = createAsyncThunk(
+    'get_search_suggestions',
+    async ({session, text}: GetSearchSuggestionsPayload,
+           {rejectWithValue}) => {
+
+        const api_base = window.ENV.api_base;
+        const session_id = (session && session.id) ? session.id : get_client_id();
+        const url = api_base + '/semantic/search-suggestions';
+        const data = {
+            "organisationId": window.ENV.organisation_id,
+            "kbId": getKbId(),
+            "queryText": text,
+            "maxSize": 20,
+        }
+        return axios.post(url, data, get_headers(session_id)).then((response) => {
+            return response.data;
+
+        }).catch((err) => {
+            return rejectWithValue(err)
+        })
+    }
+);
+
+/**
+ * get the list of search favourites for this user
+ */
+export const get_search_favourites = createAsyncThunk(
+    'get_search_favourites',
+    async ({session}: GetSearchFavouritesPayload,
+           {rejectWithValue}) => {
+
+        const api_base = window.ENV.api_base;
+        const session_id = (session && session.id) ? session.id : get_client_id();
+        const user_id = (session && session.userId) ? session.userId : "no-user-id";
+        const url = api_base + '/dms/saved-searches/' +
+            encodeURIComponent(window.ENV.organisation_id) + '/' +
+            encodeURIComponent(getKbId()) + '/' +
+            encodeURIComponent(user_id) + '/10';
+        return axios.get(url, get_headers(session_id)).then((response) => {
+            return response.data;
+
+        }).catch((err) => {
+            return rejectWithValue(err)
+        })
+    }
+);
+
+/**
+ * add a new search favourite
+ */
+export const add_search_favourite = createAsyncThunk(
+    'add_search_favourite',
+    async ({session, text}: SearchFavouritePayload,
+           {rejectWithValue}) => {
+
+        const api_base = window.ENV.api_base;
+        const session_id = (session && session.id) ? session.id : get_client_id();
+        const user_id = (session && session.userId) ? session.userId : "no-user-id";
+        const url = api_base + '/dms/save-search';
+        const data = {
+            organisationId: window.ENV.organisation_id,
+            kbId: getKbId(),
+            userId: user_id,
+            text: text,
+            top: 10
+        }
+        return axios.post(url, data, get_headers(session_id)).then((response) => {
+            return response.data;
+
+        }).catch((err) => {
+            return rejectWithValue(err)
+        })
+    }
+);
+
+/**
+ * remove an existing search favourite
+ */
+export const delete_search_favourite = createAsyncThunk(
+    'delete_search_favourite',
+    async ({session, text}: SearchFavouritePayload,
+           {rejectWithValue}) => {
+
+        const api_base = window.ENV.api_base;
+        const session_id = (session && session.id) ? session.id : get_client_id();
+        const user_id = (session && session.userId) ? session.userId : "no-user-id";
+        // /dms/saved-search/{organisationId}/{kbId}/{userId}/{text}/{top}
+        const url = api_base + '/dms/saved-search-delete';
+        const data = {
+            organisationId: window.ENV.organisation_id,
+            kbId: getKbId(),
+            userId: user_id,
+            text: text,
+            top: 10
+        }
+        return axios.post(url, data, get_headers(session_id)).then((response) => {
+            return response.data;
+
+        }).catch((err) => {
+            return rejectWithValue(err)
+        })
+    }
+);
+
 export const {
     go_home, update_search_text, set_focus_for_preview, set_source_value, set_metadata_value,
-    dismiss_search_error, set_group_similar, set_sort_order, set_source_filter, select_syn_set,
+    dismiss_search_error, set_sort_order, set_source_filter, select_syn_set,
     set_source_values, close_preview,
     toggle_ai,
     select_document_for_ai_query,
@@ -1512,7 +1708,10 @@ export const {
     clear_llm_state,
     set_author,
     set_path,
-    set_title
+    set_title,
+    set_date_after,
+    set_date_before,
+    set_language_code
 } = searchSlice.actions;
 
 export default searchSlice.reducer;

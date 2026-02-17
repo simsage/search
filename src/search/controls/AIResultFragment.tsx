@@ -36,10 +36,10 @@ export function AIResultFragment(props: AIResultFragmentProps): JSX.Element {
     const result = props.result;
     const session_id = (session && session.id) ? session.id : "null";
     const text_list = result.textList ? result.textList : [];
-    const similar_document_list = result.similarDocumentList ? result.similarDocumentList : [];
     const related_document_list = result.relatedList ? result.relatedList : [];
-    const parent_list = related_document_list.filter((rel: any) => !rel.isChild);
-    const child_list = related_document_list.filter((rel: any) => rel.isChild);
+    const parent_list = related_document_list.filter((rel: any) => rel.relationshipType === 0);
+    const child_list = related_document_list.filter((rel: any) => rel.relationshipType === 1);
+    const similar_list = related_document_list.filter((rel: any) => rel.relationshipType === 2);
     const last_modified = result.lastModified;
     const title = result.title ? result.title : "";
     // Prefer the metadata url to the doc's url as the later might be the source id (Sharepoint)
@@ -182,7 +182,7 @@ export function AIResultFragment(props: AIResultFragmentProps): JSX.Element {
                                         <ul>
                                             {
                                                 parent_list.map((item: any, j: number) => {
-                                                    const title = item.title ? item.title : (item.webUrl ? item.webUrl : item.relatedUrl);
+                                                    const title = item.webUrl ? item.webUrl : item.relatedUrl;
                                                     return (<li key={j} className={similar_document}>{title}</li>);
                                                 })
                                             }
@@ -196,7 +196,7 @@ export function AIResultFragment(props: AIResultFragmentProps): JSX.Element {
                                         <ul>
                                             {
                                                 child_list.map((item: any, j: number) => {
-                                                    const title = item.title ? item.title : (item.webUrl ? item.webUrl : item.relatedUrl);
+                                                    const title = item.webUrl ? item.webUrl : item.relatedUrl;
                                                     return (<li key={j} className={similar_document}
                                                                 onClick={() => handle_title_click(item, item.relatedUrl)}
                                                                 title={get_title_for_links(item.relatedUrl)}>
@@ -207,14 +207,15 @@ export function AIResultFragment(props: AIResultFragmentProps): JSX.Element {
                                         </ul>
                                     </div>
                                 }
-                                {similar_document_list && similar_document_list.length > 0 &&
+                                {similar_list && similar_list.length > 0 &&
                                     <div>
-                                        <div className="similar-document-title">{"similar documents" + (similar_document_list.length === 10 ? " (top 10)" : "")}</div>
+                                        <div className="similar-document-title">{"similar documents" + (similar_list.length === 10 ? " (top 10)" : "")}</div>
                                         <ul>
                                             {
-                                                similar_document_list.map((similar: any, j: number) => {
-                                                    return (<li key={j} className={similar_document}>
-                                                        {limit_text(similar.url, 100)}
+                                                similar_list.map((item: any, j: number) => {
+                                                    const title = item.webUrl ? item.webUrl : item.relatedUrl;
+                                                    return (<li key={j} className={similar_document} title={title}>
+                                                        {limit_text(title, 100)}
                                                     </li>);
                                                 })
                                             }
@@ -222,7 +223,8 @@ export function AIResultFragment(props: AIResultFragmentProps): JSX.Element {
                                     </div>
                                 }
                                 {
-                                    ((child_list && child_list.length > 0) || (parent_list && parent_list.length > 0)) &&
+                                    ((child_list && child_list.length > 0) || (parent_list && parent_list.length > 0) ||
+                                    (similar_list && similar_list.length > 0)) &&
                                     <div className="border-bottom line-width-limited"/>
                                 }
                             </div>

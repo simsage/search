@@ -13,8 +13,8 @@ window.ENV = {
     app_title: "SimSage Search",
     // UI language, en or fr
     language: "en",
-    // at present values are: arista, simsage, sjic
-    customer: 'simsage',
+    // at present values are: simsage, malaghan, hemubo, wcc, icc
+    customer: "simsage",
     // a link (can be empty string for go back to SimSage) for the customer clicking on their logo in the UX
     customer_website: '',
     // can set as false to skip previews
@@ -26,8 +26,8 @@ window.ENV = {
     optional_search_feedback_link: '',
     // show metadata in preview window
     show_preview_metadata: false,
-    // show llm search option in menu?
-    show_llm_menu: true,
+    // show llm search / conversational AI option in the settings-menu?
+    show_llm_menu: false,
     // llm interface showing by default?
     llm_search: false,
     // allow copying of the URL (for sharepoint etc.) using a clipboard symbol at the end of the url?
@@ -104,18 +104,15 @@ window.ENV = {
         "xlsb", "xlsm", "xlsx", "xlt", "xltm", "xltx", "xlw", "xps", "y", "yacc", "yaml"
     ],
 
-    // map source names to source icons
-    source_icons: {
-        "bugs": "images/source-icons/bugs-icon.svg",
-        "aid": "images/source-icons/arista-icon.png",
-        "reviewboard": "images/source-icons/reviewboard-icon.png",
-        "release tracker": "images/source-icons/tracker-icon.png",
-    },
+    // map source names to source icons, e.g., {"bugs": "images/source-icons/bugs-icon.svg"}
+    source_icons: {},
 
     // source path remapping if (sourceId => if (url starts_with) => url.replace(starts_with, replace_with))
     // OSX entries always change the \\ to // - windows leaves them as is
     // e.g., {14: {starts_with: "https://dataset.simsage.co.uk/", replace_with: "/Volumes/"}}
-    // case-insensitive matching - and leave UNC paths as they are (using double backslash in starts_with)
+    //   or  {15: {starts_with: "//server/share/folder", replace_with: "/Volumes/"}}
+    // case-insensitive matching, all backslashes are replaced with forward-slashes in comparisons
+    // source_path_remapping_osx for Mac OSX and Linux, source_path_remapping_win for MS Windows
     source_path_remapping_osx: {},
     source_path_remapping_win: {},
 

@@ -20,8 +20,14 @@
   </body>
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-      if (window.ENV.customer === 'arista') {
-        document.title = 'Arista Search';
+      if (window.ENV.customer === 'malaghan') {
+        document.title = 'Malaghan Enterprise Search';
+      } else if (window.ENV.customer === 'hemubo') {
+        document.title = 'Hemubo Enterprise Search';
+      } else if (window.ENV.customer === 'icc') {
+        document.title = 'International Criminal Court Enterprise Search';
+      } else if (window.ENV.customer === 'wcc') {
+        document.title = 'Wellington City Council Enterprise Search';
       }
     });
   </script>

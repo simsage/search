@@ -12,8 +12,7 @@ import {
     close_preview,
     close_query_ai,
     do_search,
-    get_info, go_home,
-    set_group_similar,
+    get_info, get_search_favourites, go_home,
     set_sort_order,
     set_source_values,
     update_search_text
@@ -82,11 +81,11 @@ function Search(): JSX.Element {
     const { width } = useWindowDimensions();
 
     const { show_menu, show_kb_menu, show_query_builder } = useSelector((state: RootState) => state.authReducer);
-    const { search_focus, busy, all_kbs, has_info } = useSelector((state: RootState) => state.searchReducer);
-    const { shard_list, search_text, group_similar, sort_order, metadata_list, metadata_values } = useSelector((state: RootState) => state.searchReducer);
+    const { search_focus, busy, all_kbs, has_info, language_code } = useSelector((state: RootState) => state.searchReducer);
+    const { shard_list, search_text, sort_order, metadata_list, metadata_values } = useSelector((state: RootState) => state.searchReducer);
     const { entity_values, hash_tag_list, syn_set_values } = useSelector((state: RootState) => state.searchReducer);
     const { source_list, source_values, result_list, prev_search_text, prev_filter,
-        pages_loaded, use_ai, ai_enabled, all_have_group_similar, title, path, author,
+        pages_loaded, use_ai, ai_enabled, title, path, author,
         query_ai_focus_url, search_page, page_size, theme } = useSelector((state: RootState) => state.searchReducer);
     const { session, organisation, user } = useSelector((state: RootState) => state.authReducer);
 
@@ -111,7 +110,7 @@ function Search(): JSX.Element {
 
     useEffect(() => {
         if (!has_info)
-            dispatch(get_info({ session: session, user: user }));
+            dispatch(get_info({session: session, user: user}));
     }, [session, user, dispatch, has_info]);
 
     useEffect(() => {
@@ -130,6 +129,13 @@ function Search(): JSX.Element {
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [source_list, session?.id, dispatch]); // the dependency on source_list is a convenient one as it relates to get_info finishing
+
+    useEffect(() => {
+        if (session && session.id) {
+            dispatch(get_search_favourites({session: session}));
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [session?.id, dispatch]);
 
     function toggle_accounts_menu(e?: React.MouseEvent): void {
         if (e) {
@@ -159,11 +165,6 @@ function Search(): JSX.Element {
         }
     }
 
-    function on_set_group_similar(group_similar: boolean): void {
-        dispatch(set_group_similar(group_similar));
-        search({ group_similar: group_similar, next_page: false, reset_pagination: true });
-    }
-
     function on_set_sort_by(sort_order: number): void {
         dispatch(set_sort_order(sort_order));
         search({ sort_order: sort_order, next_page: false, reset_pagination: true });
@@ -181,7 +182,6 @@ function Search(): JSX.Element {
             user: user,
             search_text: search_text,
             shard_list: shard_list,
-            group_similar: group_similar && all_have_group_similar,
             sort_order: sort_order,
             search_page: search_page,
             page_size: page_size,
@@ -201,7 +201,8 @@ function Search(): JSX.Element {
             use_ai: (use_ai && ai_enabled),
             author: author,
             path: path,
-            title: title
+            title: title,
+            language_code: language_code
         };
         if (session && session.id && !busy) {
             if (values) {
@@ -249,18 +250,15 @@ function Search(): JSX.Element {
                         </div>
 
                         {/* search box */}
-                        <div className="col-8">
+                        <div className={width && width > min_width ? "col-8" : "col-11"}>
                             <SearchBox
                                 on_search={() => search({ next_page: false })}
                                 on_search_text={(text) => search({ next_page: false, search_text: text })}
                             />
                         </div>
 
-                        <div className="col-1">
-                        </div>
-
                         {/* large and small screen name and menus */}
-                        <div className="col-2">
+                        <div className={width && width > min_width ? "col-3" : "visually-hidden"}>
                             {!show_preview &&
                                 <div>
                                     {/* only displayed on larger screens */}
@@ -282,18 +280,16 @@ function Search(): JSX.Element {
                                                 </button>
                                                 <AccountDropdown on_search={() => search(null)}/>
                                             </div>
-                                            <div className="col-1 px-1 mx-1">
-                                                {width && width > min_width &&
-                                                    <button className={( show_query_builder ? "active" : "") + " btn nav-btn"}
-                                                            onClick={() => on_toggle_query_builder()}>
-                                                        <ControlPanelIcon className={theme === "light" ? "svgColorLight" : "svgColorDark"} />
-                                                    </button>
-                                                }
+                                            <div className="col-2 px-1 mx-1" title="query builder">
+                                                <button className={( show_query_builder ? "active" : "") + " btn nav-btn"}
+                                                        onClick={() => on_toggle_query_builder()}>
+                                                    <ControlPanelIcon className={theme === "light" ? "svgColorLight" : "svgColorDark"} />
+                                                </button>
                                             </div>
-                                            <div className="col-1 px-1 mx-1">
+                                            <div className="col-2 px-1 mx-1">
                                                 {show_kb &&
                                                     <div className="kb-menu">
-                                                        <div className="account" title="Select Data Source">
+                                                        <div className="account" title="knowledge base">
                                                             <button className={(show_kb_menu ? "active" : "") + " btn nav-btn"}
                                                                     onClick={(e) => toggle_knowledgebase_menu(e)}>
                                                                 <img
@@ -310,7 +306,7 @@ function Search(): JSX.Element {
                                                     </div>
                                                 }
                                             </div>
-                                            <div className="col-3">
+                                            <div className="col-1">
                                             </div>
                                         </div>
                                     </div>
@@ -365,21 +361,7 @@ function Search(): JSX.Element {
                         </div>
                         <div className="mt-1 col-4">
                             <div className={document_filter + " d-flex align-content-center"}>
-                                {all_have_group_similar &&
-                                    <div className="form-check form-switch ps-0 d-flex show-similar-width">
-                                        <input className="form-check-input h6 ms-0 my-0"
-                                               type="checkbox"
-                                               role="switch"
-                                               disabled={busy}
-                                               checked={group_similar}
-                                               onChange={(event) => on_set_group_similar(event.target.checked)}
-                                        />
-                                        <label className="custom-small-label-2"
-                                               title="show documents that are similar in the search results"
-                                               htmlFor="flexSwitchCheckDefault">{t("Show similar")}</label>
-                                    </div>
-                                }
-                                <label className="list-group-item p-0 overflow-hidden d-flex">
+                                <label className="list-group-item p-0 overflow-hidden d-flex" style={{minWidth: "200px"}}>
                                     <span className={"sort-by-label"}>{t("Sort by")}</span>
                                     <select
                                         id="flexSortBy"

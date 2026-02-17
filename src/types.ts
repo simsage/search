@@ -17,6 +17,15 @@ declare global {
     replace_with: string;
   }
 
+  interface SearchFavourite {
+    organisationId: string;
+    kbId: string;
+    userId: string;
+    text: string;
+    created: number;
+    top: number;
+  }
+
   interface Window {
     ENV: {
       version: string;
@@ -81,6 +90,7 @@ export interface KnowledgeBase {
   sourceList?: SourceItem[];
   categoryList?: MetadataItem[];
   hasLLM?: boolean;
+  supportedLanguages: string[];
   [key: string]: any;
 }
 
@@ -97,7 +107,7 @@ export interface SourceItem {
   sourceId: string;
   name: string;
   sourceType?: string;
-  enableDocumentSimilarity: boolean;
+  storeBinary: boolean;
   [key: string]: any;
 }
 
@@ -124,6 +134,13 @@ export interface UrlBoost {
   boostCount: number;
 }
 
+export interface SearchSuggestion {
+  kbId: string;
+  queryText: string;
+  frequency: number;
+  lastModified: number;
+}
+
 export interface SearchState {
   shard_list: number[];
   result_list: SearchResult[];
@@ -142,8 +159,6 @@ export interface SearchState {
   pages_loaded: number;
 
   total_document_count: number;
-  group_similar: boolean;
-  all_have_group_similar: boolean;
   sort_order: number;
   busy: boolean;
   busy_with_summary: boolean;
@@ -213,11 +228,15 @@ export interface SearchState {
   author: string;
   title: string;
   path: string;
+  after: string;
+  before: string;
 
-}
+  search_suggestion_list: SearchSuggestion[];
+  search_favourite_list: string[];
 
-export interface MessageExpandPayload {
-  index: number;
+  // the current language
+  language_code: string;
+
 }
 
 export interface FocusPreviewPayload {
@@ -282,7 +301,6 @@ export interface DoSearchPayload {
   prev_search_text: string;
   prev_filter: string;
   shard_list: any[];
-  group_similar: boolean;
   sort_order: number;
   metadata_list: MetadataItem[];
   metadata_values: any;
@@ -299,6 +317,7 @@ export interface DoSearchPayload {
   author: string;
   path: string;
   title: string;
+  language_code: string; // en, nl, etc.
 }
 
 export interface CreateShortSummaryPayload {
@@ -321,6 +340,20 @@ export interface AskDocumentQuestionPayload {
   question: string;
   document_url: string;
   on_success?: () => void;
+}
+
+export interface GetSearchSuggestionsPayload {
+  session: Session;
+  text: string;
+}
+
+export interface GetSearchFavouritesPayload {
+  session: Session;
+}
+
+export interface SearchFavouritePayload {
+  session: Session;
+  text: string;
 }
 
 export interface DoLlmSearchPayload {
@@ -450,10 +483,12 @@ export interface HashTag {
 }
 
 export interface RelatedDocument {
-  isChild: boolean;
-  title?: string;
-  webUrl?: string;
+  urlId: number; // original
+  relationshipType: number; // 0=parent, 1=child, 2=related
+  relatedUrlId: number;
+  webUrl: string;
   relatedUrl: string;
+  documentType: string;
 }
 
 export interface SimilarDocument {

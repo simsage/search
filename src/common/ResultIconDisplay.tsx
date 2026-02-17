@@ -4,19 +4,19 @@ import { useTranslation } from "react-i18next";
 import { RootState } from '../store';
 import {SourceItem} from "../types";
 import {
-    get_archive_child, get_icon_src, get_source_for_result, is_archive_file, is_viewable, download,
-    preview_image_url
+    get_archive_child, get_icon_src, is_archive_file, is_viewable, download, preview_image_url
 } from "./Api";
 
 interface ResultIconDisplayProps {
+    source: SourceItem | undefined;
     result: any;
     url: string;
     set_focus_for_preview?: (result: any) => void;
 }
 
-export const ResultIconDisplay = ({ result, url, set_focus_for_preview }: ResultIconDisplayProps): JSX.Element => {
+export const ResultIconDisplay = ({ source, result, url, set_focus_for_preview }: ResultIconDisplayProps): JSX.Element => {
     const { t } = useTranslation();
-    const { source_list, show_source_icon } = useSelector((state: RootState) => state.searchReducer);
+    const { show_source_icon } = useSelector((state: RootState) => state.searchReducer);
     const { session } = useSelector((state: RootState) => state.authReducer);
     const session_id = session ? session.id : "";
 
@@ -34,15 +34,16 @@ export const ResultIconDisplay = ({ result, url, set_focus_for_preview }: Result
             return t("preview") + " " + actual_url;
         } else if (is_viewable(url)) {
             return t("open") + " " + actual_url + " " + t("in the browser");
-        } else if (!is_archive_file(url)) {
+        } else if (!is_archive_file(url) && source && source.storeBinary) {
             return t("download") + " " + actual_url + " " + t("to your computer");
+        } else if (source && !source.storeBinary) {
+            return "this source does not have access to the original file \"" + actual_url + "\"";
         } else {
             return t("cannot download archive file") + " " + actual_url;
         }
     }
 
-    const circle_letters = (result: any, source_list: SourceItem[]): JSX.Element => {
-        const source = source_list && source_list.find((item) => item.sourceId === result.sourceId);
+    const circle_letters = (): JSX.Element => {
         let name = source?.name ?? "SRC";
         if (name.length > 3) {
             name = name.substring(0, 3).toUpperCase();
@@ -58,13 +59,12 @@ export const ResultIconDisplay = ({ result, url, set_focus_for_preview }: Result
         );
     };
 
-    const source = get_source_for_result(result, source_list);
     const icon_src = get_icon_src(source);
 
     return (
         <div>
             { show_source_icon && icon_src === 'default' &&
-                circle_letters(result, source_list)
+                circle_letters()
             }
             {
                 (show_source_icon && icon_src !== 'default') &&

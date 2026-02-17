@@ -1,12 +1,13 @@
 import '../types';
 
-import arista from "../assets/images/brand/brand_arista.png"
+import malaghan from "../assets/images/brand/brand_malaghan.png"
+import hemubo from "../assets/images/brand/brand_hemubo.png"
+import wcc_light from "../assets/images/brand/wcc-logo.svg"
+import wcc_dark from "../assets/images/brand/wcc-logo-dark.svg"
+import icc from "../assets/images/brand/brand_icc.png"
 import es_light from "../assets/images/brand/brand_enterprise-search.svg"
 import es_dark from "../assets/images/brand/brand_enterprise-search-dark.svg"
 import img_egnyte from "../assets/images/source-icons/egnyte-icon.png"
-import img_aid from "../assets/images/source-icons/arista-icon.png"
-import img_review_board from "../assets/images/source-icons/reviewboard-icon.png"
-import img_release_tracker from "../assets/images/source-icons/tracker-icon.png"
 import img_open_text from "../assets/images/source-icons/opentext-icon.png"
 import img_aws from "../assets/images/source-icons/icon_ci-aws.svg"
 import img_box from "../assets/images/source-icons/icon_ci-box.svg"
@@ -21,7 +22,6 @@ import img_web from "../assets/images/source-icons/icon_ci-web.svg"
 import img_web_2 from "../assets/images/source-icons/icon_ci-web-2.svg"
 import img_discourse from "../assets/images/source-icons/icon_ci-discourse.svg"
 import img_service_now from "../assets/images/source-icons/icon_ci-servicenow.svg"
-import img_bugs from "../assets/images/source-icons/bugs-icon.svg"
 import img_office from "../assets/images/source-icons/icon_ci-office.svg"
 import img_sharepoint from "../assets/images/source-icons/icon_ci-sharepoint.svg"
 import img_outlook from "../assets/images/source-icons/icon_ci-outlook.svg"
@@ -721,9 +721,6 @@ export function time_ago(timestamp: number): string {
 // Define the source icons as an object instead of an enum
 const SOURCE_ICONS = {
     EGNYTE: img_egnyte,
-    AID: img_aid,
-    REVIEW_BOARD: img_review_board,
-    RELEASE_TRACKER: img_release_tracker,
     AWS: img_aws,
     BOX: img_box,
     XML: img_xml,
@@ -738,7 +735,6 @@ const SOURCE_ICONS = {
     WEB_LINK: img_web_2,
     DISCOURSE: img_discourse,
     SERVICE_NOW: img_service_now,
-    BUGS: img_bugs,
     OFFICE: img_office,
     SHAREPOINT: img_sharepoint,
     OUTLOOK: img_outlook,
@@ -759,15 +755,6 @@ export function get_icon_src(source: any): string {
         return SOURCE_ICONS.DEFAULT
     if (!source.sourceType)
         return SOURCE_ICONS.DEFAULT
-    const name_lwr = source.name.toLowerCase()
-    if (name_lwr === "bugs")
-        return get_icon_for_source_type("bugs")
-    if (name_lwr === "aid")
-        return get_icon_for_source_type("aid")
-    if (name_lwr === "release tracker" || name_lwr === "releasetracker")
-        return get_icon_for_source_type("release tracker")
-    if (name_lwr === "reviewboard" || name_lwr === "review board")
-        return get_icon_for_source_type("review board")
     return get_icon_for_source_type(source.sourceType)
 }
 
@@ -777,18 +764,6 @@ export function get_icon_for_source_type(source_type: string): string {
     switch (source_type.toLowerCase()) {
         case 'aws':
             icon_src = SOURCE_ICONS.AWS;
-            break;
-        case 'release tracker':
-            icon_src = SOURCE_ICONS.RELEASE_TRACKER;
-            break;
-        case 'review board':
-            icon_src = SOURCE_ICONS.REVIEW_BOARD;
-            break;
-        case 'bugs':
-            icon_src = SOURCE_ICONS.BUGS;
-            break;
-        case 'aid':
-            icon_src = SOURCE_ICONS.AID;
             break;
         case 'jira':
             icon_src = SOURCE_ICONS.JIRA;
@@ -1242,8 +1217,14 @@ export const language_lookup: Record<string, string> = {
 // get a logo for the current user to display in the UX
 export function get_enterprise_logo(theme: string): string {
     const customer = window.ENV.customer;
-    if (customer === 'arista') {
-        return arista
+    if (customer === 'malaghan') {
+        return malaghan
+    } else if (customer === 'hemubo') {
+        return hemubo
+    } else if (customer === 'wcc') {
+        if (theme === 'light') return wcc_light; else return wcc_dark;
+    } else if (customer === 'icc') {
+        return icc
     } else {
         if (theme === "light")
             return es_light
@@ -1302,11 +1283,13 @@ export function get_hashtag_list(metadata: Record<string, string>): Array<{key: 
  * @param source_list   the list of source items
  * @param source_values the selected (by sourceId) source items, map[string] => boolean
  * @param source_filter a string filter
+ * @param source_id_count a count map for the sources
  */
 export function get_source_list(
     source_list: SourceItem[],
     source_values: {[key: string]: boolean},
-    source_filter: string
+    source_filter: string,
+    source_id_count?: {[key: string]: number}
 ): SourceGroup[] {
     //Pull in all sources
     let items: SourceItem[] = source_list && source_list.length > 0 ? source_list : [];
@@ -1318,6 +1301,10 @@ export function get_source_list(
             source_group_list.push(temp);
         });
     }
+
+    const total = Object.values(source_id_count ?? {})
+        .reduce((acc, count) => acc + count, 0);
+
 
     //Adding in items as an individual or into their group.
     items.forEach((item) => {
@@ -1338,8 +1325,23 @@ export function get_source_list(
         }
     });
 
+    if (total > 0) {
+        source_group_list = source_group_list
+            .sort((a, b) => {
+                const idA = String(a.sourceId || "");
+                const idB = String(b.sourceId || "");
+                const countA = source_id_count ? (source_id_count[idA] ?? 0) : 0
+                const countB = source_id_count ? (source_id_count[idB] ?? 0) : 0
+                if (countA > countB) return -1
+                if (countA < countB) return 1
+                return idA.localeCompare(idB)
+            })
+    } else {
+        source_group_list = source_group_list
+            .sort((a, b) => (a.type && b.type && a.type > b.type) ? -1 : 1)
+    }
     const trim_filter = source_filter.trim().toLowerCase();
-    source_group_list = source_group_list.sort((a, b) => (a.type && b.type && a.type > b.type) ? -1 : 1)
+    source_group_list = source_group_list
         .filter((item) => {
             return trim_filter.length === 0 || source_values[item.sourceId as string] ||
                 item.name.toLowerCase().indexOf(trim_filter) >= 0;
@@ -1487,6 +1489,25 @@ export function detectOS(): "Windows" | "OSX" | "Android" {
 }
 
 /**
+ * helper for map_url below
+ *
+ * @param to_remap the URL string to look at for a possible re-map
+ * @param remapper if defined, a SourceUrlRemap structure with instructions for remapping (see settings.js)
+ * @return the to_remap if not matched, otherwise the remapped item
+ */
+function remap_url(to_remap: string, remapper: SourceUrlRemap | undefined): string {
+    if (!remapper) return to_remap;
+    let u1 = to_remap.replaceAll('\\', '/')
+    let u2 = remapper.starts_with.replaceAll('\\', '/')
+    if (u2.length > 0 && u2.length < u1.length &&
+        u1.toLowerCase().indexOf(u2.toLowerCase()) === 0) { // starts with?
+        return remapper.replace_with + u1.substring(u2.length);
+    }
+    return to_remap;
+}
+
+
+/**
  * Change a url depending on the operating system
  * unc: \\server\share\path\file.txt => smb://server/share/path/file.txt
  *
@@ -1497,36 +1518,20 @@ export function detectOS(): "Windows" | "OSX" | "Android" {
 export function map_url(source_id: number, url: string): string {
     if (source_id <= 0) return url
     const is_win = detectOS() === "Windows"
-    // OSX mapping?
+    // OSX or Linux mapping?
     if (!is_win) {
         const mappings = window.ENV.source_path_remapping_osx
-        let u1 = url.replaceAll('\\', '/')
-        if (mappings.hasOwnProperty(source_id)) {
-            const remap = mappings[source_id];
-            if (remap.starts_with.length > 0 && remap.starts_with.length < url.length &&
-                url.toLowerCase().indexOf(remap.starts_with.toLowerCase()) === 0) { // starts with?
-                return remap.replace_with + u1.substring(remap.starts_with.length);
-            }
-        }
-        if (!url.startsWith("\\\\")) // no need to change, not a UNC
-            return url
+        const u1 = remap_url(url, mappings[source_id])
+        if (!u1.startsWith("\\\\")) // no need to change, not a UNC
+            return u1
         // Replace UNC slashes and start with smb://
-        return "smb:" + u1
-
+        return "smb:" + u1.replaceAll('\\', '/')
     } else {
         // windows
         const mappings = window.ENV.source_path_remapping_win
-        if (mappings.hasOwnProperty(source_id)) {
-            const remap = mappings[source_id];
-            if (remap.starts_with.length > 0 && remap.starts_with.length < url.length &&
-                url.toLowerCase().indexOf(remap.starts_with.toLowerCase()) === 0) { // starts with?
-                return remap.replace_with + url.substring(remap.starts_with.length);
-            }
-            return url // didn't start with the right string - just return
-        }
-        return url // default - we don't map anything for windows - it is native
+        return remap_url(url, mappings[source_id])
     }
 }
 
 // minimum screen width before we stop showing certain things
-export const min_width = 1080;
+export const min_width = 1180;

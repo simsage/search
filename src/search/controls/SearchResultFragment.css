@@ -51,3 +51,14 @@
     cursor: pointer;
     color: #ff6666;
 }
+
+.transition-transform {
+    color: #888;
+    cursor: default;
+    display: inline-block;
+    transition: transform 0.2s ease-in-out;
+}
+
+.rotate-90 {
+    transform: rotate(90deg);
+}

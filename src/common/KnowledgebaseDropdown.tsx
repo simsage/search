@@ -23,7 +23,7 @@ export function KnowledgebaseDropdown(): JSX.Element {
         if (pots.length > 0) {
             return pots[0];
         } else {
-            return { name: "Default", id: window.ENV.kb_id };
+            return { name: "Default", id: window.ENV.kb_id, supportedLanguages: ["en"] };
         }
     }
 

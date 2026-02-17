@@ -10,7 +10,7 @@ import {
     map_url,
     unescape_owasp
 } from "../../common/Api";
-import React from "react";
+import React, {useState} from "react";
 import {
     create_short_summary,
     select_document_for_ai_query,
@@ -51,14 +51,17 @@ export function SearchResultFragment(props: SearchResultFragmentProps): JSX.Elem
     // user access
     const {session} = useSelector((state: RootState) => state.authReducer)
     const {source_list, summaries, ai_enabled, theme} = useSelector((state: RootState) => state.searchReducer);
+    const [is_similar_open, setSimilarIsOpen] = useState(false);
+    const [is_children_open, setChildrenIsOpen] = useState(false);
+    const [is_parent_open, setParentIsOpen] = useState(false);
 
     const result = props.result;
     const session_id = (session && session.id) ? session.id : "null";
     const text_list = result.textList ? result.textList : [];
-    const similar_document_list = result.similarDocumentList ? result.similarDocumentList : [];
     const related_document_list = result.relatedList ? result.relatedList : [];
-    const parent_list = related_document_list.filter(rel => !rel.isChild);
-    const child_list = related_document_list.filter(rel => rel.isChild);
+    const parent_list = related_document_list.filter((rel: any) => rel.relationshipType === 0);
+    const child_list = related_document_list.filter((rel: any) => rel.relationshipType === 1);
+    const similar_list = related_document_list.filter((rel: any) => rel.relationshipType === 2);
     const title = result.title ? result.title : "";
     const summary = summaries[result.url] ? summaries[result.url] : "";
     // Prefer the metadata url to the doc's url as the later might be the source id (Sharepoint)
@@ -75,27 +78,52 @@ export function SearchResultFragment(props: SearchResultFragmentProps): JSX.Elem
         custom_render_html = highlight(text_list.length > 0 ? text_list[0] : "", theme);
     }
 
-    function click_preview_image(result: SearchResult | RelatedDocument, url: string): void {
+    const toggle_similar_open = () => setSimilarIsOpen(!is_similar_open);
+    const toggle_children_open = () => setChildrenIsOpen(!is_children_open);
+    const toggle_parent_open = () => setParentIsOpen(!is_parent_open);
+
+    function click_preview_image(
+        source: SourceItem | undefined,
+        result: SearchResult | RelatedDocument,
+        url: string
+    ): void {
         if (!window.ENV.show_previews) {
-            download(url, session_id); // download has the smarts for archive vs archive child logic
+            if (can_click(source, url))
+                download(url, session_id); // download has the smarts for archive vs archive child logic
         } else {
             dispatch(set_focus_for_preview(result))
         }
     }
 
-    function get_title_for_links(url: string): string {
+    function get_title_for_links(source: SourceItem | undefined, url: string): string {
         const actual_url = get_archive_child(url)
         if (window.ENV.show_previews) {
             return "preview \"" + actual_url + "\"";
         } else {
             if (is_viewable(url)) {
                 return t("open") + " \"" + url + "\" " + t("in the browser");
-            } else if (!Api.is_archive_file(url)) {
+            } else if (!Api.is_archive_file(url) && source && source.storeBinary) {
                 return "download \"" + actual_url + "\" to your computer";
+            } else if (source && !source.storeBinary) {
+                return "this source does not have access to the original file \"" + actual_url + "\"";
             } else {
                 return "cannot download archive file \"" + actual_url + "\"";
             }
         }
+    }
+
+    // can this item for this source be clicked?
+    function can_click(source: SourceItem | undefined, url: string): boolean {
+        if (window.ENV.show_previews) {
+            return true
+        } else {
+            if (is_viewable(url)) {
+                return true
+            } else if (!Api.is_archive_file(url) && source && source.storeBinary) {
+                return true
+            }
+        }
+        return false
     }
 
     // summarize a snippet of search-result
@@ -132,6 +160,7 @@ export function SearchResultFragment(props: SearchResultFragmentProps): JSX.Elem
     }
 
     const source_set: Record<string, SourceItem> = {}
+    let source: SourceItem | undefined = undefined
     let source_type = ""
     if (source_list && source_list.length > 0) {
         for (const source of source_list) {
@@ -139,6 +168,7 @@ export function SearchResultFragment(props: SearchResultFragmentProps): JSX.Elem
         }
         if (result && result.sourceId && source_set.hasOwnProperty(result.sourceId)) {
             source_type = source_set[result.sourceId].sourceType ?? ""
+            source = source_set[result.sourceId]
         }
     }
 
@@ -150,6 +180,7 @@ export function SearchResultFragment(props: SearchResultFragmentProps): JSX.Elem
         <div className="d-flex pb-2 mb-3 px-3">
             {/*** SHOW PREVIEW OR SOURCE ICON ***/}
             <ResultIconDisplay
+                source={source}
                 result={result}
                 url={url}
             />
@@ -160,24 +191,29 @@ export function SearchResultFragment(props: SearchResultFragmentProps): JSX.Elem
             {!custom_render_type &&
                 <div className="ms-3 w-100">
                 {/********************** TITLE (FILE NAME) **********************/}
-                { (window.ENV.show_previews || !is_viewable(url)) &&
-                <span className={results_filename + " mb-2 text-break pointer-cursor"}
-                      onClick={() => {
-                          click_preview_image(result, url)
-                      }} title={get_title_for_links(url)}>
+                { (window.ENV.show_previews && !can_click(source, url)) &&
+                <span className={results_filename + " mb-2 text-break " + (can_click(source, url) ? "pointer-cursor": "")}
+                      onClick={() => click_preview_image(source, result, url)}
+                                title={get_title_for_links(source, url)}>
                         {title ? title : url}
                 </span>
                 }
                 { language &&
-                    <span className="ps-2 small-font d-inline-block" style={{cursor: "default"}} title={language}>
+                    <span className="ps-2 small-font d-inline-block" style={{cursor: "default", color: '#888'}} title={language}>
                         &nbsp;{language}&nbsp;
                     </span>
                 }
-                { !window.ENV.show_previews && is_viewable(url) &&
+                { !window.ENV.show_previews && can_click(source, url) &&
                     <a href={get_archive_parent(url)} rel="noreferrer" target="_blank" className={results_filename + " mb-2 text-break pointer-cursor"}
-                       title={get_title_for_links(url)}>
+                       title={get_title_for_links(source, url)}>
                         {title ? title : url}
                     </a>
+                }
+                { !window.ENV.show_previews && !can_click(source, url) &&
+                    <span className={results_filename + " mb-2 text-break"}
+                       title={get_title_for_links(source, url)}>
+                        {title ? title : url}
+                    </span>
                 }
                 { ai_enabled &&
                 <span className="qna-image" title={t("converse with this document")}
@@ -201,19 +237,24 @@ export function SearchResultFragment(props: SearchResultFragmentProps): JSX.Elem
                 }
                 <div>
                     {parent_list && parent_list.length > 0 &&
-                        <div className="border-top line-width-limited">
-                            <div className="similar-document-title">{source_type === "discourse" ? "topic" : "parent document"}</div>
-                            <ul>
-                                {
+                        <div className="line-width-limited">
+                            <span className={`bi bi-chevron-right me-2 transition-transform ${is_parent_open ? 'rotate-90' : ''}`}
+                                  title="Open or Close this topic/parent list"
+                                  onClick={() => toggle_parent_open()}></span>
+                            <span className="similar-document-title">
+                                {source_type === "discourse" ? "topic (" : "parent document (" + parent_list.length + ")"}
+                            </span>
+                                { is_parent_open &&
+                                <ul>
+                                    {
                                     parent_list.map((item, j) => {
-                                        const title = item.title ? item.title : (item.webUrl ? item.webUrl :item.relatedUrl);
+                                        const title = item.webUrl ? item.webUrl : item.relatedUrl;
                                         const url = map_url(result.sourceId, title)
                                         return (
                                             <div key={"parent-document-" + j}>
                                                 <CopyToClipboard
                                                     web_url={url}
                                                     url={get_archive_parent(url)}
-                                                    urlId={result.urlId}
                                                     title={get_archive_pretty_print(url)}
                                                     extra_style={similar_document_css}
                                                     text_limit={max_text_length_for_links}
@@ -221,17 +262,24 @@ export function SearchResultFragment(props: SearchResultFragmentProps): JSX.Elem
                                             </div>
                                         )
                                     })
+                                    }
+                                </ul>
                                 }
-                            </ul>
                         </div>
                     }
                     {child_list && child_list.length > 0 &&
-                        <div className="border-top line-width-limited">
-                            <div className="similar-document-title">{source_type === "discourse" ? "replies" : "attachments"}</div>
-                            <ul>
-                                {
+                        <div className="line-width-limited">
+                            <span className={`bi bi-chevron-right me-2 transition-transform ${is_children_open ? 'rotate-90' : ''}`}
+                                  title="Open or Close this reply/attachment list"
+                                  onClick={() => toggle_children_open()}></span>
+                            <span className="similar-document-title">
+                                {source_type === "discourse" ? "replies (" : "attachments (" + child_list.length + ")"}
+                            </span>
+                                { is_children_open &&
+                                <ul>
+                                    {
                                     child_list.map((item, j) => {
-                                        const title = item.title ? item.title : (item.webUrl ? item.webUrl :item.relatedUrl);
+                                        const title = item.webUrl ? item.webUrl : item.relatedUrl;
                                         const url = map_url(result.sourceId, title)
                                         const title_url = map_url(result.sourceId, item.relatedUrl)
                                         return (
@@ -239,7 +287,6 @@ export function SearchResultFragment(props: SearchResultFragmentProps): JSX.Elem
                                                 <CopyToClipboard
                                                     web_url={url}
                                                     url={get_archive_parent(url)}
-                                                    urlId={result.urlId}
                                                     title={get_archive_pretty_print(title_url)}
                                                     extra_style={similar_document_css}
                                                     text_limit={max_text_length_for_links}
@@ -247,28 +294,30 @@ export function SearchResultFragment(props: SearchResultFragmentProps): JSX.Elem
                                             </div>
                                         )
                                     })
+                                    }
+                                </ul>
                                 }
-                            </ul>
                         </div>
                     }
-                    {
-                        ((child_list && child_list.length > 0) || (parent_list && parent_list.length > 0)) &&
-                        <div className="border-bottom line-width-limited" />
-                    }
-                    {similar_document_list && similar_document_list.length > 0 &&
+                    {similar_list && similar_list.length > 0 &&
                         <div>
-                            <div className="similar-document-title">{"similar documents" + (similar_document_list.length === 10 ? " (top 10)" : "")}</div>
-                            <ul>
-                            {
-                                similar_document_list.map((similar, j) => {
-                                    let url = similar.metadataUrl ? similar.metadataUrl : similar.url
+                            <span className={`bi bi-chevron-right me-2 transition-transform ${is_similar_open ? 'rotate-90' : ''}`}
+                                 title="Open or Close this similar documents list"
+                                 onClick={() => toggle_similar_open()}></span>
+                            <span className="similar-document-title">
+                                {"similar documents (" + similar_list.length + ")"}
+                            </span>
+                            { is_similar_open &&
+                                <ul>
+                                {
+                                similar_list.map((similar, j) => {
+                                    let url = similar.webUrl ? similar.webUrl : similar.relatedUrl
                                     const url_mapped = map_url(result.sourceId, url)
                                     return (
                                         <div key={"similar-document-" + j}>
                                             <CopyToClipboard
                                                 web_url={url_mapped}
                                                 url={get_archive_parent(url_mapped)}
-                                                urlId={result.urlId}
                                                 title={get_archive_pretty_print(url_mapped)}
                                                 extra_style={similar_document_css}
                                                 text_limit={max_text_length_for_links}
@@ -278,6 +327,7 @@ export function SearchResultFragment(props: SearchResultFragmentProps): JSX.Elem
                                 })
                             }
                             </ul>
+                            }
                         </div>
                     }
                 </div>
