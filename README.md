@@ -22,6 +22,8 @@ npm install --force
 npm run start
 ```
 
+![screenshot](screenshots/Screenshot_20260217_081759.png "SimSage Search UI")
+
 ## SimSage settings.js
 
 | name                          | value                                                            | description                                                            |
